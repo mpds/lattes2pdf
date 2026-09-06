@@ -55,7 +55,7 @@ class Entry:
 
     def find(self, *names: str, language: str = "pt") -> SourceField | None:
         for name in names:
-            candidates = [name]
+            candidates = [name, name + "-INGLES", name + "-EN"]
             if language == "en":
                 candidates = [name + "-INGLES", name + "-EN", name]
             for candidate in candidates:

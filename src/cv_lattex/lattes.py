@@ -7,6 +7,7 @@ import re
 import stat
 import unicodedata
 import zipfile
+import zlib
 from collections import Counter, defaultdict
 from pathlib import Path, PurePosixPath
 from xml.etree.ElementTree import ParseError
@@ -51,7 +52,12 @@ ADMIN_NAMES = {
 }
 YEAR_NAMES = (
     "ANO",
+    "ANO-DO-ARTIGO",
+    "ANO-DO-TEXTO",
     "ANO-DO-TRABALHO",
+    "ANO-DA-OBRA",
+    "ANO-DE-REALIZACAO",
+    "ANO-DESENVOLVIMENTO",
     "ANO-DA-PREMIACAO",
     "ANO-SOLICITACAO",
     "ANO-DE-CONCLUSAO",
@@ -114,7 +120,13 @@ def _source_bytes(path: Path, member: str | None, limit: int) -> bytes:
                 raise CVError(f"XML descompactado excede o limite de {limit} bytes.")
             with archive.open(item) as stream:
                 return _bounded_read(stream, limit)
-    except (zipfile.BadZipFile, RuntimeError, NotImplementedError) as exc:
+    except (
+        zipfile.BadZipFile,
+        RuntimeError,
+        NotImplementedError,
+        EOFError,
+        zlib.error,
+    ) as exc:
         raise CVError("Não foi possível ler o ZIP.") from exc
 
 
@@ -227,6 +239,8 @@ def read_lattes(
         raise CVError("Namespace XML não suportado; a fonte foi mantida intacta.")
     if root.tag != "CURRICULO-VITAE":
         raise CVError("O elemento raiz deve ser CURRICULO-VITAE.")
+    if len(root.findall("DADOS-GERAIS")) != 1:
+        raise CVError("O XML deve conter um único bloco DADOS-GERAIS.")
 
     vocabulary = catalog()["elements"]
     sections = {
