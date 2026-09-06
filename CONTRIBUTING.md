@@ -7,7 +7,7 @@ e instale as ferramentas de desenvolvimento:
 python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install --group dev
+python -m pip install -e . --group dev
 ```
 
 No Windows, crie o ambiente com `py -3 -m venv .venv` e ative-o pelo PowerShell
@@ -26,11 +26,13 @@ Use Ruff para formatar e verificar o código:
 ruff format .
 ruff check .
 ruff format --check .
+pytest
+python -m build
 git diff --check
 ```
 
-As configurações ficam no `pyproject.toml`. A suíte de testes de comportamento
-será introduzida junto com a implementação da CLI.
+As configurações ficam no `pyproject.toml`. Consulte `cv-lattex --help` e
+o `--help` dos subcomandos para explorar a CLI.
 
 ## Commits e releases
 
