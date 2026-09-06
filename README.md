@@ -23,8 +23,10 @@ editável em YAML e Typst, além do PDF.
 
 O [CNPq publica um XSD](https://memoria.cnpq.br/web/portal-lattes/extracoes-de-dados)
 com a estrutura do XML. Exportações podem conter campos adicionais e categorias
-que não aparecem em todos os currículos. O inventário do formato e os exemplos
-sintéticos estão sendo preparados para orientar a implementação.
+que não aparecem em todos os currículos. Os
+[exemplos sintéticos](tests/fixtures/README.md) documentam casos de referência
+para o desenvolvimento; sua presença não significa que a conversão já está
+implementada.
 
 ## Contribuições e licença
 

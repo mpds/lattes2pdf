@@ -1,0 +1,87 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Entirely fictional test data. -->
+<CURRICULO-VITAE SISTEMA-ORIGEM-XML="LATTES_OFFLINE" DATA-ATUALIZACAO="01062026">
+  <DADOS-GERAIS NOME-COMPLETO="Ana Exemplo Fictícia" NOME-EM-CITACOES-BIBLIOGRAFICAS="EXEMPLO, A." NACIONALIDADE="B" PERMISSAO-DE-DIVULGACAO="SIM"/>
+  <OUTRA-PRODUCAO>
+    <PRODUCAO-ARTISTICA-CULTURAL>
+      <APRESENTACAO-DE-OBRA-ARTISTICA SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DA-APRESENTACAO-DE-OBRA-ARTISTICA TITULO="Trabalho fictício: da-apresentacao-de-obra-artistica" ANO="2022" PAIS="Brasil" HOME-PAGE="https://example.org/trabalho" DOI="" TITULO-INGLES="Fictional work: da-apresentacao-de-obra-artistica"/>
+        <DETALHAMENTO-DA-APRESENTACAO-DE-OBRA-ARTISTICA ANO-DA-OBRA-DE-REFERENCIA="2022" CIDADE="Cidade Exemplo"/>
+        <AUTORES NOME-COMPLETO-DO-AUTOR="Ana Exemplo Fictícia" NOME-PARA-CITACAO="EXEMPLO, A." ORDEM-DE-AUTORIA="1" NRO-ID-CNPQ=""/>
+      </APRESENTACAO-DE-OBRA-ARTISTICA>
+      <APRESENTACAO-EM-RADIO-OU-TV SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DA-APRESENTACAO-EM-RADIO-OU-TV TITULO="Trabalho fictício: da-apresentacao-em-radio-ou-tv" ANO="2022" PAIS="Brasil" DOI="" TITULO-INGLES="Fictional work: da-apresentacao-em-radio-ou-tv"/>
+        <DETALHAMENTO-DA-APRESENTACAO-EM-RADIO-OU-TV DATA-DE-APRESENTACAO="01032022" CIDADE="Cidade Exemplo"/>
+        <AUTORES NOME-COMPLETO-DO-AUTOR="Ana Exemplo Fictícia" NOME-PARA-CITACAO="EXEMPLO, A." ORDEM-DE-AUTORIA="1" NRO-ID-CNPQ=""/>
+      </APRESENTACAO-EM-RADIO-OU-TV>
+      <ARRANJO-MUSICAL SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DO-ARRANJO-MUSICAL TITULO="Trabalho fictício: do-arranjo-musical" ANO="2022" PAIS="Brasil" HOME-PAGE="https://example.org/trabalho" DOI="" TITULO-INGLES="Fictional work: do-arranjo-musical"/>
+        <DETALHAMENTO-DO-ARRANJO-MUSICAL ANO-DA-OBRA-DE-REFERENCIA="2022"/>
+        <AUTORES NOME-COMPLETO-DO-AUTOR="Ana Exemplo Fictícia" NOME-PARA-CITACAO="EXEMPLO, A." ORDEM-DE-AUTORIA="1" NRO-ID-CNPQ=""/>
+      </ARRANJO-MUSICAL>
+      <COMPOSICAO-MUSICAL SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DA-COMPOSICAO-MUSICAL TITULO="Trabalho fictício: da-composicao-musical" ANO="2022" PAIS="Brasil" HOME-PAGE="https://example.org/trabalho" DOI="" TITULO-INGLES="Fictional work: da-composicao-musical"/>
+        <DETALHAMENTO-DA-COMPOSICAO-MUSICAL/>
+        <AUTORES NOME-COMPLETO-DO-AUTOR="Ana Exemplo Fictícia" NOME-PARA-CITACAO="EXEMPLO, A." ORDEM-DE-AUTORIA="1" NRO-ID-CNPQ=""/>
+      </COMPOSICAO-MUSICAL>
+      <CURSO-DE-CURTA-DURACAO SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DO-CURSO-DE-CURTA-DURACAO TITULO="Trabalho fictício: do-curso-de-curta-duracao" ANO="2022" PAIS="Brasil" HOME-PAGE="https://example.org/trabalho" DOI="" TITULO-INGLES="Fictional work: do-curso-de-curta-duracao"/>
+        <DETALHAMENTO-DO-CURSO-DE-CURTA-DURACAO CIDADE="Cidade Exemplo"/>
+        <AUTORES NOME-COMPLETO-DO-AUTOR="Ana Exemplo Fictícia" NOME-PARA-CITACAO="EXEMPLO, A." ORDEM-DE-AUTORIA="1" NRO-ID-CNPQ=""/>
+      </CURSO-DE-CURTA-DURACAO>
+      <OBRA-DE-ARTES-VISUAIS SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DA-OBRA-DE-ARTES-VISUAIS TITULO="Trabalho fictício: da-obra-de-artes-visuais" ANO="2022" PAIS="Brasil" HOME-PAGE="https://example.org/trabalho" DOI="" TITULO-INGLES="Fictional work: da-obra-de-artes-visuais"/>
+        <DETALHAMENTO-DA-OBRA-DE-ARTES-VISUAIS/>
+        <AUTORES NOME-COMPLETO-DO-AUTOR="Ana Exemplo Fictícia" NOME-PARA-CITACAO="EXEMPLO, A." ORDEM-DE-AUTORIA="1" NRO-ID-CNPQ=""/>
+      </OBRA-DE-ARTES-VISUAIS>
+      <OUTRA-PRODUCAO-ARTISTICA-CULTURAL SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DE-OUTRA-PRODUCAO-ARTISTICA-CULTURAL TITULO="Trabalho fictício: de-outra-producao-artistica-cultural" ANO="2022" PAIS="Brasil" HOME-PAGE="https://example.org/trabalho" DOI="" TITULO-INGLES="Fictional work: de-outra-producao-artistica-cultural"/>
+        <DETALHAMENTO-DE-OUTRA-PRODUCAO-ARTISTICA-CULTURAL CIDADE="Cidade Exemplo"/>
+        <AUTORES NOME-COMPLETO-DO-AUTOR="Ana Exemplo Fictícia" NOME-PARA-CITACAO="EXEMPLO, A." ORDEM-DE-AUTORIA="1" NRO-ID-CNPQ=""/>
+      </OUTRA-PRODUCAO-ARTISTICA-CULTURAL>
+      <SONOPLASTIA SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DE-SONOPLASTIA TITULO="Trabalho fictício: de-sonoplastia" ANO="2022" PAIS="Brasil" HOME-PAGE="https://example.org/trabalho" DOI="" TITULO-INGLES="Fictional work: de-sonoplastia"/>
+        <DETALHAMENTO-DE-SONOPLASTIA/>
+        <AUTORES NOME-COMPLETO-DO-AUTOR="Ana Exemplo Fictícia" NOME-PARA-CITACAO="EXEMPLO, A." ORDEM-DE-AUTORIA="1" NRO-ID-CNPQ=""/>
+      </SONOPLASTIA>
+      <ARTES-CENICAS SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DE-ARTES-CENICAS TITULO="Trabalho fictício: de-artes-cenicas" ANO="2022" PAIS="Brasil" TITULO-INGLES="Fictional work: de-artes-cenicas" HOME-PAGE="https://example.org/trabalho"/>
+        <DETALHAMENTO-DE-ARTES-CENICAS DATA-ESTREIA="01032022" DATA-ENCERRAMENTO="01032022" ANO-DA-OBRA-DE-REFERENCIA="2022" CIDADE-DO-EVENTO="Cidade Exemplo"/>
+        <AUTORES NOME-COMPLETO-DO-AUTOR="Ana Exemplo Fictícia" NOME-PARA-CITACAO="EXEMPLO, A." ORDEM-DE-AUTORIA="1" NRO-ID-CNPQ=""/>
+      </ARTES-CENICAS>
+      <ARTES-VISUAIS SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DE-ARTES-VISUAIS TITULO="Trabalho fictício: de-artes-visuais" ANO="2022" PAIS="Brasil" TITULO-INGLES="Fictional work: de-artes-visuais" HOME-PAGE="https://example.org/trabalho"/>
+        <DETALHAMENTO-DE-ARTES-VISUAIS CIDADE-DO-EVENTO="Cidade Exemplo"/>
+        <AUTORES NOME-COMPLETO-DO-AUTOR="Ana Exemplo Fictícia" NOME-PARA-CITACAO="EXEMPLO, A." ORDEM-DE-AUTORIA="1" NRO-ID-CNPQ=""/>
+      </ARTES-VISUAIS>
+      <MUSICA SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DA-MUSICA TITULO="Trabalho fictício: da-musica" ANO="2022" PAIS="Brasil" HOME-PAGE="https://example.org/trabalho" TITULO-INGLES="Fictional work: da-musica"/>
+        <DETALHAMENTO-DA-MUSICA DATA-ESTREIA="01032022" DATA-ENCERRAMENTO="01032022" ANO-DA-OBRA-DE-REFERENCIA="2022" CIDADE-DO-EVENTO="Cidade Exemplo"/>
+        <AUTORES NOME-COMPLETO-DO-AUTOR="Ana Exemplo Fictícia" NOME-PARA-CITACAO="EXEMPLO, A." ORDEM-DE-AUTORIA="1" NRO-ID-CNPQ=""/>
+      </MUSICA>
+    </PRODUCAO-ARTISTICA-CULTURAL>
+    <ORIENTACOES-CONCLUIDAS>
+      <ORIENTACOES-CONCLUIDAS-PARA-MESTRADO SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO TITULO="Trabalho fictício: de-orientacoes-concluidas-para-mestrado" ANO="2022" PAIS="Brasil" HOME-PAGE="https://example.org/trabalho" DOI="" TITULO-INGLES="Fictional work: de-orientacoes-concluidas-para-mestrado"/>
+        <DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-MESTRADO NOME-DO-ORIENTADO="Pessoa Orientada Fictícia" CODIGO-INSTITUICAO="999999999999" NOME-DA-INSTITUICAO="Universidade Fictícia do Exemplo" NOME-DO-CURSO="Curso demonstrativo"/>
+      </ORIENTACOES-CONCLUIDAS-PARA-MESTRADO>
+      <ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO TITULO="Trabalho fictício: de-orientacoes-concluidas-para-doutorado" ANO="2022" PAIS="Brasil" HOME-PAGE="https://example.org/trabalho" DOI="" TITULO-INGLES="Fictional work: de-orientacoes-concluidas-para-doutorado"/>
+        <DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO NOME-DO-ORIENTADO="Pessoa Orientada Fictícia" CODIGO-INSTITUICAO="999999999999" NOME-DA-INSTITUICAO="Universidade Fictícia do Exemplo" NOME-DO-CURSO="Curso demonstrativo"/>
+      </ORIENTACOES-CONCLUIDAS-PARA-DOUTORADO>
+      <ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DE-ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO TITULO="Trabalho fictício: de-orientacoes-concluidas-para-pos-doutorado" ANO="2022" PAIS="Brasil" HOME-PAGE="https://example.org/trabalho" DOI="" TITULO-INGLES="Fictional work: de-orientacoes-concluidas-para-pos-doutorado"/>
+        <DETALHAMENTO-DE-ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO NOME-DO-ORIENTADO="Pessoa Orientada Fictícia" CODIGO-INSTITUICAO="999999999999" NOME-DA-INSTITUICAO="Universidade Fictícia do Exemplo" NOME-DO-CURSO="Curso demonstrativo"/>
+      </ORIENTACOES-CONCLUIDAS-PARA-POS-DOUTORADO>
+      <OUTRAS-ORIENTACOES-CONCLUIDAS SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DE-OUTRAS-ORIENTACOES-CONCLUIDAS TITULO="Trabalho fictício: de-outras-orientacoes-concluidas" ANO="2022" PAIS="Brasil" HOME-PAGE="https://example.org/trabalho" DOI="" TITULO-INGLES="Fictional work: de-outras-orientacoes-concluidas"/>
+        <DETALHAMENTO-DE-OUTRAS-ORIENTACOES-CONCLUIDAS NOME-DO-ORIENTADO="Pessoa Orientada Fictícia" CODIGO-INSTITUICAO="999999999999" NOME-DA-INSTITUICAO="Universidade Fictícia do Exemplo" NOME-DO-CURSO="Curso demonstrativo"/>
+      </OUTRAS-ORIENTACOES-CONCLUIDAS>
+    </ORIENTACOES-CONCLUIDAS>
+    <DEMAIS-TRABALHOS SEQUENCIA-PRODUCAO="1">
+      <DADOS-BASICOS-DE-DEMAIS-TRABALHOS TITULO="Trabalho fictício: de-demais-trabalhos" ANO="2022" PAIS="Brasil" HOME-PAGE="https://example.org/trabalho" DOI="" TITULO-INGLES="Fictional work: de-demais-trabalhos"/>
+      <DETALHAMENTO-DE-DEMAIS-TRABALHOS/>
+      <AUTORES NOME-COMPLETO-DO-AUTOR="Ana Exemplo Fictícia" NOME-PARA-CITACAO="EXEMPLO, A." ORDEM-DE-AUTORIA="1" NRO-ID-CNPQ=""/>
+    </DEMAIS-TRABALHOS>
+  </OUTRA-PRODUCAO>
+</CURRICULO-VITAE>

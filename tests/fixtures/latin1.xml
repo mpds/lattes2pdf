@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<!-- Entirely fictional test data. -->
+<CURRICULO-VITAE SISTEMA-ORIGEM-XML="LATTES_OFFLINE" DATA-ATUALIZACAO="01062026">
+  <DADOS-GERAIS NOME-COMPLETO="Ana Exemplo Fictícia" NOME-EM-CITACOES-BIBLIOGRAFICAS="EXEMPLO, A." NACIONALIDADE="B" PERMISSAO-DE-DIVULGACAO="SIM">
+    <RESUMO-CV TEXTO-RESUMO-CV-RH="Formação, extensão e ação. Texto literal: &amp;quot;exemplo&amp;quot; e &amp;#10;. Símbolos: _ % # { } \ $ [ ]." TEXTO-RESUMO-CV-RH-EN=""/>
+  </DADOS-GERAIS>
+</CURRICULO-VITAE>
