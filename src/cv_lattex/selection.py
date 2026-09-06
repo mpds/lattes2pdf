@@ -1,6 +1,6 @@
 """Strict, reusable selection profiles independent of the output renderer."""
 
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field, fields, replace
 from pathlib import Path
 
 import yaml
@@ -291,10 +291,23 @@ def hidden(source: SourceField, profile: Profile) -> bool:
 
 
 def visible_fields(entry: Entry, profile: Profile) -> list[SourceField]:
+    explicit_leave = entry.section == "leave" and (
+        "leave" in profile.include or entry.id in profile.include_ids
+    )
     candidates = [
-        f
+        replace(f, disposition="content") if f.disposition == "private" else f
         for f in entry.fields
-        if f.text and f.disposition == "content" and not hidden(f, profile)
+        if f.text
+        and (
+            f.disposition == "content"
+            or (
+                explicit_leave
+                and f.disposition == "private"
+                and f.tag == "LICENCA"
+                and f.name in catalog()["elements"]["LICENCA"]["attributes"]
+            )
+        )
+        and not hidden(f, profile)
     ]
     result = []
     paths = {f.path for f in candidates}

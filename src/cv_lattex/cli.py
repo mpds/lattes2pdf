@@ -85,6 +85,7 @@ e emite aviso por padrão. --full inclui o conteúdo conhecido, com dados privad
 metadados administrativos e variantes de outro idioma discriminados no relatório.
 Em inglês, utiliza a tradução disponível no XML e conserva o original quando faltar.
 Dados privados (documentos pessoais, endereço residencial etc.) não são exportados.
+Afastamentos são incluídos somente com --include leave ou seleção explícita do ID.
 Campos conhecidos sem correspondência direta são apresentados como detalhes.
 """,
     )

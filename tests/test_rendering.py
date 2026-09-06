@@ -175,3 +175,17 @@ def test_source_markup_is_exported_as_literal_text(fixtures, tmp_path):
         next(e for e in cv.entries if e.section == "publications.articles").title()
         == source_text
     )
+
+
+def test_career_breaks_require_explicit_selection(fixtures):
+    cv = read_lattes(fixtures / "general.xml")
+    full, _ = export_data(cv, Profile(full=True))
+    assert "Afastamentos" not in full["cv"]["sections"]
+    data, report = export_data(cv, Profile(include=["leave"]))
+    assert data["cv"]["sections"]["Afastamentos"][0]["name"] == "MATERNIDADE"
+    assert "CPF" not in json.dumps(data)
+    assert any(
+        f.get("reason") == "explicit-selection" and f["status"] == "exported"
+        for f in report["fields"]
+    )
+    assert all(f.disposition == "private" for f in cv.fields if f.tag == "LICENCA")

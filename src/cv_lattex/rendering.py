@@ -331,7 +331,10 @@ def _report(
     for source in cv.fields:
         status = source.disposition
         reason = None
-        if status in {"content", "unknown"}:
+        if source.path in used and status == "private":
+            status = "exported"
+            reason = "explicit-selection"
+        elif status in {"content", "unknown"}:
             if source.path in used:
                 status = "exported"
             elif owners[source.path] and not owners[source.path] & selected_ids:
