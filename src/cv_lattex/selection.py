@@ -6,6 +6,7 @@ from pathlib import Path
 import yaml
 
 from cv_lattex.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
+from cv_lattex.sections import validate_options
 
 THEMES = (
     "classic",
@@ -54,6 +55,7 @@ class Profile:
     since: int | None = None
     until: int | None = None
     section_years: dict[str, dict[str, int]] = field(default_factory=dict)
+    sections: dict[str, dict] = field(default_factory=dict)
     unknown_year: str = "keep"
     sort: str = "year_desc"
     language: str = "pt"
@@ -61,7 +63,15 @@ class Profile:
     full: bool = False
     allow_unmapped: bool = False
 
+    def section_title(self, name: str) -> str:
+        return (
+            self.sections.get(name, {})
+            .get("title", catalog()["sections"][name][self.language])
+            .strip()
+        )
+
     def validate(self) -> None:
+        validate_options(self.sections)
         for name in (
             "include",
             "exclude",
@@ -118,9 +128,12 @@ class Profile:
             or self.until is not None
             or self.section_years
             or self.unknown_year != "keep"
+            or any(
+                key != "title" for options in self.sections.values() for key in options
+            )
         ):
             raise CVError(
-                "--full não pode ser combinado com filtros ou campos ocultos."
+                "--full não pode ser combinado com filtros, campos ocultos ou ajustes de campos por seção."
             )
 
 

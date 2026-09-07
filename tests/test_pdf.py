@@ -96,6 +96,46 @@ def test_zip_profiles_and_hidden_fields_reach_the_pdf(fixtures, tmp_path):
     assert "Volume" not in text
 
 
+def test_education_presentation_and_profile_options_reach_the_pdf(fixtures, tmp_path):
+    profile = tmp_path / "formacao.yaml"
+    profile.write_text(
+        "include: [education]\nsections:\n  education:\n    show_thesis: true\n    show_advisors: true\n    title: Minha formação\n",
+        encoding="utf-8",
+    )
+    output = tmp_path / "education.pdf"
+    assert (
+        main(
+            [
+                "render",
+                str(fixtures / "education.xml"),
+                "--profile",
+                str(profile),
+                "-o",
+                str(output),
+            ]
+        )
+        == 0
+    )
+    text = pdf_text(output.read_bytes()).replace(" ", "")
+    for expected in [
+        "Minha formação",
+        "Título do trabalho: Preservação de acervos comunitários",
+        "Coorientação: Bruno Exemplo",
+        "Incompleto",
+        "Início: 2013",
+    ]:
+        assert expected.replace(" ", "") in text
+    for omitted in [
+        "ID-FICTICIO",
+        "AGENCIA-FICTICIA",
+        "Flag",
+        "Palavra chave",
+        "Concluído",
+        "Em andamento",
+    ]:
+        assert omitted.replace(" ", "") not in text
+
+
 def test_multiline_details_remain_text_and_long_entries_span_pages(fixtures, tmp_path):
     tree = ET.parse(fixtures / "academic.xml")
     description = tree.find(".//DETALHAMENTO-DO-SOFTWARE")

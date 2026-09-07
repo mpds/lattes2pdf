@@ -14,23 +14,29 @@ from cv_lattex.backend import render_pdf, rendercv_version
 from cv_lattex.lattes import read_lattes
 from cv_lattex.models import CVError, catalog
 from cv_lattex.output import check_outputs, write_outputs
-from cv_lattex.rendering import export_data
+from cv_lattex.rendering import export_data, label
+from cv_lattex.sections import describe_sections, matching_sections
 from cv_lattex.selection import FIELD_GROUPS, THEMES, load_profile
 
 
-def inspection(cv) -> dict:
+def inspection(cv, sections: list[str] | None = None) -> dict:
+    names = {name for prefix in sections or [] for name in matching_sections(prefix)}
+    entries = [entry for entry in cv.entries if not names or entry.section in names]
     return {
         "name": cv.name,
-        "sections": dict(Counter(entry.section for entry in cv.entries)),
+        "sections": dict(Counter(entry.section for entry in entries)),
         "entries": [
             {
                 "id": entry.id,
                 "section": entry.section,
-                "title": entry.title(),
+                "type": entry.tag,
+                "title": label(entry.tag)
+                if entry.section == "education" and not entry.title_field()
+                else entry.title(),
                 "year": entry.year,
                 "path": entry.path,
             }
-            for entry in cv.entries
+            for entry in entries
         ],
         "fields": dict(Counter(field.disposition for field in cv.fields)),
         "issues": [asdict(issue) for issue in cv.issues],
@@ -45,10 +51,25 @@ def parser() -> argparse.ArgumentParser:
         "--version", action="version", version=f"%(prog)s {version('cv-lattex')}"
     )
     commands = root.add_subparsers(dest="command", required=True)
+    sections = commands.add_parser(
+        "sections",
+        help="listar seções e opções de perfil",
+        description="Lista seções e opções de perfil.",
+    )
+    sections.add_argument(
+        "section",
+        nargs="?",
+        help="seção ou prefixo (ex.: education, publications)",
+    )
     inspect = commands.add_parser(
         "inspect", help="listar seções, IDs e campos desconhecidos"
     )
     inspect.add_argument("input", type=Path, help="XML ou ZIP exportado do Lattes")
+    inspect.add_argument(
+        "--section",
+        action="append",
+        help="filtrar registros exibidos por seção ou prefixo; repetível (campos e avisos continuam globais)",
+    )
     inspect.add_argument(
         "--member", help="nome exato do XML dentro de um ZIP com vários XMLs"
     )
@@ -60,6 +81,7 @@ def parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""Exemplos:
   cv-lattex inspect curriculo.zip
+  cv-lattex sections education
   cv-lattex export curriculo.xml -o cv.yaml --include education --include publications
   cv-lattex export curriculo.xml -o completo.yaml --full
   cv-lattex export curriculo.zip -o cv.yaml --profile perfil.yaml
@@ -75,17 +97,20 @@ Perfil YAML (as opções da CLI substituem as opções correspondentes do perfil
   theme: classic
 
 O perfil também aceita include_ids, exclude_ids, since, until, full,
-allow_unmapped, sort (year_desc ou source) e unknown_year (keep ou exclude).
+allow_unmapped, sections, sort (year_desc ou source) e unknown_year (keep ou exclude).
+Consulte cv-lattex sections education para os ajustes de formação.
 Listas da CLI usam opções repetidas. Seções aceitam prefixos como publications;
 exclusões prevalecem. O nome permanece no cabeçalho mesmo ao selecionar só registros.
 IDs vêm de inspect e podem mudar se o registro for editado ou ganhar duplicatas.
+include_ids restringe todos os registros aos IDs listados; exclude_ids remove só os indicados.
 O ano do registro prioriza publicação/conclusão; sem ano, o filtro mantém o registro
 e emite aviso por padrão. --full inclui o conteúdo conhecido, com dados privados,
 metadados administrativos e variantes de outro idioma discriminados no relatório.
 Em inglês, utiliza a tradução disponível no XML e conserva o original quando faltar.
 Dados privados (documentos pessoais, endereço residencial etc.) não são exportados.
 Afastamentos são incluídos somente com --include leave ou seleção explícita do ID.
-Campos conhecidos sem correspondência direta são apresentados como detalhes.
+Formação usa apresentação enxuta por padrão; --full inclui os detalhes conhecidos.
+Nas demais seções, campos conhecidos sem correspondência direta aparecem como detalhes.
 """,
     )
     conversion.add_argument("input", type=Path, help="XML ou ZIP exportado do Lattes")
@@ -244,11 +269,14 @@ def _export(arguments, cv) -> None:
 def main(argv: list[str] | None = None) -> int:
     arguments = parser().parse_args(argv)
     try:
+        if arguments.command == "sections":
+            print(describe_sections(arguments.section))
+            return 0
         cv = read_lattes(arguments.input, member=arguments.member)
         if arguments.command in {"export", "render"}:
             _export(arguments, cv)
             return 0
-        result = inspection(cv)
+        result = inspection(cv, arguments.section)
         if arguments.json:
             print(json.dumps(result, ensure_ascii=False, indent=2))
         else:
@@ -257,7 +285,11 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"\n{section} — {catalog()['sections'][section]['pt']} ({count})")
                 for entry in result["entries"]:
                     if entry["section"] == section:
-                        print(f"  {entry['id']}  {entry['title']}")
+                        title = entry["title"]
+                        if section == "education" and title != label(entry["type"]):
+                            title = f"{label(entry['type'])} — {title}"
+                        year = f" ({entry['year']})" if entry["year"] else ""
+                        print(f"  {entry['id']}  {title}{year}")
             for issue in cv.issues:
                 print(
                     f"Aviso [{issue.code}] {issue.path}: {issue.message}",

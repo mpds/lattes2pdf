@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 
 from cv_lattex.lattes import YEAR_NAMES
 from cv_lattex.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
+from cv_lattex.sections import EDUCATION_OPTIONS
 from cv_lattex.selection import Profile, Selection, hidden, select, visible_fields
 
 DEGREE_NAMES = {
@@ -204,6 +205,100 @@ def _details(entry: Entry, used: set[str]) -> list[str]:
     return details
 
 
+def _render_education(
+    entry: Entry, kind: str, profile: Profile, issues: list[Issue]
+) -> tuple[dict, set[str]]:
+    """Present education without copying leftover registration fields into the CV."""
+    used = set()
+
+    def take(*names):
+        source = entry.find(*names, language=profile.language)
+        if source:
+            used.add(source.path)
+            return source.text
+        return ""
+
+    course = take("NOME-CURSO", "NOME-DO-CURSO")
+    institution = take("NOME-INSTITUICAO", "NOME-INSTITUICAO-EMPRESA")
+    degree = label(entry.tag)
+    lines = []
+    if kind == "education":
+        result = {
+            "institution": literal(institution),
+            "area": literal(course),
+            "degree": degree,
+        }
+    else:
+        result = {"name": literal(degree + (f" — {course}" if course else ""))}
+        if institution:
+            lines.append(institution)
+
+    dates, date_fields = _dates(entry, issues, profile.language)
+    result.update(dates)
+    used.update(date_fields)
+    state = entry.find("STATUS-DO-CURSO", "STATUS-DO-ESTAGIO")
+    if state:
+        states = {
+            "CONCLUIDO": ("Concluído", "Completed"),
+            "EM_ANDAMENTO": ("Em andamento", "In progress"),
+            "INCOMPLETO": ("Incompleto", "Incomplete"),
+        }
+        has_end_year = any(
+            source.name in {"ANO-DE-CONCLUSAO", "ANO-FIM"}
+            and source.path in date_fields
+            for source in entry.fields
+        )
+        if state.text == "EM_ANDAMENTO" and dates.get("end_date") == "present":
+            used.add(state.path)  # The status is represented by the open date range.
+        elif not (state.text == "CONCLUIDO" and has_end_year):
+            lines.append(
+                states.get(state.text, (state.text, state.text))[
+                    profile.language == "en"
+                ]
+            )
+            used.add(state.path)
+
+    options = profile.sections.get("education", {})
+    if options.get("show_thesis", EDUCATION_OPTIONS["show_thesis"][0]):
+        thesis = take(
+            "TITULO-DO-TRABALHO-DE-CONCLUSAO-DE-CURSO",
+            "TITULO-DA-MONOGRAFIA",
+            "TITULO-DA-DISSERTACAO-TESE",
+            "TITULO-DA-RESIDENCIA-MEDICA",
+            "TITULO-DO-TRABALHO",
+        )
+        if thesis:
+            prefix = "Título do trabalho" if profile.language == "pt" else "Work title"
+            lines.append(f"{prefix}: {thesis}")
+    if options.get("show_advisors", EDUCATION_OPTIONS["show_advisors"][0]):
+        for names, labels in (
+            (
+                (
+                    "NOME-COMPLETO-DO-ORIENTADOR",
+                    "NOME-DO-ORIENTADOR",
+                    "NOME-ORIENTADOR-GRAD",
+                    "NOME-ORIENTADOR-DOUT",
+                ),
+                ("Orientação", "Advisor"),
+            ),
+            (("NOME-DO-CO-ORIENTADOR",), ("Coorientação", "Co-advisor")),
+            (
+                ("NOME-DO-ORIENTADOR-CO-TUTELA",),
+                ("Orientação em cotutela", "Joint supervision"),
+            ),
+            (
+                ("NOME-DO-ORIENTADOR-SANDUICHE",),
+                ("Orientação no período sanduíche", "Visiting-period advisor"),
+            ),
+        ):
+            advisor = take(*names)
+            if advisor:
+                lines.append(f"{labels[profile.language == 'en']}: {advisor}")
+    if lines:
+        result["summary"] = "\n".join(literal(line) for line in lines)
+    return result, used
+
+
 def _render_entry(
     entry: Entry,
     kind: str,
@@ -212,6 +307,8 @@ def _render_entry(
     profile: Profile,
     issues: list[Issue],
 ) -> tuple[dict, set[str]]:
+    if entry.section == "education" and not profile.full:
+        return _render_education(entry, kind, profile, issues)
     used = set()
     title = entry.title_field(profile.language)
     name = literal(title.text) if title else label(entry.tag)
@@ -332,7 +429,7 @@ def _profile(
     if "details" not in profile.hide_fields:
         content.extend(_details(entry, used))
     if content:
-        sections[catalog()["sections"]["profile"][profile.language]] = content
+        sections[literal(profile.section_title("profile"))] = content
     return used
 
 
@@ -343,6 +440,7 @@ def _report(
     used: set[str],
     issues: list[Issue],
     profile: Profile,
+    presentation_excluded: set[str] | None = None,
 ) -> dict:
     owners = defaultdict(set)
     for entry in cv.entries:
@@ -366,6 +464,9 @@ def _report(
             elif status == "content":
                 if not source.text:
                     status = "empty"
+                elif source.path in (presentation_excluded or ()):
+                    status = "excluded"
+                    reason = "presentation"
                 elif (
                     source.path in visible_paths
                     and "details" not in profile.hide_fields
@@ -406,17 +507,26 @@ def _report(
 
 def export_data(cv: Curriculum, profile: Profile) -> tuple[dict, dict]:
     selection = select(cv, profile)
+    titles = {}
+    for section in dict.fromkeys(entry.section for entry in selection.entries):
+        title = literal(profile.section_title(section))
+        if title in titles:
+            raise CVError(
+                f"Título de seção repetido: {profile.section_title(section)} ({titles[title]} e {section})."
+            )
+        titles[title] = section
     issues = cv.issues + selection.issues
     output = {"name": literal(cv.name), "sections": {}}
     name_field = next(entry for entry in cv.entries if entry.section == "profile").find(
         "NOME-COMPLETO"
     )
     used = {name_field.path}
+    presentation_excluded = set()
     visible = {entry.id: visible_fields(entry, profile) for entry in selection.entries}
     groups = defaultdict(list)
     for entry in selection.entries:
         sources = visible[entry.id]
-        if not sources:
+        if not sources and not (entry.section == "education" and not profile.full):
             continue
         # Administrative author order participates in rendering but is never displayed.
         order = [f for f in entry.fields if f.name == "ORDEM-DE-AUTORIA"]
@@ -447,18 +557,25 @@ def export_data(cv: Curriculum, profile: Profile) -> tuple[dict, dict]:
             )
             rendered.append(result)
             used.update(consumed)
-        output["sections"][catalog()["sections"][section][profile.language]] = rendered
+            if section == "education" and not profile.full:
+                presentation_excluded.update(
+                    source.path
+                    for source in visible[entry.id]
+                    if source.path not in consumed
+                )
+        output["sections"][literal(profile.section_title(section))] = rendered
     # Honor profile order including the profile section itself.
     labels = [
-        catalog()["sections"][entry.section][profile.language]
-        for entry in selection.entries
+        literal(profile.section_title(entry.section)) for entry in selection.entries
     ]
     output["sections"] = {
         name: output["sections"][name]
         for name in dict.fromkeys(labels)
         if name in output["sections"]
     }
-    report = _report(cv, selection, visible, used, issues, profile)
+    report = _report(
+        cv, selection, visible, used, issues, profile, presentation_excluded
+    )
     unmapped = report["counts"].get("unknown", 0) + report["counts"].get("unmapped", 0)
     if profile.full and unmapped and not profile.allow_unmapped:
         raise CVError(

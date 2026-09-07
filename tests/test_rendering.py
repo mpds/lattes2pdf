@@ -52,7 +52,7 @@ def test_dates_do_not_invent_precision_or_ongoing_status(fixtures, tmp_path):
     data, report = export_data(
         read_lattes(path), Profile(include=["education", "experience"])
     )
-    education = data["cv"]["sections"]["Formação acadêmica"]
+    education = data["cv"]["sections"]["Formação acadêmica/titulação"]
     masters = next(e for e in education if e["name"].startswith("Mestrado —"))
     doctorate = next(e for e in education if e["name"].startswith("Doutorado —"))
     assert masters["date"] == "Início: 2022"
@@ -149,12 +149,13 @@ def test_hiding_required_fields_changes_layout_without_reintroducing_values(fixt
     graduation = next(e for e in cv.entries if e.tag == "GRADUACAO")
     data, _ = export_data(cv, Profile(include_ids=[graduation.id]))
     assert (
-        data["cv"]["sections"]["Formação acadêmica"][0]["area"] == "Curso demonstrativo"
+        data["cv"]["sections"]["Formação acadêmica/titulação"][0]["area"]
+        == "Curso demonstrativo"
     )
     data, _ = export_data(
         cv, Profile(include_ids=[graduation.id], hide_fields=["NOME-INSTITUICAO"])
     )
-    degree = data["cv"]["sections"]["Formação acadêmica"][0]
+    degree = data["cv"]["sections"]["Formação acadêmica/titulação"][0]
     assert "name" in degree
     assert "Universidade Fictícia" not in json.dumps(degree, ensure_ascii=False)
 
