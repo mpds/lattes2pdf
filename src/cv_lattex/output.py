@@ -13,10 +13,9 @@ def _same_path(first: Path, second: Path) -> bool:
     )
 
 
-def write_outputs(
-    contents: list[tuple[Path, str]], *, protected: list[Path], force: bool = False
+def check_outputs(
+    paths: list[Path], *, protected: list[Path], force: bool = False
 ) -> None:
-    paths = [path for path, _ in contents]
     for index, path in enumerate(paths):
         if any(_same_path(path, other) for other in protected + paths[:index]):
             raise CVError(
@@ -30,19 +29,28 @@ def write_outputs(
             )
         if not path.parent.is_dir():
             raise CVError(f"A pasta de saída não existe: {path.parent}.")
+
+
+def write_outputs(
+    contents: list[tuple[Path, str | bytes]],
+    *,
+    protected: list[Path],
+    force: bool = False,
+) -> None:
+    check_outputs([path for path, _ in contents], protected=protected, force=force)
     temporary = []
     try:
         for path, content in contents:
             with tempfile.NamedTemporaryFile(
-                mode="w",
-                encoding="utf-8",
-                newline="\n",
+                mode="wb",
                 dir=path.parent,
                 prefix=f".{path.name}.",
                 delete=False,
             ) as stream:
                 temporary.append((Path(stream.name), path))
-                stream.write(content)
+                stream.write(
+                    content.encode("utf-8") if isinstance(content, str) else content
+                )
         for source, destination in temporary:
             if force:
                 os.replace(source, destination)

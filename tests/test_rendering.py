@@ -36,7 +36,7 @@ def test_publication_authors_dates_and_selected_details(fixtures):
     data, _ = export_data(cv, Profile(include=["publications.articles"]))
     article = data["cv"]["sections"]["Artigos publicados"][0]
     assert article["authors"] == ["Ana Exemplo Fictícia", "Bruno Exemplo Fictício"]
-    assert article["date"] == "2024"
+    assert article["date"] == 2024
     assert article["doi"] == "10.0000/example.article"
     assert "Volume: 12" in article["summary"]
     assert "Pagina inicial: 10" in article["summary"]
@@ -57,13 +57,13 @@ def test_dates_do_not_invent_precision_or_ongoing_status(fixtures, tmp_path):
     doctorate = next(e for e in education if e["name"].startswith("Doutorado —"))
     assert masters["date"] == "Início: 2022"
     assert "end_date" not in masters
-    assert doctorate["start_date"] == "2022"
+    assert doctorate["start_date"] == 2022
     assert doctorate["end_date"] == "present"
     assert "start_date" not in next(
-        e for e in education if e["name"] == "Pos doutorado"
+        e for e in education if e["name"] == "Pós-doutorado"
     )
     appointment = data["cv"]["sections"]["Experiência profissional"][0]
-    assert appointment["end_date"] == "2022"
+    assert appointment["end_date"] == 2022
     assert any("Mes fim: 99" in line for line in appointment["highlights"])
     assert any(issue["code"] == "invalid-date" for issue in report["issues"])
 

@@ -9,6 +9,22 @@ from cv_lattex.lattes import YEAR_NAMES
 from cv_lattex.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
 from cv_lattex.selection import Profile, Selection, hidden, select, visible_fields
 
+DEGREE_NAMES = {
+    "GRADUACAO": "Graduação",
+    "ESPECIALIZACAO": "Especialização",
+    "POS-DOUTORADO": "Pós-doutorado",
+    "LIVRE-DOCENCIA": "Livre-docência",
+    "CURSO-TECNICO-PROFISSIONALIZANTE": "Curso técnico profissionalizante",
+    "MESTRADO-PROFISSIONALIZANTE": "Mestrado profissional",
+    "ENSINO-FUNDAMENTAL-PRIMEIRO-GRAU": "Ensino fundamental",
+    "ENSINO-MEDIO-SEGUNDO-GRAU": "Ensino médio",
+    "RESIDENCIA-MEDICA": "Residência médica",
+    "APERFEICOAMENTO": "Aperfeiçoamento",
+    "FORMACAO-COMPLEMENTAR-DE-EXTENSAO-UNIVERSITARIA": "Extensão universitária",
+    "FORMACAO-COMPLEMENTAR-CURSO-DE-CURTA-DURACAO": "Curso de curta duração",
+    "MBA": "MBA",
+}
+
 
 def literal(text: str) -> str:
     """Encode punctuation as literal Typst text through RenderCV's Markdown parser.
@@ -17,7 +33,7 @@ def literal(text: str) -> str:
     Unicode escapes contain no source-controlled code or Markdown delimiters.
     """
 
-    if not re.search(r"[\\`*_{}\[\]#$!|<>&]", text):
+    if not re.search(r"[\\`*_{}\[\]#$!|<>&\n\r\t]", text):
         return text
     # One wrapper avoids upstream placeholder collisions at ten or more commands.
     characters = "".join(
@@ -28,6 +44,8 @@ def literal(text: str) -> str:
 
 
 def label(name: str) -> str:
+    if name in DEGREE_NAMES:
+        return DEGREE_NAMES[name]
     return (
         name.removesuffix("-INGLES")
         .removesuffix("-EN")
@@ -140,7 +158,11 @@ def _dates(entry: Entry, issues: list[Issue], language: str) -> tuple[dict, set[
         return {}, used
     if start and (end or ongoing):
         used = start_fields | end_fields
-        return {"start_date": start, "end_date": end or "present"}, used
+        # RenderCV treats string years as January, while integer years stay imprecise.
+        return {
+            "start_date": int(start) if len(start) == 4 else start,
+            "end_date": (int(end) if len(end) == 4 else end) if end else "present",
+        }, used
     if start:
         # A lone start_date implicitly means "present" in RenderCV.
         prefix = "Início" if language == "pt" else "Start"
@@ -150,7 +172,7 @@ def _dates(entry: Entry, issues: list[Issue], language: str) -> tuple[dict, set[
         return {"date": f"{prefix}: {end}"}, end_fields
     year = entry.find(*YEAR_NAMES)
     if year and re.fullmatch(r"[1-9]\d{3}", year.text):
-        return {"date": year.text}, {year.path}
+        return {"date": int(year.text)}, {year.path}
     return {}, used
 
 
@@ -265,7 +287,8 @@ def _render_entry(
         details = _details(entry, used)
         if details:
             if kind == "publication":
-                result["summary"] = "\n\n".join(details)
+                # Blank lines terminate RenderCV's Markdown summary block prematurely.
+                result["summary"] = "\n".join(details)
             else:
                 result["highlights"] = details
     return result, used
@@ -444,7 +467,22 @@ def export_data(cv: Curriculum, profile: Profile) -> tuple[dict, dict]:
         )
     data = {
         "cv": output,
-        "design": {"theme": profile.theme},
+        "design": {
+            "theme": profile.theme,
+            "page": {"size": "a4", "show_top_note": False},
+            "entries": {"allow_page_break": True},
+            "templates": {"education_entry": {"degree_column": None}},
+        },
         "locale": {"language": "portuguese" if profile.language == "pt" else "english"},
     }
+    education_template = data["design"]["templates"]["education_entry"]
+    if profile.theme == "classic":
+        # Full degree names cannot fit the theme's narrow abbreviation column.
+        education_template["main_column"] = (
+            "**INSTITUTION**\nDEGREE_WITH_AREA\nSUMMARY\nHIGHLIGHTS"
+        )
+    elif profile.theme == "sb2nov":
+        education_template["main_column"] = (
+            "**INSTITUTION**\n*DEGREE_WITH_AREA*\nSUMMARY\nHIGHLIGHTS"
+        )
     return data, report
