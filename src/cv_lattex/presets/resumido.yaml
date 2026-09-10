@@ -1,0 +1,29 @@
+# Perfil inicial resumido. Menos seções, sem limite de páginas ou registros.
+# Opções por seção: cv-lattex sections SEÇÃO
+include:
+  - profile
+  - education
+  - experience
+  - publications.articles
+  - technical
+  - artistic
+  - languages
+# Prioriza produção técnica e artística; atividades de divulgação ficam de fora.
+exclude:
+  - technical.talks
+  - technical.courses
+  - technical.events
+  - technical.broadcasts
+  - technical.web
+order: [profile, experience, education, publications, technical, artistic]
+
+# Remova summary para incluir a bio; remova authors para exibir os autores.
+# Os contatos do cabeçalho são mantidos.
+hide_fields: [details, summary, authors]
+sections:
+  education:
+    show_thesis: false
+    show_advisors: false
+  publications.articles:
+    show_links: true
+    show_details: false

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fictional cultural-sector CV without publications or postgraduate education. -->
+<CURRICULO-VITAE SISTEMA-ORIGEM-XML="LATTES_OFFLINE">
+  <DADOS-GERAIS NOME-COMPLETO="Sofia Martins Fictícia">
+    <RESUMO-CV TEXTO-RESUMO-CV-RH="Museóloga com atuação em acessibilidade cultural e organização de exposições comunitárias."/>
+    <ENDERECO>
+      <ENDERECO-PROFISSIONAL E-MAIL="sofia@example.org" HOME-PAGE="https://example.org/sofia"/>
+    </ENDERECO>
+    <FORMACAO-ACADEMICA-TITULACAO>
+      <GRADUACAO NOME-INSTITUICAO="Universidade Fictícia de Artes e Patrimônio" NOME-CURSO="Museologia" ANO-DE-INICIO="2015" ANO-DE-CONCLUSAO="2019" STATUS-DO-CURSO="CONCLUIDO"/>
+    </FORMACAO-ACADEMICA-TITULACAO>
+    <ATUACOES-PROFISSIONAIS>
+      <ATUACAO-PROFISSIONAL NOME-INSTITUICAO="Museu Comunitário Fictício">
+        <VINCULOS TIPO-DE-VINCULO="OUTRO" OUTRO-VINCULO-INFORMADO="Museóloga" ANO-INICIO="2022" MES-INICIO="04" ANO-FIM="2025" MES-FIM="11" OUTRAS-INFORMACOES="Planejamento de visitas e exposições acessíveis."/>
+      </ATUACAO-PROFISSIONAL>
+      <ATUACAO-PROFISSIONAL NOME-INSTITUICAO="Centro Cultural Fictício">
+        <VINCULOS TIPO-DE-VINCULO="OUTRO" OUTRO-VINCULO-INFORMADO="Assistente de produção cultural" ANO-INICIO="2019" ANO-FIM="2022"/>
+      </ATUACAO-PROFISSIONAL>
+    </ATUACOES-PROFISSIONAIS>
+    <IDIOMAS>
+      <IDIOMA IDIOMA="ESP" DESCRICAO-DO-IDIOMA="Espanhol" PROFICIENCIA-DE-LEITURA="BEM" PROFICIENCIA-DE-FALA="RAZOAVELMENTE"/>
+    </IDIOMAS>
+    <PREMIOS-TITULOS>
+      <PREMIO-TITULO NOME-DO-PREMIO-OU-TITULO="Prêmio Fictício de Acessibilidade Cultural" NOME-DA-ENTIDADE-PROMOTORA="Associação Fictícia de Museus" ANO-DA-PREMIACAO="2024"/>
+    </PREMIOS-TITULOS>
+  </DADOS-GERAIS>
+  <PRODUCAO-TECNICA>
+    <TRABALHO-TECNICO SEQUENCIA-PRODUCAO="1">
+      <DADOS-BASICOS-DO-TRABALHO-TECNICO TITULO-DO-TRABALHO-TECNICO="Diagnóstico de acessibilidade em museus comunitários" ANO="2025"/>
+      <DETALHAMENTO-DO-TRABALHO-TECNICO FINALIDADE="Identificar barreiras de acesso em espaços expositivos."/>
+      <AUTORES NOME-COMPLETO-DO-AUTOR="Sofia Martins Fictícia" ORDEM-DE-AUTORIA="1"/>
+    </TRABALHO-TECNICO>
+  </PRODUCAO-TECNICA>
+  <OUTRA-PRODUCAO>
+    <PRODUCAO-ARTISTICA-CULTURAL>
+      <ARTES-VISUAIS SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DE-ARTES-VISUAIS NATUREZA="EXPOSICAO" TITULO="Percursos da memória local" ANO="2024"/>
+        <DETALHAMENTO-DE-ARTES-VISUAIS ATIVIDADE-DOS-AUTORES="Curadoria" INSTITUICAO-PROMOTORA-DO-EVENTO="Museu Comunitário Fictício"/>
+        <AUTORES NOME-COMPLETO-DO-AUTOR="Sofia Martins Fictícia" ORDEM-DE-AUTORIA="1"/>
+      </ARTES-VISUAIS>
+    </PRODUCAO-ARTISTICA-CULTURAL>
+  </OUTRA-PRODUCAO>
+</CURRICULO-VITAE>

@@ -6,6 +6,7 @@ import sys
 from collections import Counter
 from dataclasses import asdict
 from importlib.metadata import version
+from importlib.resources import as_file, files
 from pathlib import Path
 
 import yaml
@@ -17,6 +18,12 @@ from cv_lattex.output import check_outputs, write_outputs
 from cv_lattex.rendering import export_data, label
 from cv_lattex.sections import describe_sections, matching_sections
 from cv_lattex.selection import FIELD_GROUPS, THEMES, load_profile
+
+PRESETS = {
+    "academico": "Cobertura ampla, bio, título do trabalho e orientação",
+    "essencial": "Bio, formação, experiência e principais seções de produção",
+    "resumido": "Menos seções, sem bio e sem listas de autores",
+}
 
 
 def inspection(cv, sections: list[str] | None = None) -> dict:
@@ -51,6 +58,26 @@ def parser() -> argparse.ArgumentParser:
         "--version", action="version", version=f"%(prog)s {version('cv-lattex')}"
     )
     commands = root.add_subparsers(dest="command", required=True)
+    profile = commands.add_parser(
+        "profile",
+        help="copiar um preset para um perfil YAML editável",
+        description="Copia um preset para um perfil YAML editável.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="Presets:\n"
+        + "\n".join(
+            f"  {name:<10}  {description}" for name, description in PRESETS.items()
+        )
+        + "\n\nExemplo:\n  cv-lattex profile essencial -o meu.profile.yaml\n"
+        "\nEdite o arquivo e use-o em export/render com --profile.\n"
+        "Os presets não limitam anos, quantidade de registros ou páginas.",
+    )
+    profile.add_argument("preset", choices=PRESETS, help="perfil inicial")
+    profile.add_argument(
+        "-o", "--output", type=Path, help="arquivo YAML (padrão: stdout)"
+    )
+    profile.add_argument(
+        "--force", action="store_true", help="substituir arquivo existente"
+    )
     sections = commands.add_parser(
         "sections",
         help="listar seções e opções de perfil",
@@ -84,6 +111,7 @@ def parser() -> argparse.ArgumentParser:
   cv-lattex sections education
   cv-lattex export curriculo.xml -o cv.yaml --include education --include publications
   cv-lattex export curriculo.xml -o completo.yaml --full
+  cv-lattex profile essencial -o perfil.yaml
   cv-lattex export curriculo.zip -o cv.yaml --profile perfil.yaml
 
 Perfil YAML (as opções da CLI substituem as opções correspondentes do perfil):
@@ -281,6 +309,20 @@ def _export(arguments, cv) -> None:
 def main(argv: list[str] | None = None) -> int:
     arguments = parser().parse_args(argv)
     try:
+        if arguments.command == "profile":
+            source = files("cv_lattex").joinpath("presets", arguments.preset + ".yaml")
+            text = source.read_text("utf-8")
+            if arguments.output:
+                with as_file(source) as path:
+                    write_outputs(
+                        [(arguments.output, text)],
+                        protected=[path],
+                        force=arguments.force,
+                    )
+                print(f"Perfil: {arguments.output}")
+            else:
+                print(text, end="")
+            return 0
         if arguments.command == "sections":
             print(describe_sections(arguments.section))
             return 0

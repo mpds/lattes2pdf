@@ -11,7 +11,7 @@ import yaml
 from pypdf import PdfReader
 
 from cv_lattex.backend import render_pdf, rendercv_version
-from cv_lattex.cli import main
+from cv_lattex.cli import PRESETS, main
 from cv_lattex.lattes import read_lattes
 from cv_lattex.models import CVError
 from cv_lattex.rendering import export_data
@@ -269,6 +269,41 @@ def test_author_symbols_are_literal_even_when_highlighted(fixtures, tmp_path):
     text = pdf_text(result)
     assert (name + ",").replace(" ", "") in text.replace(" ", "")
     assert "#text" not in text and "\\u{" not in text
+
+
+@pytest.mark.parametrize("preset", PRESETS)
+@pytest.mark.parametrize("filename", ["academic.xml", "professional.xml"])
+def test_preset_profiles_render_contrasting_cvs(fixtures, tmp_path, preset, filename):
+    profile = tmp_path / "profile.yaml"
+    output = tmp_path / "cv.pdf"
+    assert main(["profile", preset, "-o", str(profile)]) == 0
+    assert (
+        main(
+            [
+                "render",
+                str(fixtures / filename),
+                "--profile",
+                str(profile),
+                "-o",
+                str(output),
+            ]
+        )
+        == 0
+    )
+    text = pdf_text(output.read_bytes()).replace(" ", "")
+    if filename == "academic.xml":
+        bio = "Pesquisadoraempreservaçãodigital"
+        assert "ana@example.org" in text
+        assert "Catálogosabertos&memóriadigital" in text
+        assert ("BrunoExemploFictício" in text) == (preset != "resumido")
+        assert ("Títulodotrabalho:" in text) == (preset == "academico")
+    else:
+        bio = "Museólogacomatuaçãoemacessibilidadecultural"
+        assert "sofia@example.org" in text
+        assert "Percursosdamemórialocal" in text
+        assert "Diagnósticodeacessibilidadeemmuseuscomunitários" in text
+        assert "Artigospublicados" not in text
+    assert (bio in text) == (preset != "resumido")
 
 
 @pytest.mark.parametrize("theme", THEMES)
