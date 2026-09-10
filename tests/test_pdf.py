@@ -136,6 +136,69 @@ def test_education_presentation_and_profile_options_reach_the_pdf(fixtures, tmp_
         assert omitted.replace(" ", "") not in text
 
 
+@pytest.mark.parametrize("theme", THEMES)
+def test_articles_with_missing_authors_keep_dates_journals_and_links(fixtures, theme):
+    cv = read_lattes(fixtures / "articles.xml")
+    data, _ = export_data(
+        cv,
+        Profile(
+            theme=theme, sections={"publications.articles": {"show_details": True}}
+        ),
+    )
+    result = render_pdf(yaml.safe_dump(data, allow_unicode=True, sort_keys=False))
+    text = pdf_text(result).replace(" ", "")
+    for expected in (
+        "Catálogos abertos e memória comunitária",
+        "Clara Exemplo Fictícia",
+        "Organização de coleções sem autoria informada",
+        "Cadernos Fictícios de Documentação",
+        "Inventário de fontes orais",
+        "v. 12",
+        "p. 10-19",
+        "p. e204",
+        "2025",
+        "2022",
+    ):
+        assert expected.replace(" ", "") in text
+    for omitted in ("Nota cadastral", "Natureza", "0000-0000", "presente", "et al."):
+        assert omitted.replace(" ", "") not in text
+    assert "AnaExemploFictícia,BrunoExemploFictício,ClaraExemploFictícia" in text
+    links = [
+        annotation.get_object().get("/A", {}).get("/URI", "")
+        for page in PdfReader(io.BytesIO(result)).pages
+        for annotation in page.get("/Annots", [])
+    ]
+    assert any("10.0000/example.collections" in link for link in links)
+    assert any("example.org/preservacao" in link for link in links)
+
+
+def test_article_profile_hides_authors_and_links_in_pdf(fixtures, tmp_path):
+    profile = tmp_path / "articles.profile.yaml"
+    profile.write_text(
+        "include: [publications.articles]\nsections:\n  publications.articles:\n    show_authors: false\n    show_links: false\n",
+        encoding="utf-8",
+    )
+    output = tmp_path / "articles.pdf"
+    assert (
+        main(
+            [
+                "render",
+                str(fixtures / "articles.xml"),
+                "--profile",
+                str(profile),
+                "-o",
+                str(output),
+            ]
+        )
+        == 0
+    )
+    text = pdf_text(output.read_bytes())
+    assert "Catálogos abertos" in text and "Revista Fictícia de Memória" in text
+    assert "Clara Exemplo" not in text and "Bruno Exemplo" not in text
+    assert "10.0000" not in text
+    assert all(not page.get("/Annots") for page in PdfReader(output).pages)
+
+
 def test_multiline_details_remain_text_and_long_entries_span_pages(fixtures, tmp_path):
     tree = ET.parse(fixtures / "academic.xml")
     description = tree.find(".//DETALHAMENTO-DO-SOFTWARE")

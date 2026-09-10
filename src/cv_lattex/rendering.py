@@ -7,7 +7,7 @@ from urllib.parse import urlsplit
 
 from cv_lattex.lattes import YEAR_NAMES
 from cv_lattex.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
-from cv_lattex.sections import EDUCATION_OPTIONS
+from cv_lattex.sections import SECTION_OPTIONS
 from cv_lattex.selection import Profile, Selection, hidden, select, visible_fields
 
 DEGREE_NAMES = {
@@ -258,8 +258,7 @@ def _render_education(
             )
             used.add(state.path)
 
-    options = profile.sections.get("education", {})
-    if options.get("show_thesis", EDUCATION_OPTIONS["show_thesis"][0]):
+    if profile.section_option("education", "show_thesis"):
         thesis = take(
             "TITULO-DO-TRABALHO-DE-CONCLUSAO-DE-CURSO",
             "TITULO-DA-MONOGRAFIA",
@@ -270,7 +269,7 @@ def _render_education(
         if thesis:
             prefix = "Título do trabalho" if profile.language == "pt" else "Work title"
             lines.append(f"{prefix}: {thesis}")
-    if options.get("show_advisors", EDUCATION_OPTIONS["show_advisors"][0]):
+    if profile.section_option("education", "show_advisors"):
         for names, labels in (
             (
                 (
@@ -299,6 +298,112 @@ def _render_education(
     return result, used
 
 
+def _publication_links(entry: Entry, issues: list[Issue]) -> tuple[dict, set[str]]:
+    result = {}
+    used = set()
+    doi = entry.find("DOI")
+    if doi:
+        value = doi.text.removeprefix("https://doi.org/").removeprefix(
+            "http://doi.org/"
+        )
+        if re.fullmatch(r"10\.\d{4,9}/[^\s\"<>\\]+", value):
+            result["doi"] = value
+            used.add(doi.path)
+        else:
+            issues.append(
+                Issue("invalid-doi", doi.path, "DOI inválido preservado nos detalhes.")
+            )
+    url = entry.find("HOME-PAGE-DO-TRABALHO", "HOME-PAGE")
+    if url and not result.get("doi"):
+        if _url(url.text):
+            result["url"] = url.text
+            used.add(url.path)
+        else:
+            issues.append(
+                Issue("invalid-url", url.path, "URL inválida preservada nos detalhes.")
+            )
+    return result, used
+
+
+def _render_article(
+    entry: Entry,
+    authors: list[str],
+    author_fields: set[str],
+    profile: Profile,
+    issues: list[Issue],
+) -> tuple[dict, set[str]]:
+    """Present published articles, including records with missing bibliographic data."""
+    used = set(author_fields)
+
+    def take(name):
+        source = entry.find(name, language=profile.language)
+        if source:
+            used.add(source.path)
+            return source.text
+        return ""
+
+    title = take("TITULO-DO-ARTIGO")
+    fallback = "Artigo publicado" if profile.language == "pt" else "Published article"
+    result = {
+        "title": literal(title or fallback),
+        "authors": [literal(author) for author in authors],
+    }
+    year = take("ANO-DO-ARTIGO")
+    if year:
+        if re.fullmatch(r"[1-9]\d{3}", year):
+            result["date"] = int(year)
+        else:
+            result["date"] = literal(year)
+            issues.append(
+                Issue(
+                    "invalid-date",
+                    entry.find("ANO-DO-ARTIGO").path,
+                    "Ano do artigo inválido; exibido como texto.",
+                )
+            )
+
+    journal = take("TITULO-DO-PERIODICO-OU-REVISTA")
+    citation = [journal] if journal else []
+    if (
+        profile.section_option(entry.section, "show_details")
+        and "details" not in profile.hide_fields
+    ):
+        for name, prefix in (
+            ("VOLUME", "v."),
+            ("FASCICULO", "n." if profile.language == "pt" else "no."),
+            ("SERIE", "série" if profile.language == "pt" else "series"),
+        ):
+            value = take(name)
+            if value:
+                citation.append(f"{prefix} {value}")
+        first, last = take("PAGINA-INICIAL"), take("PAGINA-FINAL")
+        if first:
+            pages = f"{first}-{last}" if last and last != first else first
+            citation.append(f"p. {pages}")
+        elif last:
+            prefix = "p. final" if profile.language == "pt" else "p. ending at"
+            citation.append(f"{prefix} {last}")
+    if citation:
+        result["journal"] = literal(", ".join(citation))
+
+    if profile.section_option(entry.section, "show_links"):
+        links, link_fields = _publication_links(entry, issues)
+        result.update(links)
+        used.update(link_fields)
+        invalid = []
+        # Invalid identifiers remain visible as text, never as clickable links.
+        for name, prefix in (("DOI", "DOI"), ("HOME-PAGE-DO-TRABALHO", "URL")):
+            source = entry.find(name)
+            if name == "HOME-PAGE-DO-TRABALHO" and "doi" in links:
+                continue
+            if source and source.path not in link_fields:
+                invalid.append(literal(f"{prefix}: {source.text}"))
+                used.add(source.path)
+        if invalid:
+            result["summary"] = "\n".join(invalid)
+    return result, used
+
+
 def _render_entry(
     entry: Entry,
     kind: str,
@@ -309,6 +414,8 @@ def _render_entry(
 ) -> tuple[dict, set[str]]:
     if entry.section == "education" and not profile.full:
         return _render_education(entry, kind, profile, issues)
+    if entry.section == "publications.articles" and not profile.full:
+        return _render_article(entry, authors, author_fields, profile, issues)
     used = set()
     title = entry.title_field(profile.language)
     name = literal(title.text) if title else label(entry.tag)
@@ -343,31 +450,9 @@ def _render_entry(
         if journal:
             result["journal"] = literal(journal.text)
             used.add(journal.path)
-        doi = entry.find("DOI")
-        if doi:
-            value = doi.text.removeprefix("https://doi.org/").removeprefix(
-                "http://doi.org/"
-            )
-            if re.fullmatch(r"10\.\d{4,9}/[^\s\"<>\\]+", value):
-                result["doi"] = value
-                used.add(doi.path)
-            else:
-                issues.append(
-                    Issue(
-                        "invalid-doi", doi.path, "DOI inválido preservado nos detalhes."
-                    )
-                )
-        url = entry.find("HOME-PAGE-DO-TRABALHO", "HOME-PAGE")
-        if url and not result.get("doi"):
-            if _url(url.text):
-                result["url"] = url.text
-                used.add(url.path)
-            else:
-                issues.append(
-                    Issue(
-                        "invalid-url", url.path, "URL inválida preservada nos detalhes."
-                    )
-                )
+        links, link_fields = _publication_links(entry, issues)
+        result.update(links)
+        used.update(link_fields)
     if kind != "publication" and authors:
         result["summary"] = literal(
             ("Autores: " if profile.language == "pt" else "Authors: ")
@@ -526,7 +611,7 @@ def export_data(cv: Curriculum, profile: Profile) -> tuple[dict, dict]:
     groups = defaultdict(list)
     for entry in selection.entries:
         sources = visible[entry.id]
-        if not sources and not (entry.section == "education" and not profile.full):
+        if not sources and not (entry.section in SECTION_OPTIONS and not profile.full):
             continue
         # Administrative author order participates in rendering but is never displayed.
         order = [f for f in entry.fields if f.name == "ORDEM-DE-AUTORIA"]
@@ -536,12 +621,22 @@ def export_data(cv: Curriculum, profile: Profile) -> tuple[dict, dict]:
         else:
             groups[entry.section].append(view)
     for section, entries in groups.items():
-        author_lists = [_authors(entry, issues) for entry in entries]
-        kinds = {
-            _entry_kind(entry, authors[0])
-            for entry, authors in zip(entries, author_lists)
-        }
-        kind = next(iter(kinds)) if len(kinds) == 1 else "normal"
+        concise_articles = section == "publications.articles" and not profile.full
+        author_lists = [
+            ([], set())
+            if concise_articles and not profile.section_option(section, "show_authors")
+            else _authors(entry, issues)
+            for entry in entries
+        ]
+        if concise_articles:
+            # RenderCV accepts an empty author list; missing authors need no layout change.
+            kind = "publication"
+        else:
+            kinds = {
+                _entry_kind(entry, authors[0])
+                for entry, authors in zip(entries, author_lists)
+            }
+            kind = next(iter(kinds)) if len(kinds) == 1 else "normal"
         if kind == "normal" and catalog()["sections"][section]["kind"] != "normal":
             issues.append(
                 Issue(
@@ -557,7 +652,7 @@ def export_data(cv: Curriculum, profile: Profile) -> tuple[dict, dict]:
             )
             rendered.append(result)
             used.update(consumed)
-            if section == "education" and not profile.full:
+            if section in SECTION_OPTIONS and not profile.full:
                 presentation_excluded.update(
                     source.path
                     for source in visible[entry.id]

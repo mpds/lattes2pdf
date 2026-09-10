@@ -98,7 +98,7 @@ Perfil YAML (as opções da CLI substituem as opções correspondentes do perfil
 
 O perfil também aceita include_ids, exclude_ids, since, until, full,
 allow_unmapped, sections, sort (year_desc ou source) e unknown_year (keep ou exclude).
-Consulte cv-lattex sections education para os ajustes de formação.
+Consulte cv-lattex sections SEÇÃO para os ajustes disponíveis.
 Listas da CLI usam opções repetidas. Seções aceitam prefixos como publications;
 exclusões prevalecem. O nome permanece no cabeçalho mesmo ao selecionar só registros.
 IDs vêm de inspect e podem mudar se o registro for editado ou ganhar duplicatas.
@@ -109,7 +109,7 @@ metadados administrativos e variantes de outro idioma discriminados no relatóri
 Em inglês, utiliza a tradução disponível no XML e conserva o original quando faltar.
 Dados privados (documentos pessoais, endereço residencial etc.) não são exportados.
 Afastamentos são incluídos somente com --include leave ou seleção explícita do ID.
-Formação usa apresentação enxuta por padrão; --full inclui os detalhes conhecidos.
+Formação e artigos publicados usam apresentação enxuta; --full inclui os detalhes conhecidos.
 Nas demais seções, campos conhecidos sem correspondência direta aparecem como detalhes.
 """,
     )

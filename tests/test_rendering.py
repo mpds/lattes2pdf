@@ -31,16 +31,15 @@ def test_full_export_accounts_for_known_fields(fixtures, filename):
     assert cv.raw_xml == (fixtures / filename).read_bytes()
 
 
-def test_publication_authors_dates_and_selected_details(fixtures):
+def test_publication_authors_dates_and_default_fields(fixtures):
     cv = read_lattes(fixtures / "bibliography.xml")
     data, _ = export_data(cv, Profile(include=["publications.articles"]))
     article = data["cv"]["sections"]["Artigos publicados"][0]
     assert article["authors"] == ["Ana Exemplo Fictícia", "Bruno Exemplo Fictício"]
     assert article["date"] == 2024
     assert article["doi"] == "10.0000/example.article"
-    assert "Volume: 12" in article["summary"]
-    assert "Pagina inicial: 10" in article["summary"]
-    assert "Natureza: COMPLETO" in article["summary"]
+    assert article["journal"] == "Revista Fictícia de Acervos"
+    assert "summary" not in article
 
 
 def test_dates_do_not_invent_precision_or_ongoing_status(fixtures, tmp_path):
@@ -84,7 +83,7 @@ def test_visibility_and_language_do_not_leak_through_generic_details(fixtures):
     assert report["counts"]["private"] > 0
 
 
-def test_hidden_publication_authors_use_a_homogeneous_generic_section(fixtures):
+def test_hidden_article_authors_preserve_the_journal_and_publication_layout(fixtures):
     cv = read_lattes(fixtures / "bibliography.xml")
     data, _ = export_data(
         cv,
@@ -94,8 +93,9 @@ def test_hidden_publication_authors_use_a_homogeneous_generic_section(fixtures):
         ),
     )
     article = data["cv"]["sections"]["Artigos publicados"][0]
-    assert set(article) == {"name"}
-    assert "Catálogos abertos" in article["name"]
+    assert set(article) == {"title", "authors", "journal"}
+    assert article["authors"] == []
+    assert "Catálogos abertos" in article["title"]
 
 
 def test_unknown_content_blocks_full_export_and_is_reported_without_values(fixtures):

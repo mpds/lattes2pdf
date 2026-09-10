@@ -2,9 +2,16 @@
 
 from cv_lattex.models import CVError, catalog
 
-EDUCATION_OPTIONS = {
-    "show_thesis": (False, "Título do trabalho"),
-    "show_advisors": (False, "Orientação e coorientação"),
+SECTION_OPTIONS = {
+    "education": {
+        "show_thesis": (False, "Título do trabalho"),
+        "show_advisors": (False, "Orientação e coorientação"),
+    },
+    "publications.articles": {
+        "show_authors": (True, "Autores"),
+        "show_links": (True, "DOI ou endereço do artigo"),
+        "show_details": (False, "Volume, fascículo, série e páginas"),
+    },
 }
 
 
@@ -27,7 +34,7 @@ def validate_options(sections: dict) -> None:
             raise CVError(
                 f"Seção desconhecida em sections: {name}. Use um identificador exato de cv-lattex sections."
             )
-        allowed = {"title"} | (set(EDUCATION_OPTIONS) if name == "education" else set())
+        allowed = {"title"} | set(SECTION_OPTIONS.get(name, {}))
         if not isinstance(options, dict) or set(options) - allowed:
             raise CVError(
                 f"Opções inválidas em sections.{name}. Consulte cv-lattex sections {name}."
@@ -84,11 +91,10 @@ def describe_sections(prefix: str | None = None) -> str:
         f"Perfil YAML: sections.{prefix}",
     ]
     options = [("title", "texto", "Título da seção (padrão: original)")]
-    if prefix == "education":
-        for key, (default, description) in EDUCATION_OPTIONS.items():
-            options.append(
-                (key, "true|false", f"{description} (padrão: {str(default).lower()})")
-            )
+    for key, (default, description) in SECTION_OPTIONS.get(prefix, {}).items():
+        options.append(
+            (key, "true|false", f"{description} (padrão: {str(default).lower()})")
+        )
     lines.extend(
         f"  {key:<13}  {kind:<10}  {description}" for key, kind, description in options
     )

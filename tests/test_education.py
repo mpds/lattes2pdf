@@ -112,14 +112,15 @@ def test_status_remains_explicit_without_visible_end_dates(fixtures):
     assert "Incompleto" in entries[2]["summary"]
 
 
-def test_education_does_not_change_other_sections_or_reclassify_unknown_fields(
+def test_concise_presentation_does_not_change_other_sections_or_reclassify_unknown_fields(
     fixtures, tmp_path
 ):
     cv = read_lattes(fixtures / "academic.xml")
     full, _ = export_data(cv, Profile(full=True))
     normal, _ = export_data(cv, Profile())
-    assert {k: v for k, v in full["cv"]["sections"].items() if k != TITLE} == {
-        k: v for k, v in normal["cv"]["sections"].items() if k != TITLE
+    concise = {TITLE, "Artigos publicados"}
+    assert {k: v for k, v in full["cv"]["sections"].items() if k not in concise} == {
+        k: v for k, v in normal["cv"]["sections"].items() if k not in concise
     }
     root = ET.parse(fixtures / "education.xml")
     root.find(".//MESTRADO").set("CAMPO-FUTURO", "Conteúdo fictício")

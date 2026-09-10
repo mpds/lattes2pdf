@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 
 from cv_lattex.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
-from cv_lattex.sections import validate_options
+from cv_lattex.sections import SECTION_OPTIONS, validate_options
 
 THEMES = (
     "classic",
@@ -69,6 +69,9 @@ class Profile:
             .get("title", catalog()["sections"][name][self.language])
             .strip()
         )
+
+    def section_option(self, name: str, option: str) -> bool:
+        return self.sections.get(name, {}).get(option, SECTION_OPTIONS[name][option][0])
 
     def validate(self) -> None:
         validate_options(self.sections)
