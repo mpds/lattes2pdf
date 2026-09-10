@@ -216,6 +216,28 @@ def test_article_profile_hides_authors_and_links_in_pdf(fixtures, tmp_path):
     assert all(not page.get("/Annots") for page in PdfReader(output).pages)
 
 
+@pytest.mark.parametrize("hide_authors", [False, True])
+def test_chapter_book_title_survives_compilation_without_details(
+    fixtures, tmp_path, hide_authors
+):
+    tree = ET.parse(fixtures / "bibliography.xml")
+    book_title = "Livro fictício de memória & acervos"
+    tree.find(".//DETALHAMENTO-DO-CAPITULO").set("TITULO-DO-LIVRO", book_title)
+    source = tmp_path / "chapter.xml"
+    tree.write(source, encoding="utf-8")
+    hide_fields = ["details", "authors"] if hide_authors else ["details"]
+    data, _ = export_data(
+        read_lattes(source),
+        Profile(include=["publications.chapters"], hide_fields=hide_fields),
+    )
+    result = render_pdf(yaml.safe_dump(data, allow_unicode=True, sort_keys=False))
+    text = pdf_text(result).replace(" ", "")
+    assert text.count(book_title.replace(" ", "")) == 1
+    assert "Trabalhofictício:do-capitulo" in text
+    assert "2022" in text
+    assert "#text" not in text and "\\u{" not in text
+
+
 @pytest.mark.parametrize("name_case", ["original", "upper", "title"])
 def test_author_case_and_self_identity_reach_the_pdf(fixtures, name_case):
     data, _ = export_data(

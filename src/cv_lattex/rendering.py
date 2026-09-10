@@ -699,6 +699,11 @@ def _render_entry(
     name = literal(title.text) if title else label(entry.tag)
     if title:
         used.add(title.path)
+    book = (
+        entry.find("TITULO-DO-LIVRO", language=profile.language)
+        if entry.section == "publications.chapters"
+        else None
+    )
     result = {"name": name}
     if (
         kind == "normal"
@@ -720,7 +725,7 @@ def _render_entry(
     elif kind == "publication":
         result = {"title": name, "authors": authors}
         used.update(author_fields)
-        journal = entry.find(
+        journal = book or entry.find(
             "TITULO-DO-PERIODICO-OU-REVISTA",
             "NOME-DO-EVENTO",
             "TITULO-DO-JORNAL-OU-REVISTA",
@@ -742,6 +747,10 @@ def _render_entry(
     else:
         result.update(dates)
     used.update(date_fields)
+    if book and kind != "publication":
+        prefix = "Livro" if profile.language == "pt" else "Book"
+        result["highlights"] = [literal(f"{prefix}: {book.text}")]
+        used.add(book.path)
     if "details" not in profile.hide_fields:
         details = _details(entry, used)
         if details:
@@ -749,7 +758,7 @@ def _render_entry(
                 # Blank lines terminate RenderCV's Markdown summary block prematurely.
                 result["summary"] = "\n".join(details)
             else:
-                result["highlights"] = details
+                result.setdefault("highlights", []).extend(details)
     return result, used
 
 
