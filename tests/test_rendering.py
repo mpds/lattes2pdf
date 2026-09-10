@@ -35,7 +35,7 @@ def test_publication_authors_dates_and_default_fields(fixtures):
     cv = read_lattes(fixtures / "bibliography.xml")
     data, _ = export_data(cv, Profile(include=["publications.articles"]))
     article = data["cv"]["sections"]["Artigos publicados"][0]
-    assert article["authors"] == ["Ana Exemplo Fictícia", "Bruno Exemplo Fictício"]
+    assert article["authors"] == ["**Ana Exemplo Fictícia**", "Bruno Exemplo Fictício"]
     assert article["date"] == 2024
     assert article["doi"] == "10.0000/example.article"
     assert article["journal"] == "Revista Fictícia de Acervos"

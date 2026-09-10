@@ -163,6 +163,23 @@ def test_articles_with_missing_authors_keep_dates_journals_and_links(fixtures, t
     for omitted in ("Nota cadastral", "Natureza", "0000-0000", "presente", "et al."):
         assert omitted.replace(" ", "") not in text
     assert "AnaExemploFictícia,BrunoExemploFictício,ClaraExemploFictícia" in text
+    bold, regular = [], []
+    for page in PdfReader(io.BytesIO(result)).pages:
+        page.extract_text(
+            visitor_text=lambda text, cm, tm, font, size: (
+                bold
+                if font and "bold" in str(font.get("/BaseFont")).lower()
+                else regular
+            ).append(text)
+        )
+    # Count author highlights after the first title, independent of header styling.
+    article_bold = (
+        "".join(bold)
+        .replace(" ", "")
+        .split("Catálogosabertosememóriacomunitária", 1)[1]
+    )
+    assert article_bold.count("AnaExemploFictícia") == 2
+    assert "BrunoExemploFictício," in "".join(regular).replace(" ", "")
     links = [
         annotation.get_object().get("/A", {}).get("/URI", "")
         for page in PdfReader(io.BytesIO(result)).pages
@@ -197,6 +214,61 @@ def test_article_profile_hides_authors_and_links_in_pdf(fixtures, tmp_path):
     assert "Clara Exemplo" not in text and "Bruno Exemplo" not in text
     assert "10.0000" not in text
     assert all(not page.get("/Annots") for page in PdfReader(output).pages)
+
+
+@pytest.mark.parametrize("name_case", ["original", "upper", "title"])
+def test_author_case_and_self_identity_reach_the_pdf(fixtures, name_case):
+    data, _ = export_data(
+        read_lattes(fixtures / "authors.xml"), Profile(authors={"name_case": name_case})
+    )
+    result = render_pdf(yaml.safe_dump(data, allow_unicode=True, sort_keys=False))
+    text = pdf_text(result).replace(" ", "").replace("’", "'")
+    byline = {
+        "original": "BRUNO d'ÁVILA, SILVA, ANA, Clara de Souza",
+        "upper": "BRUNO D'ÁVILA, SILVA, ANA, CLARA DE SOUZA",
+        "title": "Bruno D'Ávila, Silva, Ana, Clara De Souza",
+    }[name_case]
+    assert byline.replace(" ", "") in text
+    assert "#text" not in text and "**" not in text
+
+
+def test_exported_author_list_can_be_edited_directly(fixtures):
+    data, _ = export_data(
+        read_lattes(fixtures / "authors.xml"),
+        Profile(include=["publications.articles"], authors={"highlight_self": False}),
+    )
+    document = yaml.safe_load(yaml.safe_dump(data, allow_unicode=True, sort_keys=False))
+    article = document["cv"]["sections"]["Artigos publicados"][0]
+    article["authors"][1] = "Ana da Silva"
+    article["authors"].append("Diego Exemplo")
+    result = render_pdf(yaml.safe_dump(document, allow_unicode=True, sort_keys=False))
+    text = pdf_text(result).replace(" ", "").replace("’", "'")
+    assert "BRUNOd'ÁVILA,AnadaSilva,ClaradeSouza,DiegoExemplo" in text
+    bold = []
+    for page in PdfReader(io.BytesIO(result)).pages:
+        page.extract_text(
+            visitor_text=lambda text, cm, tm, font, size: (
+                bold.append(text)
+                if font and "bold" in str(font.get("/BaseFont")).lower()
+                else None
+            )
+        )
+    # Only the header is bold when author highlighting is disabled.
+    assert "".join(bold).replace(" ", "").count("AnadaSilva") == 1
+
+
+def test_author_symbols_are_literal_even_when_highlighted(fixtures, tmp_path):
+    tree = ET.parse(fixtures / "authors.xml")
+    author = tree.find(".//ARTIGO-PUBLICADO/AUTORES")
+    name = 'Silva_* & #read("inexistente") [Nome]'
+    author.set("NOME-COMPLETO-DO-AUTOR", name)
+    path = tmp_path / "cv.xml"
+    tree.write(path, encoding="utf-8")
+    data, _ = export_data(read_lattes(path), Profile(include=["publications.articles"]))
+    result = render_pdf(yaml.safe_dump(data, allow_unicode=True, sort_keys=False))
+    text = pdf_text(result)
+    assert (name + ",").replace(" ", "") in text.replace(" ", "")
+    assert "#text" not in text and "\\u{" not in text
 
 
 def test_multiline_details_remain_text_and_long_entries_span_pages(fixtures, tmp_path):

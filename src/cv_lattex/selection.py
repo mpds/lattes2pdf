@@ -56,6 +56,7 @@ class Profile:
     until: int | None = None
     section_years: dict[str, dict[str, int]] = field(default_factory=dict)
     sections: dict[str, dict] = field(default_factory=dict)
+    authors: dict = field(default_factory=dict)
     unknown_year: str = "keep"
     sort: str = "year_desc"
     language: str = "pt"
@@ -75,6 +76,19 @@ class Profile:
 
     def validate(self) -> None:
         validate_options(self.sections)
+        if not isinstance(self.authors, dict) or set(self.authors) - {
+            "name_case",
+            "highlight_self",
+        }:
+            raise CVError("authors aceita somente name_case e highlight_self.")
+        if self.authors.get("name_case", "original") not in (
+            "original",
+            "upper",
+            "title",
+        ):
+            raise CVError("authors.name_case deve ser um de: original, upper, title.")
+        if type(self.authors.get("highlight_self", True)) is not bool:
+            raise CVError("authors.highlight_self deve ser booleano.")
         for name in (
             "include",
             "exclude",

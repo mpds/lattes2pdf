@@ -20,7 +20,7 @@ def test_default_articles_preserve_missing_data_and_source(fixtures):
     data, report = export_data(cv, Profile(include=[SECTION]))
     complete, url_only, no_authors, no_date = data["cv"]["sections"][TITLE]
     assert complete["authors"] == [
-        "Ana Exemplo Fictícia",
+        "**Ana Exemplo Fictícia**",
         "Bruno Exemplo Fictício",
         "Clara Exemplo Fictícia",
     ]

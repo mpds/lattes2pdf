@@ -71,14 +71,37 @@ def _url(value: str) -> bool:
         return False
 
 
-def _authors(entry: Entry, issues: list[Issue]) -> tuple[list[str], set[str]]:
+def _author_groups(entry: Entry) -> dict[str, list[SourceField]]:
     groups = defaultdict(list)
     for source in entry.fields:
         if source.tag == "AUTORES":
             groups[source.path.rsplit("/", 1)[0]].append(source)
+    return groups
+
+
+def _self_author(entry: Entry, owner_id: str, owner_name: str) -> str | None:
+    """Match original metadata before filtering or changing the displayed spelling."""
+    id_matches, name_matches = [], []
+    for path, sources in _author_groups(entry).items():
+        attributes = {source.name: source.text for source in sources}
+        author_id = attributes.get("NRO-ID-CNPQ", "")
+        if owner_id and author_id:
+            if owner_id == author_id:
+                id_matches.append(path)
+        elif attributes.get("NOME-COMPLETO-DO-AUTOR") == owner_name:
+            name_matches.append(path)
+    # An explicit ID takes precedence over names, including a conflicting ID.
+    matches = id_matches or name_matches
+    return matches[0] if len(matches) == 1 else None
+
+
+def _authors(
+    entry: Entry, issues: list[Issue], profile: Profile, self_path: str | None
+) -> tuple[list[str], set[str]]:
+    """Return safely formatted names in the declared authorship order."""
     authors = []
     used = set()
-    for path, sources in groups.items():
+    for path, sources in _author_groups(entry).items():
         name = next(
             (
                 f
@@ -105,7 +128,19 @@ def _authors(entry: Entry, issues: list[Issue]) -> tuple[list[str], set[str]]:
         )
     else:
         authors.sort(key=lambda pair: pair[0])
-    return [name.text for _, name in authors], used
+    formatted = []
+    name_case = profile.authors.get("name_case", "original")
+    for _, name in authors:
+        display = name.text
+        if name_case == "upper":
+            display = display.upper()
+        elif name_case == "title":
+            display = display.title()
+        display = literal(display)
+        if self_path == name.path.rsplit("/", 1)[0]:
+            display = f"**{display}**"
+        formatted.append(display)
+    return formatted, used
 
 
 def _dates(entry: Entry, issues: list[Issue], language: str) -> tuple[dict, set[str]]:
@@ -346,7 +381,7 @@ def _render_article(
     fallback = "Artigo publicado" if profile.language == "pt" else "Published article"
     result = {
         "title": literal(title or fallback),
-        "authors": [literal(author) for author in authors],
+        "authors": authors,
     }
     year = take("ANO-DO-ARTIGO")
     if year:
@@ -440,7 +475,7 @@ def _render_entry(
         result = {"company": literal(institution.text), "position": name}
         used.add(institution.path)
     elif kind == "publication":
-        result = {"title": name, "authors": [literal(author) for author in authors]}
+        result = {"title": name, "authors": authors}
         used.update(author_fields)
         journal = entry.find(
             "TITULO-DO-PERIODICO-OU-REVISTA",
@@ -454,10 +489,9 @@ def _render_entry(
         result.update(links)
         used.update(link_fields)
     if kind != "publication" and authors:
-        result["summary"] = literal(
-            ("Autores: " if profile.language == "pt" else "Authors: ")
-            + "; ".join(authors)
-        )
+        result["summary"] = (
+            "Autores: " if profile.language == "pt" else "Authors: "
+        ) + ", ".join(authors)
         used.update(author_fields)
     dates, date_fields = _dates(entry, issues, profile.language)
     if kind == "publication" and "start_date" in dates:
@@ -608,6 +642,22 @@ def export_data(cv: Curriculum, profile: Profile) -> tuple[dict, dict]:
     used = {name_field.path}
     presentation_excluded = set()
     visible = {entry.id: visible_fields(entry, profile) for entry in selection.entries}
+    owner_id = next(
+        (
+            f.text
+            for f in cv.fields
+            if f.tag == "CURRICULO-VITAE" and f.name == "NUMERO-IDENTIFICADOR"
+        ),
+        "",
+    )
+    self_authors = (
+        {
+            entry.id: _self_author(entry, owner_id, cv.name)
+            for entry in selection.entries
+        }
+        if profile.authors.get("highlight_self", True)
+        else {}
+    )
     groups = defaultdict(list)
     for entry in selection.entries:
         sources = visible[entry.id]
@@ -625,7 +675,7 @@ def export_data(cv: Curriculum, profile: Profile) -> tuple[dict, dict]:
         author_lists = [
             ([], set())
             if concise_articles and not profile.section_option(section, "show_authors")
-            else _authors(entry, issues)
+            else _authors(entry, issues, profile, self_authors.get(entry.id))
             for entry in entries
         ]
         if concise_articles:

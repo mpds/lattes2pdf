@@ -95,6 +95,17 @@ Perfil YAML (as opções da CLI substituem as opções correspondentes do perfil
   hide_fields: [contact, advisors, thesis]
   language: pt
   theme: classic
+  authors:
+    name_case: original
+    highlight_self: true
+
+Autores (todas as seções):
+  authors.name_case        original | upper | title  (padrão: original)
+    original  preservar grafia
+    upper     tudo em maiúsculas
+    title     inicial de cada palavra maiúscula, inclusive Da e De
+  authors.highlight_self  true | false              (padrão: true)
+    Negrito por ID CNPq; sem ID comparável, por nome completo exato e único.
 
 O perfil também aceita include_ids, exclude_ids, since, until, full,
 allow_unmapped, sections, sort (year_desc ou source) e unknown_year (keep ou exclude).
