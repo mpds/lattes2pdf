@@ -661,6 +661,25 @@ def _render_context(
     return result, used
 
 
+def _header_link(entry: Entry, output: dict, profile: Profile) -> set[str]:
+    """Move an explicitly selected digital-media link to the header without guessing ownership."""
+    source = entry.find("HOME-PAGE")
+    if not source:
+        return set()
+    if not _url(source.text):
+        # The normal media entry will retain the invalid address as text.
+        return set()
+    title = entry.title_field(profile.language)
+    output.setdefault("custom_connections", []).append(
+        {
+            "fontawesome_icon": "link",
+            "placeholder": literal(title.text if title else "Link"),
+            "url": source.text,
+        }
+    )
+    return {source.path} | ({title.path} if title else set())
+
+
 def _render_entry(
     entry: Entry,
     kind: str,
@@ -890,6 +909,19 @@ def export_data(cv: Curriculum, profile: Profile) -> tuple[dict, dict]:
         # Administrative author order participates in rendering but is never displayed.
         order = [f for f in entry.fields if f.name == "ORDEM-DE-AUTORIA"]
         view = replace(entry, fields=sources + order)
+        if entry.id in profile.header_links:
+            if {"contact", "links"} & set(
+                profile.hide_fields
+            ) or not profile.section_option(entry.section, "show_links"):
+                presentation_excluded.update(f.path for f in sources)
+                continue
+            consumed = _header_link(view, output, profile)
+            if consumed:
+                used.update(consumed)
+                presentation_excluded.update(
+                    f.path for f in sources if f.path not in consumed
+                )
+                continue
         if entry.section == "profile":
             used.update(_profile(view, output, profile, issues))
         else:

@@ -272,13 +272,19 @@ def test_author_symbols_are_literal_even_when_highlighted(fixtures, tmp_path):
 
 
 @pytest.mark.parametrize("theme", THEMES)
-def test_context_renders_across_themes(fixtures, theme):
+def test_context_and_explicit_header_links_render_across_themes(fixtures, theme):
     cv = read_lattes(fixtures / "context.xml")
+    social = next(
+        e
+        for e in cv.entries
+        if e.section == "technical.web" and e.title() == "LinkedIn"
+    )
     data, _ = export_data(
         cv,
         Profile(
             theme=theme,
             hide_fields=["details"],
+            header_links=[social.id],
             exclude=["experience", "activities.projects"],
         ),
     )
@@ -310,6 +316,34 @@ def test_context_renders_across_themes(fixtures, theme):
     assert "https://www.linkedin.com/in/pessoa-exemplo-ficticia/" in links
     assert "https://example.org/encontro" in links
     assert "https://example.org/entrevista" in links
+
+
+def test_header_link_labels_and_media_urls_preserve_literal_punctuation(
+    fixtures, tmp_path
+):
+    tree = ET.parse(fixtures / "context.xml")
+    social = tree.find(".//DADOS-BASICOS-DA-MIDIA-SOCIAL-WEBSITE-BLOG")
+    social.set("TITULO", "Perfil [pessoal] & contatos")
+    address = "https://example.org/entrevista_(aberta)?a=1&b=2"
+    tree.find(".//DADOS-BASICOS-DO-PROGRAMA-DE-RADIO-OU-TV").set("HOME-PAGE", address)
+    source = tmp_path / "cv.xml"
+    tree.write(source, encoding="utf-8")
+    cv = read_lattes(source)
+    entry = next(e for e in cv.entries if e.section == "technical.web")
+    radio = next(e for e in cv.entries if e.section == "technical.broadcasts")
+    data, _ = export_data(
+        cv, Profile(include_ids=[entry.id, radio.id], header_links=[entry.id])
+    )
+    pdf = render_pdf(yaml.safe_dump(data, allow_unicode=True))
+    assert "Perfil [pessoal] & contatos" in pdf_text(pdf)
+    assert "#text" not in pdf_text(pdf)
+    reader = PdfReader(io.BytesIO(pdf))
+    links = [
+        a.get_object().get("/A", {}).get("/URI")
+        for p in reader.pages
+        for a in p.get("/Annots", [])
+    ]
+    assert "https://example.org/entrevista_%28aberta%29?a=1&b=2" in links
 
 
 def test_multiline_details_remain_text_and_long_entries_span_pages(fixtures, tmp_path):

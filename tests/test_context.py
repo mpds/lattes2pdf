@@ -5,6 +5,7 @@ import pytest
 
 from cv_lattex.cli import inspection
 from cv_lattex.lattes import read_lattes
+from cv_lattex.models import CVError
 from cv_lattex.rendering import export_data
 from cv_lattex.selection import Profile
 
@@ -140,6 +141,83 @@ def test_context_english_uses_source_translations_and_keeps_proficiency_values(
         == sections["Languages"][0]["summary"]
     )
     assert "Open memories" == sections["Projects"][0]["name"]
+
+
+def test_header_links_move_only_explicitly_selected_media_and_preserve_accounting(
+    fixtures,
+):
+    cv = read_lattes(fixtures / "context.xml")
+    social = next(
+        e
+        for e in cv.entries
+        if e.section == "technical.web" and e.title() == "LinkedIn"
+    )
+    data, report = export_data(
+        cv, Profile(include=["technical.web"], header_links=[social.id])
+    )
+    assert data["cv"]["custom_connections"] == [
+        {
+            "fontawesome_icon": "link",
+            "placeholder": "LinkedIn",
+            "url": "https://www.linkedin.com/in/pessoa-exemplo-ficticia/",
+        }
+    ]
+    assert [e["name"] for e in data["cv"]["sections"]["Mídia digital"]] == [
+        "Site de projeto"
+    ]
+    source = social.find("HOME-PAGE")
+    assert (
+        next(f for f in report["fields"] if f["path"] == source.path)["status"]
+        == "exported"
+    )
+    assert not report["counts"].get("unmapped")
+    for field in ("links", "contact"):
+        hidden, _ = export_data(
+            cv,
+            Profile(
+                include_ids=[social.id], header_links=[social.id], hide_fields=[field]
+            ),
+        )
+        assert "custom_connections" not in hidden["cv"]
+        assert not hidden["cv"]["sections"]
+    hidden, _ = export_data(
+        cv,
+        Profile(
+            include_ids=[social.id],
+            header_links=[social.id],
+            sections={"technical.web": {"show_links": False}},
+        ),
+    )
+    assert "custom_connections" not in hidden["cv"] and not hidden["cv"]["sections"]
+    with pytest.raises(CVError, match="header_links"):
+        export_data(cv, Profile(exclude=["technical.web"], header_links=[social.id]))
+    with pytest.raises(CVError, match="header_links"):
+        export_data(cv, Profile(header_links=[cv.entries[0].id]))
+    with pytest.raises(CVError, match="IDs desconhecidos"):
+        export_data(cv, Profile(header_links=["technical.web:missing"]))
+
+
+def test_invalid_media_url_stays_text_and_cannot_become_a_header_link(
+    fixtures, tmp_path
+):
+    tree = ET.parse(fixtures / "context.xml")
+    tree.find(".//DADOS-BASICOS-DA-MIDIA-SOCIAL-WEBSITE-BLOG").set(
+        "HOME-PAGE", "javascript:alert(1)"
+    )
+    source = tmp_path / "cv.xml"
+    tree.write(source, encoding="utf-8")
+    cv = read_lattes(source)
+    social = next(e for e in cv.entries if e.section == "technical.web")
+    data, report = export_data(
+        cv, Profile(include_ids=[social.id], header_links=[social.id])
+    )
+    assert "custom_connections" not in data["cv"]
+    assert (
+        "Link: javascript:alert(1)"
+        == data["cv"]["sections"]["Mídia digital"][0]["summary"]
+    )
+    assert any(i["code"] == "invalid-url" for i in report["issues"])
+    assert not report["counts"].get("unmapped")
 
 
 def test_full_retains_context_and_raw_details_without_concise_omissions(fixtures):

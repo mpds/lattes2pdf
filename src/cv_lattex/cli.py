@@ -114,6 +114,7 @@ Listas da CLI usam opções repetidas. Seções aceitam prefixos como publicatio
 exclusões prevalecem. O nome permanece no cabeçalho mesmo ao selecionar só registros.
 IDs vêm de inspect e podem mudar se o registro for editado ou ganhar duplicatas.
 include_ids restringe todos os registros aos IDs listados; exclude_ids remove só os indicados.
+header_links move IDs selecionados de technical.web para links no cabeçalho.
 O ano do registro prioriza publicação/conclusão; sem ano, o filtro mantém o registro
 e emite aviso por padrão. --full inclui o conteúdo conhecido, com dados privados,
 metadados administrativos e variantes de outro idioma discriminados no relatório.

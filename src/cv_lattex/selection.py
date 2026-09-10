@@ -50,6 +50,7 @@ class Profile:
     exclude: list[str] = field(default_factory=list)
     include_ids: list[str] = field(default_factory=list)
     exclude_ids: list[str] = field(default_factory=list)
+    header_links: list[str] = field(default_factory=list)
     order: list[str] = field(default_factory=list)
     hide_fields: list[str] = field(default_factory=list)
     since: int | None = None
@@ -94,6 +95,7 @@ class Profile:
             "exclude",
             "include_ids",
             "exclude_ids",
+            "header_links",
             "order",
             "hide_fields",
         ):
@@ -140,6 +142,7 @@ class Profile:
             or self.exclude
             or self.include_ids
             or self.exclude_ids
+            or self.header_links
             or self.hide_fields
             or self.since is not None
             or self.until is not None
@@ -223,7 +226,10 @@ class Selection:
 def select(cv: Curriculum, profile: Profile) -> Selection:
     profile.validate()
     known_ids = {entry.id for entry in cv.entries}
-    invalid = set(profile.include_ids + profile.exclude_ids) - known_ids
+    invalid = (
+        set(profile.include_ids + profile.exclude_ids + profile.header_links)
+        - known_ids
+    )
     if invalid:
         raise CVError(
             f"IDs desconhecidos: {', '.join(sorted(invalid))}. Consulte inspect."
@@ -284,6 +290,14 @@ def select(cv: Curriculum, profile: Profile) -> Selection:
             -(entry.year or 0) if profile.sort == "year_desc" else 0,
         )
     )
+    selected_web_ids = {
+        entry.id for entry in selected if entry.section == "technical.web"
+    }
+    if set(profile.header_links) - selected_web_ids:
+        raise CVError(
+            "header_links aceita IDs selecionados de technical.web. "
+            "Confira include, exclude e os filtros de registros."
+        )
     return Selection(selected, excluded, issues)
 
 
