@@ -12,6 +12,39 @@ SECTION_OPTIONS = {
         "show_links": (True, "DOI ou endereço do artigo"),
         "show_details": (False, "Volume, fascículo, série e páginas"),
     },
+    "supervision.completed": {
+        "show_students": (True, "Nomes dos orientados"),
+        "show_institution": (True, "Instituição e curso"),
+    },
+    "supervision.ongoing": {
+        "show_students": (True, "Nomes dos orientandos"),
+        "show_institution": (True, "Instituição e curso"),
+    },
+    "research.projects": {
+        "show_members": (True, "Integrantes e responsável"),
+        "show_description": (False, "Descrição do projeto"),
+    },
+    "languages": {"show_proficiency": (True, "Leitura, fala, escrita e compreensão")},
+    "events": {
+        "show_event_type": (True, "Tipo do evento e participação"),
+        "show_links": (True, "DOI ou endereço do trabalho"),
+    },
+    **{
+        name: {"show_institution": (True, "Instituição e unidade")}
+        for name in (
+            "activities.internships",
+            "activities.extension",
+            "activities.other",
+            "activities.committees",
+        )
+    },
+    **{
+        name: {
+            "show_authors": (False, "Autores"),
+            "show_links": (True, "DOI ou endereço do trabalho"),
+        }
+        for name in ("technical.events", "technical.broadcasts", "technical.web")
+    },
 }
 
 
@@ -95,7 +128,9 @@ def describe_sections(prefix: str | None = None) -> str:
         options.append(
             (key, "true|false", f"{description} (padrão: {str(default).lower()})")
         )
+    width = max(13, *(len(key) for key, _, _ in options))
     lines.extend(
-        f"  {key:<13}  {kind:<10}  {description}" for key, kind, description in options
+        f"  {key:<{width}}  {kind:<10}  {description}"
+        for key, kind, description in options
     )
     return "\n".join(lines)

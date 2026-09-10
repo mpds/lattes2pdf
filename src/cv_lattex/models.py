@@ -78,6 +78,9 @@ class Entry:
 
     def title(self, language: str = "pt") -> str:
         value = self.title_field(language)
+        if not value and self.section == "events":
+            # Attendance need not have a work title. Keep identity generation unchanged.
+            value = self.find("NOME-DO-EVENTO", language=language)
         return value.text if value else catalog()["sections"][self.section][language]
 
 

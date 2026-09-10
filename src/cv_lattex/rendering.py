@@ -3,7 +3,7 @@
 import re
 from collections import Counter, defaultdict
 from dataclasses import asdict, replace
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 
 from cv_lattex.lattes import YEAR_NAMES
 from cv_lattex.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
@@ -439,6 +439,228 @@ def _render_article(
     return result, used
 
 
+def _term(value: str, language: str) -> str:
+    """Translate documented categorical values, retaining unrecognized source text."""
+    terms = {
+        "MESTRADO": ("Mestrado", "Master's"),
+        "DOUTORADO": ("Doutorado", "Doctorate"),
+        "POS_DOUTORADO": ("Pós-doutorado", "Postdoctoral"),
+        "GRADUACAO": ("Graduação", "Undergraduate"),
+        "INICIACAO_CIENTIFICA": ("Iniciação científica", "Undergraduate research"),
+        "APERFEICOAMENTO_ESPECIALIZACAO": (
+            "Aperfeiçoamento/especialização",
+            "Specialization",
+        ),
+        "MONOGRAFIA_DE_CONCLUSAO_DE_CURSO_APERFEICOAMENTO_E_ESPECIALIZACAO": (
+            "Aperfeiçoamento/especialização",
+            "Specialization",
+        ),
+        "TRABALHO_DE_CONCLUSAO_DE_CURSO_GRADUACAO": ("Graduação", "Undergraduate"),
+        "ORIENTACAO_DE_OUTRA_NATUREZA": ("Outra natureza", "Other supervision"),
+        "ORIENTADOR_PRINCIPAL": ("Orientação", "Supervision"),
+        "ORIENTADOR": ("Orientação", "Supervision"),
+        "CO_ORIENTADOR": ("Coorientação", "Co-supervision"),
+        "CONGRESSO": ("Congresso", "Congress"),
+        "FEIRA": ("Feira", "Fair"),
+        "SEMINARIO": ("Seminário", "Seminar"),
+        "SIMPOSIO": ("Simpósio", "Symposium"),
+        "OFICINA": ("Oficina", "Workshop"),
+        "ENCONTRO": ("Encontro", "Meeting"),
+        "EXPOSICAO": ("Exposição", "Exhibition"),
+        "OLIMPIADA": ("Olimpíada", "Olympiad"),
+        "ORGANIZACAO": ("Organização", "Organization"),
+        "ENTREVISTA": ("Entrevista", "Interview"),
+        "COMENTARIO": ("Comentário", "Commentary"),
+        "REDE_SOCIAL": ("Rede social", "Social network"),
+        "OUTRO": ("Outro", "Other"),
+        "OUTRA": ("Outra", "Other"),
+        "BEM": ("bem", "well"),
+        "RAZOAVELMENTE": ("razoavelmente", "reasonably"),
+        "POUCO": ("pouco", "a little"),
+    }
+    terms.update(
+        {pair[0].upper().replace("-", "_"): pair for pair in list(terms.values())}
+    )
+    return terms.get(value.upper().replace("-", "_"), (value, value))[language == "en"]
+
+
+def _render_context(
+    entry: Entry,
+    authors: list[str],
+    author_fields: set[str],
+    profile: Profile,
+    issues: list[Issue],
+) -> tuple[dict, set[str]]:
+    """Keep each section's useful context independent of generic leftover details."""
+    used = set()
+    english = profile.language == "en"
+
+    def take(*names):
+        source = entry.find(*names, language=profile.language)
+        if source:
+            used.add(source.path)
+            return source.text
+        return ""
+
+    def option(name):
+        return profile.section_option(entry.section, name)
+
+    title = entry.title_field(profile.language)
+    name = title.text if title else ""
+    if title:
+        used.add(title.path)
+    lines = []
+    if entry.section.startswith("supervision."):
+        level = next(
+            (
+                entry.tag.removeprefix(prefix)
+                for prefix in (
+                    "ORIENTACOES-CONCLUIDAS-PARA-",
+                    "ORIENTACAO-EM-ANDAMENTO-DE-",
+                )
+                if entry.tag.startswith(prefix)
+            ),
+            "",
+        )
+        level = _term(level or take("NATUREZA"), profile.language)
+        student = (
+            take("NOME-DO-ORIENTADO", "NOME-DO-ORIENTANDO")
+            if option("show_students")
+            else ""
+        )
+        lines.append(": ".join(value for value in (level, student) if value))
+        if option("show_institution"):
+            institution = take("NOME-DA-INSTITUICAO", "NOME-INSTITUICAO")
+            course = take("NOME-DO-CURSO", "NOME-CURSO")
+            lines.append(", ".join(value for value in (institution, course) if value))
+        role = take("TIPO-DE-ORIENTACAO", "TIPO-DE-ORIENTACAO-CONCLUIDA")
+        if role:
+            lines.append(_term(role, profile.language))
+        name = name or (
+            "Supervision without a work title"
+            if english
+            else "Orientação sem título de trabalho"
+        )
+    elif entry.section.startswith("activities."):
+        if option("show_institution"):
+            context = [
+                take("NOME-INSTITUICAO"),
+                take("NOME-ORGAO"),
+                take("NOME-UNIDADE"),
+            ]
+            lines.append(", ".join(dict.fromkeys(value for value in context if value)))
+    elif entry.section == "research.projects":
+        lines.append(take("NOME-INSTITUICAO"))
+        if option("show_members"):
+            members = []
+            groups = defaultdict(list)
+            for source in entry.fields:
+                if source.tag == "INTEGRANTES-DO-PROJETO":
+                    groups[source.path.rsplit("/", 1)[0]].append(source)
+            for sources in groups.values():
+                member = next(
+                    (
+                        f
+                        for key in ("NOME-COMPLETO", "NOME-PARA-CITACAO")
+                        for f in sources
+                        if f.name == key and f.text
+                    ),
+                    None,
+                )
+                if member:
+                    display = member.text
+                    used.add(member.path)
+                    responsible = next(
+                        (
+                            f
+                            for f in sources
+                            if f.name == "FLAG-RESPONSAVEL" and f.text == "SIM"
+                        ),
+                        None,
+                    )
+                    if responsible:
+                        display += " (responsible)" if english else " (responsável)"
+                        used.add(responsible.path)
+                    members.append(display)
+            if members:
+                lines.append(
+                    ("Members: " if english else "Integrantes: ") + ", ".join(members)
+                )
+        if option("show_description"):
+            lines.append(take("DESCRICAO-DO-PROJETO"))
+    elif entry.section == "languages":
+        if option("show_proficiency"):
+            skills = []
+            for suffix, labels in (
+                ("LEITURA", ("Leitura", "Reading")),
+                ("FALA", ("Fala", "Speaking")),
+                ("ESCRITA", ("Escrita", "Writing")),
+                ("COMPREENSAO", ("Compreensão", "Understanding")),
+            ):
+                source = entry.find("PROFICIENCIA-DE-" + suffix)
+                if source and source.text != "NAO_INFORMADO":
+                    value = take(source.name)
+                    skills.append(
+                        f"{labels[english]}: {_term(value, profile.language)}"
+                    )
+            lines.append("; ".join(skills))
+    elif entry.section == "events":
+        event = take("NOME-DO-EVENTO")
+        if name and event and event != name:
+            lines.append(event)
+        name = (
+            name
+            or event
+            or ("Unnamed event" if english else "Evento sem nome informado")
+        )
+        if option("show_event_type"):
+            nature = take("NATUREZA")
+            if not nature and entry.tag.startswith("PARTICIPACAO-EM-"):
+                nature = entry.tag.removeprefix("PARTICIPACAO-EM-")
+            participation = take("TIPO-PARTICIPACAO")
+            lines.append(
+                "; ".join(
+                    _term(value, profile.language)
+                    for value in (nature, participation)
+                    if value
+                )
+            )
+    elif entry.section == "technical.events":
+        lines.append(take("INSTITUICAO-PROMOTORA"))
+        nature = take("NATUREZA")
+        lines.append(
+            "; ".join(
+                _term(value, profile.language)
+                for value in (nature if nature != "ORGANIZACAO" else "", take("TIPO"))
+                if value
+            )
+        )
+    elif entry.section == "technical.broadcasts":
+        lines.append(take("EMISSORA", "VEICULO-DE-DIVULGACAO"))
+        lines.append(_term(take("NATUREZA"), profile.language))
+
+    result = {"name": literal(name or label(entry.tag))}
+    dates, date_fields = _dates(entry, issues, profile.language)
+    result.update(dates)
+    used.update(date_fields)
+    formatted = [literal(line) for line in lines if line]
+    if entry.section.startswith("technical.") and authors:
+        formatted.append(("Authors: " if english else "Autores: ") + ", ".join(authors))
+        used.update(author_fields)
+    if "show_links" in SECTION_OPTIONS[entry.section] and option("show_links"):
+        links, link_fields = _publication_links(entry, issues)
+        used.update(link_fields)
+        url = "https://doi.org/" + links["doi"] if "doi" in links else links.get("url")
+        if url:
+            formatted.append(f"[Link]({quote(url, safe=':/?&=%#@+,-._~')})")
+        elif source := entry.find("HOME-PAGE-DO-TRABALHO", "HOME-PAGE", "DOI"):
+            formatted.append(literal(f"Link: {source.text}"))
+            used.add(source.path)
+    if formatted:
+        result["summary"] = "\n".join(formatted)
+    return result, used
+
+
 def _render_entry(
     entry: Entry,
     kind: str,
@@ -451,6 +673,8 @@ def _render_entry(
         return _render_education(entry, kind, profile, issues)
     if entry.section == "publications.articles" and not profile.full:
         return _render_article(entry, authors, author_fields, profile, issues)
+    if entry.section in SECTION_OPTIONS and not profile.full:
+        return _render_context(entry, authors, author_fields, profile, issues)
     used = set()
     title = entry.title_field(profile.language)
     name = literal(title.text) if title else label(entry.tag)
@@ -674,7 +898,9 @@ def export_data(cv: Curriculum, profile: Profile) -> tuple[dict, dict]:
         concise_articles = section == "publications.articles" and not profile.full
         author_lists = [
             ([], set())
-            if concise_articles and not profile.section_option(section, "show_authors")
+            if not profile.full
+            and "show_authors" in SECTION_OPTIONS.get(section, {})
+            and not profile.section_option(section, "show_authors")
             else _authors(entry, issues, profile, self_authors.get(entry.id))
             for entry in entries
         ]

@@ -271,6 +271,47 @@ def test_author_symbols_are_literal_even_when_highlighted(fixtures, tmp_path):
     assert "#text" not in text and "\\u{" not in text
 
 
+@pytest.mark.parametrize("theme", THEMES)
+def test_context_renders_across_themes(fixtures, theme):
+    cv = read_lattes(fixtures / "context.xml")
+    data, _ = export_data(
+        cv,
+        Profile(
+            theme=theme,
+            hide_fields=["details"],
+            exclude=["experience", "activities.projects"],
+        ),
+    )
+    pdf = render_pdf(yaml.safe_dump(data, allow_unicode=True, sort_keys=False))
+    text = pdf_text(pdf)
+    for expected in (
+        "LinkedIn",
+        "Iniciação científica: Diana Exemplo Fictícia",
+        "Doutorado: Eduardo Exemplo Fictício",
+        "Coorientação",
+        "Universidade Fictícia do Vale",
+        "Integrantes:",
+        "Bruno Exemplo Fictício",
+        "Leitura: bem",
+        "Fala: razoavelmente",
+        "Escrita: pouco",
+        "Simpósio Fictício de Memória",
+        "Congresso Fictício de Arquivos",
+    ):
+        assert expected.replace(" ", "") in text.replace(" ", "")
+    assert "Carla Exemplo Fictícia" not in text
+    assert "#text" not in text and "\\u{" not in text
+    reader = PdfReader(io.BytesIO(pdf))
+    links = [
+        a.get_object().get("/A", {}).get("/URI")
+        for p in reader.pages
+        for a in p.get("/Annots", [])
+    ]
+    assert "https://www.linkedin.com/in/pessoa-exemplo-ficticia/" in links
+    assert "https://example.org/encontro" in links
+    assert "https://example.org/entrevista" in links
+
+
 def test_multiline_details_remain_text_and_long_entries_span_pages(fixtures, tmp_path):
     tree = ET.parse(fixtures / "academic.xml")
     description = tree.find(".//DETALHAMENTO-DO-SOFTWARE")

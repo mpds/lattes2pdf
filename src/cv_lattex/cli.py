@@ -120,8 +120,8 @@ metadados administrativos e variantes de outro idioma discriminados no relatóri
 Em inglês, utiliza a tradução disponível no XML e conserva o original quando faltar.
 Dados privados (documentos pessoais, endereço residencial etc.) não são exportados.
 Afastamentos são incluídos somente com --include leave ou seleção explícita do ID.
-Formação e artigos publicados usam apresentação enxuta; --full inclui os detalhes conhecidos.
-Nas demais seções, campos conhecidos sem correspondência direta aparecem como detalhes.
+As seções com apresentação enxuta conservam seu contexto principal; --full inclui os detalhes conhecidos.
+hide_fields: [details] omite os detalhes genéricos das demais seções.
 """,
     )
     conversion.add_argument("input", type=Path, help="XML ou ZIP exportado do Lattes")
