@@ -6,6 +6,7 @@ build-backend = "hatchling.build"
 name = "cv-lattex"
 version = "0.1.0"
 description = "Seleção e conversão de currículos Lattes para RenderCV"
+readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -22,7 +23,7 @@ cv-lattex = "cv_lattex.cli:main"
 packages = ["src/cv_lattex"]
 
 [tool.hatch.build.targets.sdist]
-include = ["/src", "/tests", "/pyproject.toml", "/LICENSE", "/CONTRIBUTING.md"]
+include = ["/src", "/tests", "/pyproject.toml", "/LICENSE", "/README.md", "/CONTRIBUTING.md"]
 
 [dependency-groups]
 dev = ["ruff>=0.15,<0.17", "pytest>=8,<10", "build>=1.2,<2", "pypdf>=6,<7"]

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="1170" viewBox="0 0 640 1170">
+<rect width="640" height="1170" fill="white"/>
+<rect x="150" y="25" width="340" height="100" rx="14" fill="#f5f7fa" stroke="#acb7c4" stroke-width="2"/>
+<text x="320.0" y="56" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="25" fill="#172b42">XML ou ZIP</text>
+<text x="320.0" y="90" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="21" fill="#172b42">Exportação do Lattes</text>
+<rect x="20" y="185" width="270" height="100" rx="14" fill="#f5f7fa" stroke="#acb7c4" stroke-width="2"/>
+<text x="155.0" y="216" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="25" fill="#172b42">profile.yaml</text>
+<text x="155.0" y="250" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="21" fill="#172b42">Conteúdo · opcional</text>
+<rect x="350" y="185" width="270" height="100" rx="14" fill="#f5f7fa" stroke="#acb7c4" stroke-width="2"/>
+<text x="485.0" y="216" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="25" fill="#172b42">Tema</text>
+<text x="485.0" y="250" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="21" fill="#172b42">Nome ou YAML · opcional</text>
+<rect x="150" y="355" width="340" height="100" rx="14" fill="#f5f7fa" stroke="#acb7c4" stroke-width="2"/>
+<text x="320.0" y="405.0" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="25" fill="#172b42">cv-lattex</text>
+<polyline points="320,125 320,355" fill="none" stroke="#60758a" stroke-width="3"/>
+<polygon points="320,355 314,343 326,343" fill="#60758a"/>
+<polyline points="155,285 155,320 230,320 230,355" fill="none" stroke="#60758a" stroke-width="3"/>
+<polygon points="230,355 224,343 236,343" fill="#60758a"/>
+<polyline points="485,285 485,320 410,320 410,355" fill="none" stroke="#60758a" stroke-width="3"/>
+<polygon points="410,355 404,343 416,343" fill="#60758a"/>
+<rect x="150" y="525" width="340" height="75" rx="14" fill="#edf7ef" stroke="#9fbea6" stroke-width="2"/>
+<text x="320.0" y="562.5" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="25" fill="#172b42">PDF</text>
+<rect x="150" y="625" width="340" height="75" rx="14" fill="#f5f7fa" stroke="#acb7c4" stroke-width="2"/>
+<text x="320.0" y="662.5" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="25" fill="#172b42">Relatório JSON</text>
+<rect x="150" y="725" width="340" height="100" rx="14" fill="#f5f7fa" stroke="#acb7c4" stroke-width="2"/>
+<text x="320.0" y="756" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="25" fill="#172b42">YAML do RenderCV</text>
+<text x="320.0" y="790" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="21" fill="#172b42">Conteúdo + aparência</text>
+<polyline points="150,405 95,405 95,562 150,562" fill="none" stroke="#60758a" stroke-width="3"/>
+<polygon points="150,562 138,556 138,568" fill="#60758a"/>
+<polyline points="95,562 95,662 150,662" fill="none" stroke="#60758a" stroke-width="3"/>
+<polygon points="150,662 138,656 138,668" fill="#60758a"/>
+<polyline points="95,662 95,775 150,775" fill="none" stroke="#60758a" stroke-width="3"/>
+<polygon points="150,775 138,769 138,781" fill="#60758a"/>
+<text x="490" y="868" text-anchor="end" dominant-baseline="central" font-family="Arial,sans-serif" font-size="21" fill="#716582">Opcional</text>
+<rect x="150" y="895" width="340" height="100" rx="14" fill="#f4f0f7" stroke="#b6a8c3" stroke-width="2"/>
+<text x="320.0" y="926" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="25" fill="#172b42">Editar e recompilar</text>
+<text x="320.0" y="960" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="21" fill="#172b42">rendercv render cv.yaml</text>
+<polyline points="320,825 320,895" fill="none" stroke="#60758a" stroke-width="3"/>
+<polygon points="320,895 314,883 326,883" fill="#60758a"/>
+<rect x="150" y="1065" width="340" height="75" rx="14" fill="#f4f0f7" stroke="#b6a8c3" stroke-width="2"/>
+<text x="320.0" y="1102.5" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="25" fill="#172b42">Novo PDF</text>
+<polyline points="320,995 320,1065" fill="none" stroke="#60758a" stroke-width="3"/>
+<polygon points="320,1065 314,1053 326,1053" fill="#60758a"/>
+</svg>

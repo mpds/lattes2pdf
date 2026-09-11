@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Currículo inteiramente fictício para demonstrar o cv-lattex. -->
+<CURRICULO-VITAE SISTEMA-ORIGEM-XML="LATTES_OFFLINE" DATA-ATUALIZACAO="01062026">
+  <DADOS-GERAIS NOME-COMPLETO="Ana Exemplo Fictícia">
+    <RESUMO-CV TEXTO-RESUMO-CV-RH="Pesquisadora em preservação digital e organização do conhecimento. Desenvolve ferramentas abertas para ampliar o acesso a acervos culturais." TEXTO-RESUMO-CV-RH-EN="Researcher in digital preservation and knowledge organization. Develops open tools to broaden access to cultural collections."/>
+    <ENDERECO>
+      <ENDERECO-PROFISSIONAL E-MAIL="ana@example.org" HOME-PAGE="https://example.org/ana" CIDADE="Cidade Exemplo" PAIS="Brasil"/>
+    </ENDERECO>
+    <FORMACAO-ACADEMICA-TITULACAO>
+      <MESTRADO NOME-INSTITUICAO="Universidade Fictícia do Exemplo" NOME-CURSO="Ciência da Informação" STATUS-DO-CURSO="CONCLUIDO" ANO-DE-INICIO="2021" ANO-DE-CONCLUSAO="2023" TITULO-DA-DISSERTACAO-TESE="Memória &amp; acesso: catálogos digitais" NOME-COMPLETO-DO-ORIENTADOR="Clara Exemplo Fictícia"/>
+      <GRADUACAO NOME-INSTITUICAO="Instituto Fictício de Estudos Culturais" NOME-CURSO="Biblioteconomia" STATUS-DO-CURSO="CONCLUIDO" ANO-DE-INICIO="2016" ANO-DE-CONCLUSAO="2020"/>
+    </FORMACAO-ACADEMICA-TITULACAO>
+    <ATUACOES-PROFISSIONAIS>
+      <ATUACAO-PROFISSIONAL NOME-INSTITUICAO="Laboratório Fictício de Memória Digital">
+        <VINCULOS TIPO-DE-VINCULO="OUTRO" OUTRO-VINCULO-INFORMADO="Pesquisadora" ANO-INICIO="2023" MES-INICIO="03" ANO-FIM="2025" MES-FIM="12" OUTRAS-INFORMACOES="Organização de coleções digitais e desenvolvimento de ferramentas de busca para acervos públicos."/>
+      </ATUACAO-PROFISSIONAL>
+    </ATUACOES-PROFISSIONAIS>
+    <IDIOMAS>
+      <IDIOMA IDIOMA="ENG" DESCRICAO-DO-IDIOMA="Inglês" PROFICIENCIA-DE-LEITURA="BEM" PROFICIENCIA-DE-ESCRITA="BEM"/>
+    </IDIOMAS>
+    <PREMIOS-TITULOS>
+      <PREMIO-TITULO NOME-DO-PREMIO-OU-TITULO="Prêmio Fictício de Ciência Aberta" NOME-DA-ENTIDADE-PROMOTORA="Associação Fictícia de Pesquisa" ANO-DA-PREMIACAO="2024"/>
+    </PREMIOS-TITULOS>
+  </DADOS-GERAIS>
+  <PRODUCAO-BIBLIOGRAFICA>
+    <ARTIGOS-PUBLICADOS>
+      <ARTIGO-PUBLICADO SEQUENCIA-PRODUCAO="1">
+        <DADOS-BASICOS-DO-ARTIGO TITULO-DO-ARTIGO="Catálogos abertos &amp; memória digital" TITULO-DO-ARTIGO-INGLES="Open catalogs &amp; digital memory" ANO-DO-ARTIGO="2024" HOME-PAGE-DO-TRABALHO="https://example.org/catalogos"/>
+        <DETALHAMENTO-DO-ARTIGO TITULO-DO-PERIODICO-OU-REVISTA="Revista Fictícia de Acervos" VOLUME="12" PAGINA-INICIAL="10" PAGINA-FINAL="19"/>
+        <AUTORES NOME-COMPLETO-DO-AUTOR="Bruno Exemplo Fictício" ORDEM-DE-AUTORIA="2"/>
+        <AUTORES NOME-COMPLETO-DO-AUTOR="Ana Exemplo Fictícia" ORDEM-DE-AUTORIA="1"/>
+      </ARTIGO-PUBLICADO>
+    </ARTIGOS-PUBLICADOS>
+  </PRODUCAO-BIBLIOGRAFICA>
+  <PRODUCAO-TECNICA>
+    <SOFTWARE SEQUENCIA-PRODUCAO="1">
+      <DADOS-BASICOS-DO-SOFTWARE TITULO-DO-SOFTWARE="AcervoLivre" ANO="2025"/>
+      <DETALHAMENTO-DO-SOFTWARE FINALIDADE="Catalogação colaborativa de documentos e fotografias de instituições culturais."/>
+    </SOFTWARE>
+  </PRODUCAO-TECNICA>
+</CURRICULO-VITAE>

@@ -1,0 +1,8 @@
+# Conteúdo do exemplo; o tema é escolhido separadamente com --theme.
+include: [profile, experience, education, publications, technical, languages, awards]
+order: [profile, experience, education, publications, technical, languages, awards]
+hide_fields: [details]
+sections:
+  education:
+    show_thesis: false
+    show_advisors: false
