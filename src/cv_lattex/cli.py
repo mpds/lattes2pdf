@@ -18,6 +18,7 @@ from cv_lattex.output import check_outputs, write_outputs
 from cv_lattex.rendering import export_data, label
 from cv_lattex.sections import describe_sections, matching_sections
 from cv_lattex.selection import FIELD_GROUPS, THEMES, load_profile
+from cv_lattex.theme import BUNDLED_THEMES, load_theme
 
 PRESETS = {
     "academico": "Cobertura ampla, bio, título do trabalho e orientação",
@@ -58,6 +59,23 @@ def parser() -> argparse.ArgumentParser:
         "--version", action="version", version=f"%(prog)s {version('cv-lattex')}"
     )
     commands = root.add_subparsers(dest="command", required=True)
+    theme = commands.add_parser(
+        "theme",
+        help="copiar um tema para personalização",
+        description="Copia design, templates e fontes para uma nova pasta.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="Temas do cv-lattex:\n"
+        + "\n".join(
+            f"  {name:<12} {description}"
+            for name, description in BUNDLED_THEMES.items()
+        )
+        + "\n\nExemplo:\n  cv-lattex theme garamond -o meu-tema\n"
+        "  cv-lattex render curriculo.xml -o cv.pdf --theme meu-tema/design.yaml",
+    )
+    theme.add_argument("name", choices=(*THEMES, *BUNDLED_THEMES), help="tema inicial")
+    theme.add_argument(
+        "-o", "--output", required=True, type=Path, help="nova pasta do tema"
+    )
     profile = commands.add_parser(
         "profile",
         help="copiar um preset para um perfil YAML editável",
@@ -193,7 +211,9 @@ hide_fields: [details] omite os detalhes genéricos das demais seções.
         "--language", choices=("pt", "en"), help="idioma (padrão: pt)"
     )
     conversion.add_argument(
-        "--theme", choices=THEMES, help="tema do RenderCV (padrão: classic)"
+        "--theme",
+        metavar="NOME_OU_YAML",
+        help="tema disponível ou design.yaml externo (padrão: classic; veja theme --help)",
     )
     conversion.add_argument(
         "--full",
@@ -230,6 +250,8 @@ hide_fields: [details] omite os detalhes genéricos das demais seções.
   cv-lattex render curriculo.xml -o cv.pdf --theme moderncv --include education
   cv-lattex render curriculo.zip -o completo.pdf --full
   cv-lattex render curriculo.xml -o cv.pdf --profile perfil.yaml
+  cv-lattex render curriculo.xml -o cv.pdf --theme garamond
+  cv-lattex render curriculo.xml -o cv.pdf --theme meu-tema/design.yaml
 
 A primeira compilação precisa de internet para obter pacotes do Typst.
 Para alterar o YAML gerado e compilar novamente: rendercv render cv.yaml.
@@ -269,33 +291,55 @@ def _export(arguments, cv) -> None:
         hide_fields=arguments.hide_field,
     )
     profile = load_profile(arguments.profile, overrides)
-    data, report = export_data(cv, profile)
+    theme = load_theme(profile.theme)
+    data, report = export_data(cv, profile, design=theme.design)
     is_pdf = arguments.command == "render"
     if is_pdf and arguments.output.suffix.lower() != ".pdf":
         raise CVError("A saída de render deve ter a extensão .pdf.")
     yaml_path = arguments.output.with_suffix(".yaml") if is_pdf else arguments.output
     report_path = arguments.report or arguments.output.with_suffix(".report.json")
-    protected = [arguments.input] + ([arguments.profile] if arguments.profile else [])
+    protected = (
+        [arguments.input]
+        + ([arguments.profile] if arguments.profile else [])
+        + theme.sources
+    )
     paths = [yaml_path, report_path] + ([arguments.output] if is_pdf else [])
-    check_outputs(paths, protected=protected, force=arguments.force)
+    asset_paths = [yaml_path.parent.resolve() / name for name in theme.assets]
+    check_outputs(paths, protected=protected + asset_paths, force=arguments.force)
+    assets = theme.output_assets(yaml_path.parent)
+    check_outputs(
+        paths + [path for path, _ in assets],
+        protected=protected,
+        force=arguments.force,
+        create_parents=True,
+    )
     yaml_text = yaml.safe_dump(data, allow_unicode=True, sort_keys=False, width=100)
     contents = [(yaml_path, yaml_text)]
     if is_pdf:
         contents.append(
-            (arguments.output, render_pdf(yaml_text, timeout=arguments.timeout))
+            (
+                arguments.output,
+                render_pdf(yaml_text, timeout=arguments.timeout, assets=theme.assets),
+            )
         )
         report["renderer"] = {
             "name": "RenderCV",
             "version": rendercv_version(),
             "theme": profile.theme,
+            "base_theme": theme.design["theme"],
         }
     contents.append(
         (report_path, json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     )
-    write_outputs(contents, protected=protected, force=arguments.force)
+    contents.extend(assets)
+    write_outputs(
+        contents, protected=protected, force=arguments.force, create_parents=True
+    )
     if is_pdf:
         print(f"PDF: {arguments.output}")
     print(f"YAML: {yaml_path}\nRelatório: {report_path}")
+    if theme.assets:
+        print(f"Arquivos do tema: {yaml_path.parent} (templates e fontes)")
     omissions = report["counts"].get("unknown", 0) + report["counts"].get("unmapped", 0)
     if omissions:
         print(
@@ -309,6 +353,27 @@ def _export(arguments, cv) -> None:
 def main(argv: list[str] | None = None) -> int:
     arguments = parser().parse_args(argv)
     try:
+        if arguments.command == "theme":
+            target = arguments.output
+            if target.exists() or target.is_symlink():
+                raise CVError(
+                    f"A pasta do tema já existe: {target}. Escolha uma nova pasta."
+                )
+            if not target.parent.is_dir():
+                raise CVError(f"A pasta de destino não existe: {target.parent}.")
+            theme = load_theme(arguments.name)
+            contents = [
+                (
+                    target / "design.yaml",
+                    yaml.safe_dump(
+                        {"design": theme.design}, allow_unicode=True, sort_keys=False
+                    ),
+                ),
+                *theme.output_assets(target),
+            ]
+            write_outputs(contents, protected=theme.sources, create_parents=True)
+            print(f"Tema: {target / 'design.yaml'}")
+            return 0
         if arguments.command == "profile":
             source = files("cv_lattex").joinpath("presets", arguments.preset + ".yaml")
             text = source.read_text("utf-8")

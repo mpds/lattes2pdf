@@ -9,6 +9,7 @@ from cv_lattex.lattes import YEAR_NAMES
 from cv_lattex.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
 from cv_lattex.sections import SECTION_OPTIONS
 from cv_lattex.selection import Profile, Selection, hidden, select, visible_fields
+from cv_lattex.theme import load_theme
 
 DEGREE_NAMES = {
     "GRADUACAO": "Graduação",
@@ -876,7 +877,9 @@ def _report(
     }
 
 
-def export_data(cv: Curriculum, profile: Profile) -> tuple[dict, dict]:
+def export_data(
+    cv: Curriculum, profile: Profile, *, design: dict | None = None
+) -> tuple[dict, dict]:
     selection = select(cv, profile)
     titles = {}
     for section in dict.fromkeys(entry.section for entry in selection.entries):
@@ -996,22 +999,7 @@ def export_data(cv: Curriculum, profile: Profile) -> tuple[dict, dict]:
         )
     data = {
         "cv": output,
-        "design": {
-            "theme": profile.theme,
-            "page": {"size": "a4", "show_top_note": False},
-            "entries": {"allow_page_break": True},
-            "templates": {"education_entry": {"degree_column": None}},
-        },
+        "design": design if design is not None else load_theme(profile.theme).design,
         "locale": {"language": "portuguese" if profile.language == "pt" else "english"},
     }
-    education_template = data["design"]["templates"]["education_entry"]
-    if profile.theme == "classic":
-        # Full degree names cannot fit the theme's narrow abbreviation column.
-        education_template["main_column"] = (
-            "**INSTITUTION**\nDEGREE_WITH_AREA\nSUMMARY\nHIGHLIGHTS"
-        )
-    elif profile.theme == "sb2nov":
-        education_template["main_column"] = (
-            "**INSTITUTION**\n*DEGREE_WITH_AREA*\nSUMMARY\nHIGHLIGHTS"
-        )
     return data, report

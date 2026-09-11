@@ -7,18 +7,9 @@ import yaml
 
 from cv_lattex.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
 from cv_lattex.sections import SECTION_OPTIONS, validate_options
+from cv_lattex.theme import THEMES as THEMES
+from cv_lattex.theme import is_theme_file, validate_theme
 
-THEMES = (
-    "classic",
-    "ember",
-    "engineeringclassic",
-    "engineeringresumes",
-    "harvard",
-    "ink",
-    "moderncv",
-    "opal",
-    "sb2nov",
-)
 FIELD_GROUPS = (
     "authors",
     "date",
@@ -129,12 +120,12 @@ class Profile:
             _validate_years(years.get("since"), years.get("until"))
         for name, options in {
             "language": ("pt", "en"),
-            "theme": THEMES,
             "unknown_year": ("keep", "exclude"),
             "sort": ("source", "year_desc"),
         }.items():
             if getattr(self, name) not in options:
                 raise CVError(f"{name} deve ser um de: {', '.join(options)}.")
+        validate_theme(self.theme)
         if type(self.full) is not bool or type(self.allow_unmapped) is not bool:
             raise CVError("full e allow_unmapped devem ser booleanos.")
         if self.full and (
@@ -213,6 +204,8 @@ def load_profile(path: Path | None, overrides: dict | None = None) -> Profile:
     )
     profile = Profile(**data)
     profile.validate()
+    if path and is_theme_file(profile.theme) and (overrides or {}).get("theme") is None:
+        profile.theme = str((path.resolve().parent / profile.theme).resolve())
     return profile
 
 
