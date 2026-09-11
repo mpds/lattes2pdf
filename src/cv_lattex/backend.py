@@ -24,12 +24,24 @@ def rendercv_version() -> str:
     return installed
 
 
-def render_pdf(yaml_text: str, *, timeout: int = 120) -> bytes:
+def render_pdf(
+    yaml_text: str, *, timeout: int = 120, assets: dict[Path, bytes] | None = None
+) -> bytes:
     rendercv_version()
     if timeout <= 0:
         raise CVError("O tempo limite deve ser maior que zero.")
     with tempfile.TemporaryDirectory(prefix="cv-lattex-") as directory:
         root = Path(directory)
+        for relative, content in (assets or {}).items():
+            if (
+                relative.is_absolute()
+                or ".." in relative.parts
+                or len(relative.parts) < 2
+            ):
+                raise CVError("Caminho de arquivo do tema inválido.")
+            target = root / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(content)
         (root / "input.yaml").write_text(yaml_text, encoding="utf-8")
         command = [
             sys.executable,
