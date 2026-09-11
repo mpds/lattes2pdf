@@ -149,3 +149,56 @@ def test_unknown_preset_does_not_create_a_file(tmp_path, capsys):
     assert exc.value.code == 2
     assert "invalid choice" in capsys.readouterr().err
     assert not output.exists()
+
+
+@pytest.mark.parametrize("command", ["export", "render"])
+def test_default_cli_uses_academic_preset_and_full_bypasses_it(
+    command, fixtures, tmp_path, monkeypatch
+):
+    # PDF compilation is covered separately; compare the content passed to it.
+    monkeypatch.setattr("cv_lattex.cli.render_pdf", lambda *a, **kw: b"PDF")
+    monkeypatch.setattr("cv_lattex.cli.rendercv_version", lambda: "2.8")
+    source = str(fixtures / "academic.xml")
+    preset = tmp_path / "academic.profile.yaml"
+    assert main(["profile", "academico", "-o", str(preset)]) == 0
+    outputs = {}
+    for name, options in {
+        "default": [],
+        "explicit": ["--profile", str(preset)],
+        "full": ["--full"],
+    }.items():
+        path = tmp_path / (name + (".pdf" if command == "render" else ".yaml"))
+        assert main([command, source, "-o", str(path), *options]) == 0
+        outputs[name] = yaml.safe_load(path.with_suffix(".yaml").read_text())
+    assert outputs["default"] == outputs["explicit"]
+    assert "Orientação:" in json.dumps(outputs["default"], ensure_ascii=False)
+    full, _ = export_data(read_lattes(source), load_profile(None, {"full": True}))
+    assert outputs["full"] == full
+    assert outputs["full"] != outputs["default"]
+
+
+def test_explicit_profile_does_not_inherit_default_and_cli_overrides_it(
+    fixtures, tmp_path
+):
+    profile = tmp_path / "profile.yaml"
+    profile.write_text("include: [education]\n")
+    output = tmp_path / "cv.yaml"
+    assert (
+        main(
+            [
+                "export",
+                str(fixtures / "academic.xml"),
+                "--profile",
+                str(profile),
+                "--theme",
+                "moderncv",
+                "-o",
+                str(output),
+            ]
+        )
+        == 0
+    )
+    data = yaml.safe_load(output.read_text())
+    assert list(data["cv"]["sections"]) == ["Formação acadêmica/titulação"]
+    assert "Orientação:" not in json.dumps(data, ensure_ascii=False)
+    assert data["design"]["theme"] == "moderncv"

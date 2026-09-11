@@ -132,7 +132,10 @@ def parser() -> argparse.ArgumentParser:
   cv-lattex profile essencial -o perfil.yaml
   cv-lattex export curriculo.zip -o cv.yaml --profile perfil.yaml
 
-Perfil YAML (as opções da CLI substituem as opções correspondentes do perfil):
+Sem --profile, usa o preset academico. --full usa a exportação completa sem preset.
+Um perfil explícito substitui o preset; as opções da CLI substituem suas chaves.
+
+Perfil YAML:
   include: [profile, education, publications]
   exclude: [publications.press]
   order: [education, publications, profile]
@@ -183,9 +186,13 @@ hide_fields: [details] omite os detalhes genéricos das demais seções.
         "--report", type=Path, help="relatório JSON (padrão: saída.report.json)"
     )
     conversion.add_argument("--member", help="nome exato do XML dentro do ZIP")
-    conversion.add_argument("--profile", type=Path, help="perfil de seleção em YAML")
+    conversion.add_argument(
+        "--profile",
+        type=Path,
+        help="perfil YAML (padrão: preset academico; exceto --full)",
+    )
     for name, description in {
-        "include": "incluir seção ou prefixo (padrão: todas)",
+        "include": "incluir seção ou prefixo (substitui a lista do perfil)",
         "exclude": "excluir seção ou prefixo",
         "include-id": "incluir somente registros com estes IDs",
         "exclude-id": "excluir registro por ID",
@@ -290,7 +297,14 @@ def _export(arguments, cv) -> None:
         exclude_ids=arguments.exclude_id,
         hide_fields=arguments.hide_field,
     )
-    profile = load_profile(arguments.profile, overrides)
+    profile_sources = [arguments.profile] if arguments.profile else []
+    if arguments.profile is None and not arguments.full:
+        source = files("cv_lattex").joinpath("presets", "academico.yaml")
+        with as_file(source) as path:
+            profile = load_profile(path, overrides)
+            profile_sources.append(path)
+    else:
+        profile = load_profile(arguments.profile, overrides)
     theme = load_theme(profile.theme)
     data, report = export_data(cv, profile, design=theme.design)
     is_pdf = arguments.command == "render"
@@ -298,11 +312,7 @@ def _export(arguments, cv) -> None:
         raise CVError("A saída de render deve ter a extensão .pdf.")
     yaml_path = arguments.output.with_suffix(".yaml") if is_pdf else arguments.output
     report_path = arguments.report or arguments.output.with_suffix(".report.json")
-    protected = (
-        [arguments.input]
-        + ([arguments.profile] if arguments.profile else [])
-        + theme.sources
-    )
+    protected = [arguments.input] + profile_sources + theme.sources
     paths = [yaml_path, report_path] + ([arguments.output] if is_pdf else [])
     asset_paths = [yaml_path.parent.resolve() / name for name in theme.assets]
     check_outputs(paths, protected=protected + asset_paths, force=arguments.force)
