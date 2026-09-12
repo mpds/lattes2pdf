@@ -1,5 +1,5 @@
 # Perfil inicial resumido. Menos seções, sem limite de páginas ou registros.
-# Opções por seção: cv-lattex sections SEÇÃO
+# Opções por seção: lattes2pdf sections SEÇÃO
 include:
   - profile
   - education

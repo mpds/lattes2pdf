@@ -7,7 +7,7 @@ import tempfile
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
-from cv_lattex.models import CVError
+from lattes2pdf.models import CVError
 
 
 def rendercv_version() -> str:
@@ -30,7 +30,7 @@ def render_pdf(
     rendercv_version()
     if timeout <= 0:
         raise CVError("O tempo limite deve ser maior que zero.")
-    with tempfile.TemporaryDirectory(prefix="cv-lattex-") as directory:
+    with tempfile.TemporaryDirectory(prefix="lattes2pdf-") as directory:
         root = Path(directory)
         for relative, content in (assets or {}).items():
             if (

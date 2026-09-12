@@ -5,11 +5,11 @@ from collections import Counter, defaultdict
 from dataclasses import asdict, replace
 from urllib.parse import quote, urlsplit
 
-from cv_lattex.lattes import YEAR_NAMES
-from cv_lattex.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
-from cv_lattex.sections import SECTION_OPTIONS
-from cv_lattex.selection import Profile, Selection, hidden, select, visible_fields
-from cv_lattex.theme import load_theme
+from lattes2pdf.lattes import YEAR_NAMES
+from lattes2pdf.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
+from lattes2pdf.sections import SECTION_OPTIONS
+from lattes2pdf.selection import Profile, Selection, hidden, select, visible_fields
+from lattes2pdf.theme import load_theme
 
 DEGREE_NAMES = {
     "GRADUACAO": "Graduação",

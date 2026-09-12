@@ -4,11 +4,11 @@ import xml.etree.ElementTree as ET
 import pytest
 import yaml
 
-from cv_lattex.cli import main
-from cv_lattex.lattes import read_lattes
-from cv_lattex.models import CVError
-from cv_lattex.rendering import export_data
-from cv_lattex.selection import Profile, load_profile
+from lattes2pdf.cli import main
+from lattes2pdf.lattes import read_lattes
+from lattes2pdf.models import CVError
+from lattes2pdf.rendering import export_data
+from lattes2pdf.selection import Profile, load_profile
 
 SECTION = "publications.articles"
 TITLE = "Artigos publicados"
@@ -162,7 +162,7 @@ def test_invalid_article_options_are_rejected(sections):
 def test_article_reference_profile_and_id_selection(fixtures, tmp_path, capsys):
     assert main(["sections", SECTION]) == 0
     reference = capsys.readouterr().out
-    assert reference.startswith("usage: cv-lattex sections")
+    assert reference.startswith("usage: lattes2pdf sections")
     assert all(
         option in reference for option in ("show_authors", "show_links", "show_details")
     )

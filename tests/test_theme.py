@@ -9,13 +9,13 @@ import pytest
 import yaml
 from pypdf import PdfReader
 
-from cv_lattex.backend import render_pdf
-from cv_lattex.cli import main
-from cv_lattex.lattes import read_lattes
-from cv_lattex.models import CVError
-from cv_lattex.rendering import export_data
-from cv_lattex.selection import Profile, load_profile
-from cv_lattex.theme import load_theme
+from lattes2pdf.backend import render_pdf
+from lattes2pdf.cli import main
+from lattes2pdf.lattes import read_lattes
+from lattes2pdf.models import CVError
+from lattes2pdf.rendering import export_data
+from lattes2pdf.selection import Profile, load_profile
+from lattes2pdf.theme import load_theme
 
 
 def text_of(pdf):
@@ -194,7 +194,7 @@ def test_asset_collision_and_compile_failure_preserve_outputs(
     def fail(*args, **kwargs):
         raise CVError("Compilation failed")
 
-    monkeypatch.setattr("cv_lattex.cli.render_pdf", fail)
+    monkeypatch.setattr("lattes2pdf.cli.render_pdf", fail)
     assert main(args) == 2
     assert main(args + ["--force"]) == 2
     assert custom.read_text() == "user customization"

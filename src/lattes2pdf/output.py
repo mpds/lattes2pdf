@@ -4,7 +4,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from cv_lattex.models import CVError
+from lattes2pdf.models import CVError
 
 
 def _same_path(first: Path, second: Path) -> bool:

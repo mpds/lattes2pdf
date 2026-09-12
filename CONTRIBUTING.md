@@ -31,7 +31,7 @@ python -m build
 git diff --check
 ```
 
-As configurações ficam no `pyproject.toml`. Consulte `cv-lattex --help` e
+As configurações ficam no `pyproject.toml`. Consulte `lattes2pdf --help` e
 o `--help` dos subcomandos para explorar a CLI.
 
 ## Commits e releases

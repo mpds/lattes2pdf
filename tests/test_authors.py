@@ -4,10 +4,10 @@ import xml.etree.ElementTree as ET
 import pytest
 import yaml
 
-from cv_lattex.lattes import read_lattes
-from cv_lattex.models import CVError
-from cv_lattex.rendering import export_data
-from cv_lattex.selection import Profile, load_profile
+from lattes2pdf.lattes import read_lattes
+from lattes2pdf.models import CVError
+from lattes2pdf.rendering import export_data
+from lattes2pdf.selection import Profile, load_profile
 
 SELF_ID = "0000000000000001"
 OTHER_ID = "0000000000000002"

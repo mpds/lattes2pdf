@@ -1,6 +1,6 @@
 """Section options and their focused, offline CLI reference."""
 
-from cv_lattex.models import CVError, catalog
+from lattes2pdf.models import CVError, catalog
 
 SECTION_OPTIONS = {
     "education": {
@@ -55,7 +55,7 @@ def matching_sections(prefix: str) -> list[str]:
         if name == prefix or name.startswith(prefix + ".")
     ]
     if not names:
-        raise CVError(f"Seção desconhecida: {prefix}. Consulte cv-lattex sections.")
+        raise CVError(f"Seção desconhecida: {prefix}. Consulte lattes2pdf sections.")
     return names
 
 
@@ -65,12 +65,12 @@ def validate_options(sections: dict) -> None:
     for name, options in sections.items():
         if name not in catalog()["sections"]:
             raise CVError(
-                f"Seção desconhecida em sections: {name}. Use um identificador exato de cv-lattex sections."
+                f"Seção desconhecida em sections: {name}. Use um identificador exato de lattes2pdf sections."
             )
         allowed = {"title"} | set(SECTION_OPTIONS.get(name, {}))
         if not isinstance(options, dict) or set(options) - allowed:
             raise CVError(
-                f"Opções inválidas em sections.{name}. Consulte cv-lattex sections {name}."
+                f"Opções inválidas em sections.{name}. Consulte lattes2pdf sections {name}."
             )
         for key, value in options.items():
             if key == "title":
@@ -106,7 +106,7 @@ def describe_sections(prefix: str | None = None) -> str:
         rows = [(name, definitions[name]["pt"]) for name in matching_sections(prefix)]
 
     width = max(len(name) for name, _ in rows)
-    usage = "usage: cv-lattex sections [-h] [section]"
+    usage = "usage: lattes2pdf sections [-h] [section]"
     lines = [
         usage,
         "",

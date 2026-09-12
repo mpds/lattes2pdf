@@ -3,7 +3,7 @@ requires = ["hatchling>=1.27,<2"]
 build-backend = "hatchling.build"
 
 [project]
-name = "cv-lattex"
+name = "lattes2pdf"
 version = "0.1.0"
 description = "Seleção e conversão de currículos Lattes para RenderCV"
 readme = "README.md"
@@ -17,10 +17,10 @@ dependencies = [
 ]
 
 [project.scripts]
-cv-lattex = "cv_lattex.cli:main"
+lattes2pdf = "lattes2pdf.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/cv_lattex"]
+packages = ["src/lattes2pdf"]
 
 [tool.hatch.build.targets.sdist]
 include = ["/src", "/tests", "/pyproject.toml", "/LICENSE", "/README.md", "/CONTRIBUTING.md"]

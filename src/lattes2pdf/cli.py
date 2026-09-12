@@ -11,14 +11,14 @@ from pathlib import Path
 
 import yaml
 
-from cv_lattex.backend import render_pdf, rendercv_version
-from cv_lattex.lattes import read_lattes
-from cv_lattex.models import CVError, catalog
-from cv_lattex.output import check_outputs, write_outputs
-from cv_lattex.rendering import export_data, label
-from cv_lattex.sections import describe_sections, matching_sections
-from cv_lattex.selection import FIELD_GROUPS, THEMES, load_profile
-from cv_lattex.theme import BUNDLED_THEMES, load_theme
+from lattes2pdf.backend import render_pdf, rendercv_version
+from lattes2pdf.lattes import read_lattes
+from lattes2pdf.models import CVError, catalog
+from lattes2pdf.output import check_outputs, write_outputs
+from lattes2pdf.rendering import export_data, label
+from lattes2pdf.sections import describe_sections, matching_sections
+from lattes2pdf.selection import FIELD_GROUPS, THEMES, load_profile
+from lattes2pdf.theme import BUNDLED_THEMES, load_theme
 
 PRESETS = {
     "academico": "Cobertura ampla, bio, título do trabalho e orientação",
@@ -56,7 +56,7 @@ def parser() -> argparse.ArgumentParser:
         description="Selecione e converta um currículo Lattes."
     )
     root.add_argument(
-        "--version", action="version", version=f"%(prog)s {version('cv-lattex')}"
+        "--version", action="version", version=f"%(prog)s {version('lattes2pdf')}"
     )
     commands = root.add_subparsers(dest="command", required=True)
     theme = commands.add_parser(
@@ -64,13 +64,13 @@ def parser() -> argparse.ArgumentParser:
         help="copiar um tema para personalização",
         description="Copia design, templates e fontes para uma nova pasta.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="Temas do cv-lattex:\n"
+        epilog="Temas do lattes2pdf:\n"
         + "\n".join(
             f"  {name:<12} {description}"
             for name, description in BUNDLED_THEMES.items()
         )
-        + "\n\nExemplo:\n  cv-lattex theme garamond -o meu-tema\n"
-        "  cv-lattex render curriculo.xml -o cv.pdf --theme meu-tema/design.yaml",
+        + "\n\nExemplo:\n  lattes2pdf theme garamond -o meu-tema\n"
+        "  lattes2pdf render curriculo.xml -o cv.pdf --theme meu-tema/design.yaml",
     )
     theme.add_argument("name", choices=(*THEMES, *BUNDLED_THEMES), help="tema inicial")
     theme.add_argument(
@@ -85,7 +85,7 @@ def parser() -> argparse.ArgumentParser:
         + "\n".join(
             f"  {name:<10}  {description}" for name, description in PRESETS.items()
         )
-        + "\n\nExemplo:\n  cv-lattex profile essencial -o meu.profile.yaml\n"
+        + "\n\nExemplo:\n  lattes2pdf profile essencial -o meu.profile.yaml\n"
         "\nEdite o arquivo e use-o em export/render com --profile.\n"
         "Os presets não limitam anos, quantidade de registros ou páginas.",
     )
@@ -125,12 +125,12 @@ def parser() -> argparse.ArgumentParser:
         add_help=False,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""Exemplos:
-  cv-lattex inspect curriculo.zip
-  cv-lattex sections education
-  cv-lattex export curriculo.xml -o cv.yaml --include education --include publications
-  cv-lattex export curriculo.xml -o completo.yaml --full
-  cv-lattex profile essencial -o perfil.yaml
-  cv-lattex export curriculo.zip -o cv.yaml --profile perfil.yaml
+  lattes2pdf inspect curriculo.zip
+  lattes2pdf sections education
+  lattes2pdf export curriculo.xml -o cv.yaml --include education --include publications
+  lattes2pdf export curriculo.xml -o completo.yaml --full
+  lattes2pdf profile essencial -o perfil.yaml
+  lattes2pdf export curriculo.zip -o cv.yaml --profile perfil.yaml
 
 Sem --profile, usa o preset academico. --full usa a exportação completa sem preset.
 Um perfil explícito substitui o preset; as opções da CLI substituem suas chaves.
@@ -158,7 +158,7 @@ Autores (todas as seções):
 
 O perfil também aceita include_ids, exclude_ids, since, until, full,
 allow_unmapped, sections, sort (year_desc ou source) e unknown_year (keep ou exclude).
-Consulte cv-lattex sections SEÇÃO para os ajustes disponíveis.
+Consulte lattes2pdf sections SEÇÃO para os ajustes disponíveis.
 Listas da CLI usam opções repetidas. Seções aceitam prefixos como publications;
 exclusões prevalecem. O nome permanece no cabeçalho mesmo ao selecionar só registros.
 IDs vêm de inspect e podem mudar se o registro for editado ou ganhar duplicatas.
@@ -254,11 +254,11 @@ hide_fields: [details] omite os detalhes genéricos das demais seções.
         description="Gera PDF, YAML editável e relatório JSON com o mesmo nome base.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""Exemplos de PDF:
-  cv-lattex render curriculo.xml -o cv.pdf --theme moderncv --include education
-  cv-lattex render curriculo.zip -o completo.pdf --full
-  cv-lattex render curriculo.xml -o cv.pdf --profile perfil.yaml
-  cv-lattex render curriculo.xml -o cv.pdf --theme garamond
-  cv-lattex render curriculo.xml -o cv.pdf --theme meu-tema/design.yaml
+  lattes2pdf render curriculo.xml -o cv.pdf --theme moderncv --include education
+  lattes2pdf render curriculo.zip -o completo.pdf --full
+  lattes2pdf render curriculo.xml -o cv.pdf --profile perfil.yaml
+  lattes2pdf render curriculo.xml -o cv.pdf --theme garamond
+  lattes2pdf render curriculo.xml -o cv.pdf --theme meu-tema/design.yaml
 
 A primeira compilação precisa de internet para obter pacotes do Typst.
 Para alterar o YAML gerado e compilar novamente: rendercv render cv.yaml.
@@ -299,7 +299,7 @@ def _export(arguments, cv) -> None:
     )
     profile_sources = [arguments.profile] if arguments.profile else []
     if arguments.profile is None and not arguments.full:
-        source = files("cv_lattex").joinpath("presets", "academico.yaml")
+        source = files("lattes2pdf").joinpath("presets", "academico.yaml")
         with as_file(source) as path:
             profile = load_profile(path, overrides)
             profile_sources.append(path)
@@ -385,7 +385,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Tema: {target / 'design.yaml'}")
             return 0
         if arguments.command == "profile":
-            source = files("cv_lattex").joinpath("presets", arguments.preset + ".yaml")
+            source = files("lattes2pdf").joinpath("presets", arguments.preset + ".yaml")
             text = source.read_text("utf-8")
             if arguments.output:
                 with as_file(source) as path:

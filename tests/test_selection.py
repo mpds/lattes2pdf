@@ -1,8 +1,8 @@
 import pytest
 
-from cv_lattex.lattes import read_lattes
-from cv_lattex.models import CVError
-from cv_lattex.selection import Profile, load_profile, select
+from lattes2pdf.lattes import read_lattes
+from lattes2pdf.models import CVError
+from lattes2pdf.selection import Profile, load_profile, select
 
 
 def test_section_prefixes_exclusions_and_order(fixtures):

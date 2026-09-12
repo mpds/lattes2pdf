@@ -15,13 +15,13 @@ Todos os PDFs abaixo usam o mesmo conteúdo e o mesmo perfil, com RenderCV 2.8:
 | `moderncv` | RenderCV | [Visualizar](pdfs/moderncv.pdf) |
 | `opal` | RenderCV | [Visualizar](pdfs/opal.pdf) |
 | `sb2nov` | RenderCV | [Visualizar](pdfs/sb2nov.pdf) |
-| `garamond` | Alternativo, incluído no cv-lattex | [Visualizar](pdfs/garamond.pdf) |
+| `garamond` | Alternativo, incluído no lattes2pdf | [Visualizar](pdfs/garamond.pdf) |
 
 Para reproduzir a partir da raiz do repositório:
 
 ```bash
 mkdir -p saida/moderncv
-cv-lattex render examples/curriculo.xml --profile examples/profile.yaml \
+lattes2pdf render examples/curriculo.xml --profile examples/profile.yaml \
   --theme moderncv -o saida/moderncv/cv.pdf
 ```
 

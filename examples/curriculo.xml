@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Currículo inteiramente fictício para demonstrar o cv-lattex. -->
+<!-- Currículo inteiramente fictício para demonstrar o lattes2pdf. -->
 <CURRICULO-VITAE SISTEMA-ORIGEM-XML="LATTES_OFFLINE" DATA-ATUALIZACAO="01062026">
   <DADOS-GERAIS NOME-COMPLETO="Ana Exemplo Fictícia">
     <RESUMO-CV TEXTO-RESUMO-CV-RH="Pesquisadora em preservação digital e organização do conhecimento. Desenvolve ferramentas abertas para ampliar o acesso a acervos culturais." TEXTO-RESUMO-CV-RH-EN="Researcher in digital preservation and knowledge organization. Develops open tools to broaden access to cultural collections."/>

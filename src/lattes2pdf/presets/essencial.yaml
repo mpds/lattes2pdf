@@ -1,5 +1,5 @@
 # Perfil inicial essencial. Edite as seções conforme sua trajetória.
-# Opções por seção: cv-lattex sections SEÇÃO
+# Opções por seção: lattes2pdf sections SEÇÃO
 include:
   - profile
   - education

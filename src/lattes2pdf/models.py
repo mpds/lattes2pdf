@@ -16,7 +16,7 @@ class CVError(ValueError):
 
 @cache
 def catalog() -> dict:
-    return json.loads(files("cv_lattex").joinpath("catalog.json").read_text("utf-8"))
+    return json.loads(files("lattes2pdf").joinpath("catalog.json").read_text("utf-8"))
 
 
 def clean(value: str) -> str:

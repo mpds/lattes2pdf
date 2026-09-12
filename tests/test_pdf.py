@@ -10,12 +10,12 @@ import pytest
 import yaml
 from pypdf import PdfReader
 
-from cv_lattex.backend import render_pdf, rendercv_version
-from cv_lattex.cli import PRESETS, main
-from cv_lattex.lattes import read_lattes
-from cv_lattex.models import CVError
-from cv_lattex.rendering import export_data
-from cv_lattex.selection import THEMES, Profile
+from lattes2pdf.backend import render_pdf, rendercv_version
+from lattes2pdf.cli import PRESETS, main
+from lattes2pdf.lattes import read_lattes
+from lattes2pdf.models import CVError
+from lattes2pdf.rendering import export_data
+from lattes2pdf.selection import THEMES, Profile
 
 
 def pdf_text(data: bytes) -> str:
@@ -446,7 +446,7 @@ def test_render_failure_keeps_existing_outputs(fixtures, tmp_path, monkeypatch, 
     def fail(*args, **kwargs):
         raise CVError("Falha de compilação")
 
-    monkeypatch.setattr("cv_lattex.cli.render_pdf", fail)
+    monkeypatch.setattr("lattes2pdf.cli.render_pdf", fail)
     assert (
         main(["render", str(fixtures / "academic.xml"), "-o", str(output), "--force"])
         == 2
@@ -464,7 +464,7 @@ def test_sidecar_collision_is_detected_before_compiling(
     def unexpected(*args, **kwargs):
         pytest.fail("Compilation must not run with an output collision")
 
-    monkeypatch.setattr("cv_lattex.cli.render_pdf", unexpected)
+    monkeypatch.setattr("lattes2pdf.cli.render_pdf", unexpected)
     assert (
         main(
             [
@@ -501,7 +501,7 @@ def test_backend_failures_are_actionable_and_temporary_files_are_removed(
             command, 0 if failure == "missing-output" else 1, b"", message
         )
 
-    monkeypatch.setattr("cv_lattex.backend.subprocess.run", run)
+    monkeypatch.setattr("lattes2pdf.backend.subprocess.run", run)
     with pytest.raises(
         CVError,
         match={"timeout": "--timeout", "network": "packages.typst.org"}.get(
@@ -516,9 +516,9 @@ def test_missing_or_unsupported_backend_has_an_install_hint(monkeypatch):
     def missing(_):
         raise PackageNotFoundError("rendercv")
 
-    monkeypatch.setattr("cv_lattex.backend.version", missing)
+    monkeypatch.setattr("lattes2pdf.backend.version", missing)
     with pytest.raises(CVError, match="pip install"):
         rendercv_version()
-    monkeypatch.setattr("cv_lattex.backend.version", lambda _: "3.0")
+    monkeypatch.setattr("lattes2pdf.backend.version", lambda _: "3.0")
     with pytest.raises(CVError, match="não é suportado"):
         rendercv_version()

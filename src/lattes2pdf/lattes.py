@@ -15,7 +15,7 @@ from xml.etree.ElementTree import ParseError
 from defusedxml import ElementTree
 from defusedxml.common import DefusedXmlException
 
-from cv_lattex.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
+from lattes2pdf.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
 
 MAX_BYTES = 25 * 1024 * 1024
 PRIVATE_NAMES = {

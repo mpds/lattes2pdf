@@ -4,11 +4,11 @@ from importlib.resources import files
 import pytest
 import yaml
 
-from cv_lattex.cli import PRESETS, main
-from cv_lattex.lattes import read_lattes
-from cv_lattex.models import catalog
-from cv_lattex.rendering import export_data
-from cv_lattex.selection import load_profile, select
+from lattes2pdf.cli import PRESETS, main
+from lattes2pdf.lattes import read_lattes
+from lattes2pdf.models import catalog
+from lattes2pdf.rendering import export_data
+from lattes2pdf.selection import load_profile, select
 
 
 @pytest.mark.parametrize("preset", PRESETS)
@@ -135,7 +135,7 @@ def test_profile_copy_refuses_overwrite_unless_requested(tmp_path, capsys):
 
 
 def test_profile_copy_protects_the_distributed_preset_even_with_force(capsys):
-    source = files("cv_lattex").joinpath("presets", "academico.yaml")
+    source = files("lattes2pdf").joinpath("presets", "academico.yaml")
     original = source.read_bytes()
     assert main(["profile", "academico", "-o", str(source), "--force"]) == 2
     assert "distintas" in capsys.readouterr().err
@@ -156,8 +156,8 @@ def test_default_cli_uses_academic_preset_and_full_bypasses_it(
     command, fixtures, tmp_path, monkeypatch
 ):
     # PDF compilation is covered separately; compare the content passed to it.
-    monkeypatch.setattr("cv_lattex.cli.render_pdf", lambda *a, **kw: b"PDF")
-    monkeypatch.setattr("cv_lattex.cli.rendercv_version", lambda: "2.8")
+    monkeypatch.setattr("lattes2pdf.cli.render_pdf", lambda *a, **kw: b"PDF")
+    monkeypatch.setattr("lattes2pdf.cli.rendercv_version", lambda: "2.8")
     source = str(fixtures / "academic.xml")
     preset = tmp_path / "academic.profile.yaml"
     assert main(["profile", "academico", "-o", str(preset)]) == 0

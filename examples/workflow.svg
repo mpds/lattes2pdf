@@ -10,7 +10,7 @@
 <text x="485.0" y="216" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="25" fill="#172b42">Tema</text>
 <text x="485.0" y="250" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="21" fill="#172b42">Nome ou YAML · opcional</text>
 <rect x="150" y="355" width="340" height="100" rx="14" fill="#f5f7fa" stroke="#acb7c4" stroke-width="2"/>
-<text x="320.0" y="405.0" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="25" fill="#172b42">cv-lattex</text>
+<text x="320.0" y="405.0" text-anchor="middle" dominant-baseline="central" font-family="Arial,sans-serif" font-size="25" fill="#172b42">lattes2pdf</text>
 <polyline points="320,125 320,355" fill="none" stroke="#60758a" stroke-width="3"/>
 <polygon points="320,355 314,343 326,343" fill="#60758a"/>
 <polyline points="155,285 155,320 230,320 230,355" fill="none" stroke="#60758a" stroke-width="3"/>

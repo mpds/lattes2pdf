@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Entirely fictional test data. -->
-<ns0:CURRICULO-VITAE xmlns:ns0="urn:cv-lattex:fixture:unknown" SISTEMA-ORIGEM-XML="LATTES_OFFLINE" DATA-ATUALIZACAO="01062026">
+<ns0:CURRICULO-VITAE xmlns:ns0="urn:lattes2pdf:fixture:unknown" SISTEMA-ORIGEM-XML="LATTES_OFFLINE" DATA-ATUALIZACAO="01062026">
   <ns0:DADOS-GERAIS NOME-COMPLETO="Ana Exemplo Fictícia" NOME-EM-CITACOES-BIBLIOGRAFICAS="EXEMPLO, A." NACIONALIDADE="B" PERMISSAO-DE-DIVULGACAO="SIM"/>
 </ns0:CURRICULO-VITAE>

@@ -3,10 +3,10 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-from cv_lattex.lattes import read_lattes
-from cv_lattex.models import CVError
-from cv_lattex.rendering import export_data
-from cv_lattex.selection import Profile
+from lattes2pdf.lattes import read_lattes
+from lattes2pdf.models import CVError
+from lattes2pdf.rendering import export_data
+from lattes2pdf.selection import Profile
 
 
 @pytest.mark.parametrize(

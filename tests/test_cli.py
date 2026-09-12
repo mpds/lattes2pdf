@@ -4,7 +4,7 @@ import os
 import pytest
 import yaml
 
-from cv_lattex.cli import main
+from lattes2pdf.cli import main
 
 
 def test_inspect_ids_can_drive_export(fixtures, tmp_path, capsys):

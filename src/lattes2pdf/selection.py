@@ -5,10 +5,10 @@ from pathlib import Path
 
 import yaml
 
-from cv_lattex.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
-from cv_lattex.sections import SECTION_OPTIONS, validate_options
-from cv_lattex.theme import THEMES as THEMES
-from cv_lattex.theme import is_theme_file, validate_theme
+from lattes2pdf.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
+from lattes2pdf.sections import SECTION_OPTIONS, validate_options
+from lattes2pdf.theme import THEMES as THEMES
+from lattes2pdf.theme import is_theme_file, validate_theme
 
 FIELD_GROUPS = (
     "authors",

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import yaml
 
-from cv_lattex.models import CVError
+from lattes2pdf.models import CVError
 
 THEMES = (
     "classic",
@@ -35,7 +35,7 @@ def validate_theme(value: str) -> None:
     ):
         raise CVError(
             "theme deve ser um tema disponível ou caminho para design.yaml. "
-            "Consulte cv-lattex theme --help."
+            "Consulte lattes2pdf theme --help."
         )
 
 
@@ -160,7 +160,7 @@ def load_theme(value: str) -> Theme:
     if value in THEMES:
         return Theme(default_design(value))
     if value in BUNDLED_THEMES:
-        resource = files("cv_lattex").joinpath("themes", value)
+        resource = files("lattes2pdf").joinpath("themes", value)
         with as_file(resource) as directory:
             return _load_design(directory / "design.yaml")
     return _load_design(Path(value))

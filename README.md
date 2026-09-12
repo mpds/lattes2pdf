@@ -1,8 +1,8 @@
-# cv-lattex
+# lattes2pdf
 
-Transforme seu Currículo Lattes em um CV em PDF, escolhendo o que apresentar e como organizar as informações. Use perfis editáveis para criar versões acadêmicas ou resumidas e temas do [RenderCV](https://rendercv.com) para definir a aparência. O YAML gerado é compatível com o RenderCV e pode ser editado e renderizado diretamente, inclusive com temas personalizados como o [Garamond](https://github.com/mpds/cv-lattex/tree/main/src/cv_lattex/themes/garamond), incluído no projeto.
+Transforme seu Currículo Lattes em um CV em PDF, escolhendo o que apresentar e como organizar as informações. Use perfis editáveis para criar versões acadêmicas ou resumidas e temas do [RenderCV](https://rendercv.com) para definir a aparência. O YAML gerado é compatível com o RenderCV e pode ser editado e renderizado diretamente, inclusive com temas personalizados como o [Garamond](https://github.com/mpds/cv-lattex/tree/main/src/lattes2pdf/themes/garamond), incluído no projeto.
 
-Veja exemplos fictícios: [ModernCV](https://github.com/mpds/cv-lattex/blob/main/examples/pdfs/moderncv.pdf), nativo do RenderCV, e [Garamond](https://github.com/mpds/cv-lattex/blob/main/examples/pdfs/garamond.pdf), um tema alternativo criado com o RenderCV e incluído no cv-lattex.
+Veja exemplos fictícios: [ModernCV](https://github.com/mpds/cv-lattex/blob/main/examples/pdfs/moderncv.pdf), nativo do RenderCV, e [Garamond](https://github.com/mpds/cv-lattex/blob/main/examples/pdfs/garamond.pdf), um tema alternativo criado com o RenderCV e incluído no lattes2pdf.
 
 ## Instalação
 
@@ -11,23 +11,23 @@ Requer Python 3.12 ou superior. No Linux ou macOS, instale em um ambiente virtua
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install cv-lattex
+python -m pip install lattes2pdf
 ```
 
 O RenderCV é instalado como dependência; a geração usa Typst e não exige uma instalação de LaTeX.
 
 ## Do Lattes ao PDF
 
-Na [Plataforma Lattes](https://lattes.cnpq.br/), acesse a edição do seu currículo e procure **Exportar**, escolhendo o formato **XML**. Salve o arquivo baixado: o cv-lattex aceita tanto o XML quanto o ZIP que o contém, sem precisar descompactá-lo.
+Na [Plataforma Lattes](https://lattes.cnpq.br/), acesse a edição do seu currículo e procure **Exportar**, escolhendo o formato **XML**. Salve o arquivo baixado: o lattes2pdf aceita tanto o XML quanto o ZIP que o contém, sem precisar descompactá-lo.
 
-![Fluxo: XML ou ZIP do Lattes, perfil opcional e tema entram no cv-lattex; saem PDF, YAML editável do RenderCV e relatório JSON. O YAML pode ser editado e recompilado pelo RenderCV.](https://raw.githubusercontent.com/mpds/cv-lattex/main/examples/workflow.png)
+![Fluxo: XML ou ZIP do Lattes, perfil opcional e tema entram no lattes2pdf; saem PDF, YAML editável do RenderCV e relatório JSON. O YAML pode ser editado e recompilado pelo RenderCV.](https://raw.githubusercontent.com/mpds/cv-lattex/main/examples/workflow.png)
 
 O **perfil** seleciona e organiza o conteúdo. O **tema** define a aparência. Ambos são opcionais.
 
 ## Gerar um currículo
 
 ```bash
-cv-lattex render curriculo.xml -o cv.pdf
+lattes2pdf render curriculo.xml -o cv.pdf
 ```
 
 O comando usa o preset `academico`, com o tema `classic` por padrão. Para incluir todos os detalhes conhecidos do currículo sem aplicar o preset, use `--full`.
@@ -40,7 +40,7 @@ Isso gera três arquivos:
 | `cv.yaml` | Conteúdo e configuração visual no formato do RenderCV. |
 | `cv.report.json` | Relatório das informações incluídas, omitidas e dos avisos de conversão. |
 
-O tema padrão é `classic`. Para experimentar outro, use `--theme garamond` ou um nome listado em `cv-lattex theme --help`. Use pastas separadas para comparar temas; com temas personalizados, templates e fontes também são copiados junto ao YAML.
+O tema padrão é `classic`. Para experimentar outro, use `--theme garamond` ou um nome listado em `lattes2pdf theme --help`. Use pastas separadas para comparar temas; com temas personalizados, templates e fontes também são copiados junto ao YAML.
 
 Para testar sem o seu Lattes, baixe o [XML fictício](https://raw.githubusercontent.com/mpds/cv-lattex/main/examples/curriculo.xml) e use-o no lugar de `curriculo.xml`.
 
@@ -49,8 +49,8 @@ Para testar sem o seu Lattes, baixe o [XML fictício](https://raw.githubusercont
 O preset `academico` já é usado por padrão em `render` e `export`. Para escolher outro ou editar suas preferências, copie um preset e use o arquivo na geração:
 
 ```bash
-cv-lattex profile essencial -o profile.yaml  # gera o arquivo de configuração
-cv-lattex render curriculo.xml --profile profile.yaml -o essencial.pdf  # usa o perfil personalizado
+lattes2pdf profile essencial -o profile.yaml  # gera o arquivo de configuração
+lattes2pdf render curriculo.xml --profile profile.yaml -o essencial.pdf  # usa o perfil personalizado
 ```
 
 | Preset | Ponto de partida |
@@ -78,8 +78,8 @@ Essa edição afeta o documento gerado. Para reaplicar escolhas a uma nova expor
 Veja as seções e os registros do seu currículo:
 
 ```bash
-cv-lattex inspect curriculo.xml
-cv-lattex inspect curriculo.xml --section publications.articles
+lattes2pdf inspect curriculo.xml
+lattes2pdf inspect curriculo.xml --section publications.articles
 ```
 
 Por exemplo, a publicação do XML fictício aparece assim:
@@ -92,8 +92,8 @@ publications.articles — Artigos publicados (1)
 Você pode excluir uma seção inteira ou copiar o ID de um registro específico:
 
 ```bash
-cv-lattex render curriculo.xml --exclude awards -o sem-premios.pdf
-cv-lattex render curriculo.xml \
+lattes2pdf render curriculo.xml --exclude awards -o sem-premios.pdf
+lattes2pdf render curriculo.xml \
   --exclude-id publications.articles:5af5a2d20b36 -o sem-artigo.pdf
 ```
 
@@ -128,26 +128,26 @@ exclude_ids:
 Depois, aplique o arquivo:
 
 ```bash
-cv-lattex render curriculo.xml --profile profile.yaml -o personalizado.pdf
+lattes2pdf render curriculo.xml --profile profile.yaml -o personalizado.pdf
 ```
 
 Descubra os nomes das seções e as opções disponíveis sem precisar conhecer os atributos internos do XML:
 
 ```bash
-cv-lattex sections
-cv-lattex sections education
-cv-lattex sections publications.articles
+lattes2pdf sections
+lattes2pdf sections education
+lattes2pdf sections publications.articles
 ```
 
-Um `--profile` explícito substitui o preset padrão. As opções da linha de comando substituem as correspondentes no perfil. Para filtros por ano, ordenação e outros ajustes, consulte `cv-lattex render --help`. Use `--force` quando quiser substituir saídas existentes.
+Um `--profile` explícito substitui o preset padrão. As opções da linha de comando substituem as correspondentes no perfil. Para filtros por ano, ordenação e outros ajustes, consulte `lattes2pdf render --help`. Use `--force` quando quiser substituir saídas existentes.
 
 ## Personalizar um tema
 
 Copie o Garamond para uma pasta editável:
 
 ```bash
-cv-lattex theme garamond -o meu-tema
-cv-lattex render curriculo.xml --profile profile.yaml \
+lattes2pdf theme garamond -o meu-tema
+lattes2pdf render curriculo.xml --profile profile.yaml \
   --theme meu-tema/design.yaml -o meu-cv.pdf
 ```
 
@@ -157,7 +157,7 @@ Você também pode salvar `theme: meu-tema/design.yaml` no perfil. Nesse caso, o
 
 ## Exportação e limites
 
-Para gerar somente o YAML e o relatório, use `cv-lattex export curriculo.xml -o cv.yaml`. O modo `--full` inclui todos os registros e detalhes conhecidos permitidos pela ferramenta, podendo produzir um documento extenso; ele não é um preset de apresentação e não aceita filtros de seleção.
+Para gerar somente o YAML e o relatório, use `lattes2pdf export curriculo.xml -o cv.yaml`. O modo `--full` inclui todos os registros e detalhes conhecidos permitidos pela ferramenta, podendo produzir um documento extenso; ele não é um preset de apresentação e não aceita filtros de seleção.
 
 Dados privados, como documentos pessoais e endereço residencial, não são exportados. Conteúdo desconhecido e omissões aparecem no relatório; no modo `--full`, campos não mapeados impedem a exportação por padrão.
 

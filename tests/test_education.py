@@ -4,11 +4,11 @@ import xml.etree.ElementTree as ET
 import pytest
 import yaml
 
-from cv_lattex.cli import main
-from cv_lattex.lattes import read_lattes
-from cv_lattex.models import CVError
-from cv_lattex.rendering import export_data
-from cv_lattex.selection import Profile, load_profile
+from lattes2pdf.cli import main
+from lattes2pdf.lattes import read_lattes
+from lattes2pdf.models import CVError
+from lattes2pdf.rendering import export_data
+from lattes2pdf.selection import Profile, load_profile
 
 TITLE = "Formação acadêmica/titulação"
 
@@ -168,7 +168,7 @@ def test_section_reference_and_id_workflow(fixtures, tmp_path, capsys):
     assert main(["sections", "publications"]) == 0
     assert "publications.articles" in capsys.readouterr().out
     assert main(["sections", "educaton"]) == 2
-    assert "cv-lattex sections" in capsys.readouterr().err
+    assert "lattes2pdf sections" in capsys.readouterr().err
     source = str(fixtures / "education.xml")
     assert main(["inspect", source, "--section", "education"]) == 0
     inventory_text = capsys.readouterr().out
