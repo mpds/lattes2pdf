@@ -1,7 +1,7 @@
 # lattes2pdf
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/mpds/lattes2pdf/main/assets/logo.png" alt="lattes2pdf: uma xícara de café ao lado de um documento PDF" width="320">
+  <img src="https://raw.githubusercontent.com/mpds/lattes2pdf/main/assets/social-preview.png" alt="lattes2pdf: uma xícara de café ao lado de um documento PDF" width="800">
 </p>
 
 Transforme seu Currículo Lattes em um CV em PDF, escolhendo o que apresentar e como organizar as informações. Use perfis editáveis para criar versões acadêmicas ou resumidas e temas do [RenderCV](https://rendercv.com) para definir a aparência. O YAML gerado é compatível com o RenderCV e pode ser editado e renderizado diretamente, inclusive com temas personalizados como o [Garamond](https://github.com/mpds/lattes2pdf/tree/main/src/lattes2pdf/themes/garamond), incluído no projeto.
@@ -18,7 +18,7 @@ source .venv/bin/activate
 python -m pip install lattes2pdf
 ```
 
-O RenderCV é instalado como dependência; a geração usa Typst e não exige uma instalação de LaTeX.
+O RenderCV é instalado como dependência e a geração usa Typst.
 
 ## Do Lattes ao PDF
 
@@ -26,7 +26,7 @@ Na [Plataforma Lattes](https://lattes.cnpq.br/), acesse a edição do seu currí
 
 ![Fluxo: XML ou ZIP do Lattes, perfil opcional e tema entram no lattes2pdf; saem PDF, YAML editável do RenderCV e relatório JSON. O YAML pode ser editado e recompilado pelo RenderCV.](https://raw.githubusercontent.com/mpds/lattes2pdf/main/examples/workflow.png)
 
-O **perfil** seleciona e organiza o conteúdo. O **tema** define a aparência. Ambos são opcionais.
+O **perfil** seleciona e organiza o conteúdo e o **tema** define a aparência.
 
 ## Gerar um currículo
 
@@ -44,7 +44,7 @@ Isso gera três arquivos:
 | `cv.yaml` | Conteúdo e configuração visual no formato do RenderCV. |
 | `cv.report.json` | Relatório das informações incluídas, omitidas e dos avisos de conversão. |
 
-O tema padrão é `classic`. Para experimentar outro, use `--theme garamond` ou um nome listado em `lattes2pdf theme --help`. Use pastas separadas para comparar temas; com temas personalizados, templates e fontes também são copiados junto ao YAML.
+Para experimentar outro tema, use `--theme garamond` ou um nome listado em `lattes2pdf theme --help`. Use pastas separadas para comparar temas; com temas personalizados, templates e fontes também são copiados junto ao YAML.
 
 Para testar sem o seu Lattes, baixe o [XML fictício](https://raw.githubusercontent.com/mpds/lattes2pdf/main/examples/curriculo.xml) e use-o no lugar de `curriculo.xml`.
 
