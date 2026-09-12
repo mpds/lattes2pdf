@@ -28,6 +28,7 @@ ruff check .
 ruff format --check .
 pytest
 python -m build
+python -m twine check --strict dist/*
 git diff --check
 ```
 
@@ -48,3 +49,26 @@ docs: esclarecer a exportação do Lattes
 Tags e títulos de releases devem conter somente a versão no formato `vX.Y.Z`,
 por exemplo, `v0.1.0`. Descreva as mudanças no corpo da release. A versão do
 pacote correspondente é `0.1.0`, sem o prefixo `v`.
+
+O CI testa Python 3.12, 3.13 e 3.14 em Linux e macOS. Além da suíte, instala o
+wheel em um ambiente limpo e gera PDFs fora do checkout, incluindo um tema externo
+e a recompilação de um YAML editado. O script `.github/scripts/check_distribution.py`
+também pode ser executado localmente, recebendo o wheel e um XML fictício.
+
+### Publicação
+
+Configure Trusted Publishing nas contas do PyPI e do TestPyPI: projeto
+`lattes2pdf`, proprietário `mpds`, repositório `lattes2pdf`, workflow `release.yml`.
+Use o ambiente GitHub `pypi` para PyPI e `testpypi` para TestPyPI. Não são necessários
+tokens de API no repositório.
+
+1. Atualize a versão em `pyproject.toml` e confira as alterações da release.
+2. Execute manualmente o workflow **Publicação** para ensaiar no TestPyPI.
+3. Confira a página e a instalação da versão no TestPyPI.
+4. Crie a release com tag e título `vX.Y.Z`, descrevendo mudanças e limitações no corpo.
+
+Publicar a release no GitHub dispara uma nova validação e a publicação no PyPI.
+O workflow confere a versão da tag e publica somente os artefatos que passaram
+nos testes; depois anexa wheel e sdist à release. Cada versão publicada é imutável:
+para mudar seu conteúdo, incremente a versão. Um rascunho de release não publica
+o pacote.

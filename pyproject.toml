@@ -19,14 +19,20 @@ dependencies = [
 [project.scripts]
 lattes2pdf = "lattes2pdf.cli:main"
 
+[project.urls]
+Repository = "https://github.com/mpds/lattes2pdf"
+Issues = "https://github.com/mpds/lattes2pdf/issues"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/lattes2pdf"]
+core-metadata-version = "2.4"
 
 [tool.hatch.build.targets.sdist]
 include = ["/src", "/tests", "/pyproject.toml", "/LICENSE", "/README.md", "/CONTRIBUTING.md"]
+core-metadata-version = "2.4"
 
 [dependency-groups]
-dev = ["ruff>=0.15,<0.17", "pytest>=8,<10", "build>=1.2,<2", "pypdf>=6,<7"]
+dev = ["ruff>=0.15,<0.17", "pytest>=8,<10", "build>=1.2,<2", "pypdf>=6,<7", "twine>=6,<7"]
 
 [tool.ruff]
 target-version = "py312"
