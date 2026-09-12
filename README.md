@@ -1,8 +1,8 @@
 # lattes2pdf
 
-Transforme seu Currículo Lattes em um CV em PDF, escolhendo o que apresentar e como organizar as informações. Use perfis editáveis para criar versões acadêmicas ou resumidas e temas do [RenderCV](https://rendercv.com) para definir a aparência. O YAML gerado é compatível com o RenderCV e pode ser editado e renderizado diretamente, inclusive com temas personalizados como o [Garamond](https://github.com/mpds/cv-lattex/tree/main/src/lattes2pdf/themes/garamond), incluído no projeto.
+Transforme seu Currículo Lattes em um CV em PDF, escolhendo o que apresentar e como organizar as informações. Use perfis editáveis para criar versões acadêmicas ou resumidas e temas do [RenderCV](https://rendercv.com) para definir a aparência. O YAML gerado é compatível com o RenderCV e pode ser editado e renderizado diretamente, inclusive com temas personalizados como o [Garamond](https://github.com/mpds/lattes2pdf/tree/main/src/lattes2pdf/themes/garamond), incluído no projeto.
 
-Veja exemplos fictícios: [ModernCV](https://github.com/mpds/cv-lattex/blob/main/examples/pdfs/moderncv.pdf), nativo do RenderCV, e [Garamond](https://github.com/mpds/cv-lattex/blob/main/examples/pdfs/garamond.pdf), um tema alternativo criado com o RenderCV e incluído no lattes2pdf.
+Veja exemplos fictícios: [ModernCV](https://github.com/mpds/lattes2pdf/blob/main/examples/pdfs/moderncv.pdf), nativo do RenderCV, e [Garamond](https://github.com/mpds/lattes2pdf/blob/main/examples/pdfs/garamond.pdf), um tema alternativo criado com o RenderCV e incluído no lattes2pdf.
 
 ## Instalação
 
@@ -20,7 +20,7 @@ O RenderCV é instalado como dependência; a geração usa Typst e não exige um
 
 Na [Plataforma Lattes](https://lattes.cnpq.br/), acesse a edição do seu currículo e procure **Exportar**, escolhendo o formato **XML**. Salve o arquivo baixado: o lattes2pdf aceita tanto o XML quanto o ZIP que o contém, sem precisar descompactá-lo.
 
-![Fluxo: XML ou ZIP do Lattes, perfil opcional e tema entram no lattes2pdf; saem PDF, YAML editável do RenderCV e relatório JSON. O YAML pode ser editado e recompilado pelo RenderCV.](https://raw.githubusercontent.com/mpds/cv-lattex/main/examples/workflow.png)
+![Fluxo: XML ou ZIP do Lattes, perfil opcional e tema entram no lattes2pdf; saem PDF, YAML editável do RenderCV e relatório JSON. O YAML pode ser editado e recompilado pelo RenderCV.](https://raw.githubusercontent.com/mpds/lattes2pdf/main/examples/workflow.png)
 
 O **perfil** seleciona e organiza o conteúdo. O **tema** define a aparência. Ambos são opcionais.
 
@@ -42,7 +42,7 @@ Isso gera três arquivos:
 
 O tema padrão é `classic`. Para experimentar outro, use `--theme garamond` ou um nome listado em `lattes2pdf theme --help`. Use pastas separadas para comparar temas; com temas personalizados, templates e fontes também são copiados junto ao YAML.
 
-Para testar sem o seu Lattes, baixe o [XML fictício](https://raw.githubusercontent.com/mpds/cv-lattex/main/examples/curriculo.xml) e use-o no lugar de `curriculo.xml`.
+Para testar sem o seu Lattes, baixe o [XML fictício](https://raw.githubusercontent.com/mpds/lattes2pdf/main/examples/curriculo.xml) e use-o no lugar de `curriculo.xml`.
 
 ## Comece com um perfil
 
@@ -161,4 +161,4 @@ Para gerar somente o YAML e o relatório, use `lattes2pdf export curriculo.xml -
 
 Dados privados, como documentos pessoais e endereço residencial, não são exportados. Conteúdo desconhecido e omissões aparecem no relatório; no modo `--full`, campos não mapeados impedem a exportação por padrão.
 
-A integração atual usa RenderCV 2.8. Veja [como contribuir](https://github.com/mpds/cv-lattex/blob/main/CONTRIBUTING.md) e a [licença MIT](https://github.com/mpds/cv-lattex/blob/main/LICENSE).
+A integração atual usa RenderCV 2.8. Veja [como contribuir](https://github.com/mpds/lattes2pdf/blob/main/CONTRIBUTING.md) e a [licença MIT](https://github.com/mpds/lattes2pdf/blob/main/LICENSE).
