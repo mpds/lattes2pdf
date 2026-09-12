@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/mpds/lattes2pdf/main/assets/social-preview.png" alt="lattes2pdf: uma xícara de café ao lado de um documento PDF" width="800">
 </p>
 
-Transforme seu Currículo Lattes em um CV em PDF, escolhendo o que apresentar e como organizar as informações. Use perfis editáveis para criar versões acadêmicas ou resumidas e temas do [RenderCV](https://rendercv.com) para definir a aparência. O YAML gerado é compatível com o RenderCV e pode ser editado e renderizado diretamente, inclusive com temas personalizados como o [Garamond](https://github.com/mpds/lattes2pdf/tree/main/src/lattes2pdf/themes/garamond), incluído no projeto.
+Converta seu Currículo Lattes em um CV em PDF, escolhendo o que apresentar e como organizar as informações. Use perfis editáveis para criar versões acadêmicas ou resumidas e temas do [RenderCV](https://rendercv.com) para definir a aparência. O YAML gerado é compatível com o RenderCV e pode ser editado e renderizado diretamente, inclusive com temas personalizados como o [Garamond](https://github.com/mpds/lattes2pdf/tree/main/src/lattes2pdf/themes/garamond), incluído no projeto.
 
 Veja exemplos fictícios: [ModernCV](https://github.com/mpds/lattes2pdf/blob/main/examples/pdfs/moderncv.pdf), nativo do RenderCV, e [Garamond](https://github.com/mpds/lattes2pdf/blob/main/examples/pdfs/garamond.pdf), um tema alternativo criado com o RenderCV e incluído no lattes2pdf.
 
