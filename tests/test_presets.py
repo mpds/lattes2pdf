@@ -136,9 +136,7 @@ def test_profile_copy_protects_the_distributed_preset_even_with_force(capsys):
 
 def test_unknown_preset_does_not_create_a_file(tmp_path, capsys):
     output = tmp_path / "profile.yaml"
-    with pytest.raises(SystemExit) as exc:
-        main(["profile", "../catalog", "-o", str(output)])
-    assert exc.value.code == 2
+    assert main(["profile", "../catalog", "-o", str(output)]) == 2
     assert "invalid choice" in capsys.readouterr().err
     assert not output.exists()
 

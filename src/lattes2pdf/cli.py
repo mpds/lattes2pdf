@@ -13,9 +13,16 @@ import yaml
 
 from lattes2pdf.backend import render_pdf, rendercv_version
 from lattes2pdf.categories import CATEGORIES, matches_selector
-from lattes2pdf.diagnostics import relevant_issues
+from lattes2pdf.diagnostics import (
+    LEVELS,
+    console_logging,
+    log,
+    log_issues,
+    logger,
+    relevant_issues,
+)
 from lattes2pdf.lattes import read_lattes
-from lattes2pdf.models import CVError, catalog
+from lattes2pdf.models import CVError, Issue, catalog
 from lattes2pdf.output import check_outputs, write_outputs
 from lattes2pdf.rendering import export_data, label
 from lattes2pdf.sections import describe_sections, matching_sections
@@ -63,10 +70,17 @@ def inspection(cv, sections: list[str] | None = None) -> dict:
     }
 
 
+class ArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        raise CVError(
+            f"{message}. Consulte {self.prog} --help.",
+            code="invalid-arguments",
+            details=self.format_usage(),
+        )
+
+
 def parser() -> argparse.ArgumentParser:
-    root = argparse.ArgumentParser(
-        description="Selecione e converta um currículo Lattes."
-    )
+    root = ArgumentParser(description="Selecione e converta um currículo Lattes.")
     root.add_argument(
         "--version", action="version", version=f"%(prog)s {version('lattes2pdf')}"
     )
@@ -287,6 +301,14 @@ Para alterar o YAML gerado e compilar novamente: rendercv render cv.yaml.
         default=120,
         help="limite de compilação em segundos (padrão: 120)",
     )
+    for command in (root, *commands.choices.values()):
+        command.add_argument(
+            "--log-level",
+            choices=LEVELS,
+            type=str.upper,
+            default="INFO" if command is root else argparse.SUPPRESS,
+            help="nível mínimo das mensagens em stderr (padrão: INFO); não altera o JSON ou relatório",
+        )
     return root
 
 
@@ -361,96 +383,139 @@ def _export(arguments, cv) -> None:
         contents, protected=protected, force=arguments.force, create_parents=True
     )
     if is_pdf:
-        print(f"PDF: {arguments.output}")
-    print(f"YAML: {yaml_path}\nRelatório: {report_path}")
+        log("INFO", "output-written", f"PDF salvo em {arguments.output}.")
+    log("INFO", "output-written", f"YAML salvo em {yaml_path}.")
+    log("INFO", "output-written", f"Relatório salvo em {report_path}.")
     if theme.assets:
-        print(f"Arquivos do tema: {yaml_path.parent} (templates e fontes)")
+        log("INFO", "theme-assets", f"Templates e fontes salvos em {yaml_path.parent}.")
     omissions = report["counts"].get("unknown", 0) + report["counts"].get("unmapped", 0)
     if omissions:
-        print(
-            f"Aviso: {omissions} campos/elementos não mapeados; consulte o relatório.",
-            file=sys.stderr,
+        log(
+            "WARNING",
+            "unmapped-content",
+            f"{omissions} campos/elementos não foram exportados por falta de mapeamento; consulte {report_path}.",
         )
-    if report["issues"]:
-        print(f"Avisos no relatório: {len(report['issues'])}.", file=sys.stderr)
+    selected_ids = {e["id"] for e in report["entries"] if e["status"] == "selected"}
+    entries = [e for e in cv.entries if e.id in selected_ids]
+    log_issues(
+        cv,
+        relevant_issues(cv, entries, [Issue(**i) for i in report["issues"]]),
+        report=str(report_path),
+    )
+
+
+def _run(arguments) -> int:
+    if arguments.command == "theme":
+        target = arguments.output
+        if target.exists() or target.is_symlink():
+            raise CVError(
+                f"A pasta do tema já existe: {target}. Escolha uma nova pasta."
+            )
+        if not target.parent.is_dir():
+            raise CVError(f"A pasta de destino não existe: {target.parent}.")
+        theme = load_theme(arguments.name)
+        contents = [
+            (
+                target / "design.yaml",
+                yaml.safe_dump(
+                    {"design": theme.design}, allow_unicode=True, sort_keys=False
+                ),
+            ),
+        ]
+        write_outputs(contents, protected=[], create_parents=True)
+        log("INFO", "output-written", f"Tema salvo em {target / 'design.yaml'}.")
+        return 0
+    if arguments.command == "profile":
+        source = files("lattes2pdf").joinpath("presets", arguments.preset + ".yaml")
+        text = source.read_text("utf-8")
+        if arguments.output:
+            with as_file(source) as path:
+                write_outputs(
+                    [(arguments.output, text)],
+                    protected=[path],
+                    force=arguments.force,
+                )
+            log("INFO", "output-written", f"Perfil salvo em {arguments.output}.")
+        else:
+            print(text, end="")
+        return 0
+    if arguments.command == "sections":
+        print(describe_sections(arguments.section))
+        return 0
+    cv = read_lattes(arguments.input, member=arguments.member)
+    if arguments.command in {"export", "render"}:
+        _export(arguments, cv)
+        return 0
+    result = inspection(cv, arguments.section)
+    if arguments.json:
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+    else:
+        print(cv.name)
+        for section, count in result["sections"].items():
+            print(f"\n{section} — {catalog()['sections'][section]['pt']} ({count})")
+            for entry in result["entries"]:
+                if entry["section"] == section:
+                    title = entry["title"]
+                    if section == "education" and title != label(entry["type"]):
+                        title = f"{label(entry['type'])} — {title}"
+                    year = f" ({entry['year']})" if entry["year"] else ""
+                    print(f"  {entry['id']}  {title}{year}")
+        if result["entries"]:
+            print("\nEm export/render, para excluir:")
+            print("  Um grupo inteiro: --exclude GRUPO")
+            print("  Um registro: --exclude-id ID (repita a opção para mais registros)")
+            print("Ajustes de um grupo: lattes2pdf sections GRUPO")
+        sys.stdout.flush()
+        log_issues(cv, [Issue(**i) for i in result["issues"]])
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
-    arguments = parser().parse_args(argv)
-    try:
-        if arguments.command == "theme":
-            target = arguments.output
-            if target.exists() or target.is_symlink():
-                raise CVError(
-                    f"A pasta do tema já existe: {target}. Escolha uma nova pasta."
+    with console_logging():
+        arguments = None
+        try:
+            # Read the level first so argument errors also support DEBUG, even
+            # when the option appears after a subcommand with missing arguments.
+            logging_options = ArgumentParser(add_help=False, allow_abbrev=False)
+            logging_options.add_argument(
+                "--log-level", choices=LEVELS, type=str.upper, default="INFO"
+            )
+            logger.setLevel(logging_options.parse_known_args(argv)[0].log_level)
+            arguments = parser().parse_args(argv)
+            logger.setLevel(arguments.log_level)
+            return _run(arguments)
+        except (CVError, OSError) as exc:
+            if isinstance(exc, CVError):
+                code, message = exc.code, str(exc)
+            elif isinstance(exc, FileNotFoundError):
+                code = "file-not-found"
+                if getattr(arguments, "input", None) == Path(exc.filename or ""):
+                    code = "input-not-found"
+                message = f"Arquivo ou pasta não encontrado: {exc.filename}. Confira o caminho informado."
+            elif isinstance(exc, PermissionError):
+                code, message = (
+                    "permission-denied",
+                    f"Sem permissão para acessar {exc.filename}. Confira as permissões.",
                 )
-            if not target.parent.is_dir():
-                raise CVError(f"A pasta de destino não existe: {target.parent}.")
-            theme = load_theme(arguments.name)
-            contents = [
-                (
-                    target / "design.yaml",
-                    yaml.safe_dump(
-                        {"design": theme.design}, allow_unicode=True, sort_keys=False
-                    ),
-                ),
-            ]
-            write_outputs(contents, protected=[], create_parents=True)
-            print(f"Tema: {target / 'design.yaml'}")
-            return 0
-        if arguments.command == "profile":
-            source = files("lattes2pdf").joinpath("presets", arguments.preset + ".yaml")
-            text = source.read_text("utf-8")
-            if arguments.output:
-                with as_file(source) as path:
-                    write_outputs(
-                        [(arguments.output, text)],
-                        protected=[path],
-                        force=arguments.force,
-                    )
-                print(f"Perfil: {arguments.output}")
             else:
-                print(text, end="")
-            return 0
-        if arguments.command == "sections":
-            print(describe_sections(arguments.section))
-            return 0
-        cv = read_lattes(arguments.input, member=arguments.member)
-        if arguments.command in {"export", "render"}:
-            _export(arguments, cv)
-            return 0
-        result = inspection(cv, arguments.section)
-        if arguments.json:
-            print(json.dumps(result, ensure_ascii=False, indent=2))
-        else:
-            print(cv.name)
-            for section, count in result["sections"].items():
-                print(f"\n{section} — {catalog()['sections'][section]['pt']} ({count})")
-                for entry in result["entries"]:
-                    if entry["section"] == section:
-                        title = entry["title"]
-                        if section == "education" and title != label(entry["type"]):
-                            title = f"{label(entry['type'])} — {title}"
-                        year = f" ({entry['year']})" if entry["year"] else ""
-                        print(f"  {entry['id']}  {title}{year}")
-            if result["entries"]:
-                print("\nEm export/render, para excluir:")
-                print("  Um grupo inteiro: --exclude GRUPO")
-                print(
-                    "  Um registro: --exclude-id ID (repita a opção para mais registros)"
-                )
-                print("Ajustes de um grupo: lattes2pdf sections GRUPO")
-            for issue in result["issues"]:
-                if issue["level"] != "WARNING":
-                    continue
-                print(
-                    f"Aviso [{issue['code']}] {issue['path']}: {issue['message']}",
-                    file=sys.stderr,
-                )
-        return 0
-    except (CVError, OSError) as exc:
-        print(f"Erro: {exc}", file=sys.stderr)
-        return 2
+                code, message = "io-error", f"Falha ao acessar um arquivo: {exc}."
+            log("ERROR", code, message)
+            if isinstance(exc, CVError) and exc.details:
+                logger.debug("%s", exc.details, extra={"code": code})
+            logger.debug("Detalhes da falha", exc_info=True, extra={"code": code})
+            return 2
+        except Exception:
+            log(
+                "ERROR",
+                "internal-error",
+                "Falha interna. Execute com --log-level DEBUG para obter os detalhes.",
+            )
+            logger.debug(
+                "Detalhes da falha interna",
+                exc_info=True,
+                extra={"code": "internal-error"},
+            )
+            return 1
 
 
 if __name__ == "__main__":

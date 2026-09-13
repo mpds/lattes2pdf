@@ -566,10 +566,12 @@ def test_backend_failures_are_actionable_and_temporary_files_are_removed(
     with pytest.raises(
         CVError,
         match={"timeout": "--timeout", "network": "packages.typst.org"}.get(
-            failure, "invalid input"
+            failure, "--log-level DEBUG"
         ),
-    ):
+    ) as captured:
         render_pdf("cv: {name: Exemplo}")
+    if failure in {"validation", "missing-output"}:
+        assert captured.value.details == "invalid input"
     assert all(not path.exists() for path in directories)
 
 

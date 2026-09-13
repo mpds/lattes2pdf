@@ -178,6 +178,19 @@ lattes2pdf sections lattes.patentes
 
 Um `--profile` explícito substitui o preset padrão, e as opções da linha de comando tem precedência sobre o arquivo de perfil. Para filtros por ano, ordenação e outros ajustes, consulte `lattes2pdf render --help`. Use `--force` quando quiser substituir saídas existentes.
 
+## Mensagens e diagnósticos
+
+As mensagens usam os níveis `DEBUG`, `INFO`, `WARNING` e `ERROR`, com padrão `INFO`. Elas vão para `stderr`; o resultado do comando, como o inventário ou JSON, fica em `stdout`.
+
+Use `--log-level DEBUG` para detalhes técnicos e caminhos XML, ou `--log-level ERROR` para mostrar somente erros. O nível não remove diagnósticos do JSON ou do relatório.
+
+```bash
+lattes2pdf inspect curriculo.zip --section lattes.formacao --log-level DEBUG
+lattes2pdf render curriculo.zip -o cv.pdf --log-level ERROR
+```
+
+No `inspect`, `--section` filtra os registros e seus diagnósticos, preservando problemas globais do arquivo. O relatório de `export`/`render` mantém todos os diagnósticos, inclusive os de registros excluídos.
+
 ## Temas personalizados com RenderCV
 
 O perfil e o tema podem ser usados juntos. Escolha onde fazer cada ajuste:

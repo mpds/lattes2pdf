@@ -128,7 +128,10 @@ def _source_bytes(path: Path, member: str | None, limit: int) -> bytes:
         EOFError,
         zlib.error,
     ) as exc:
-        raise CVError("Não foi possível ler o ZIP.") from exc
+        raise CVError(
+            "Não foi possível ler o ZIP. Exporte o currículo novamente no Lattes.",
+            code="invalid-zip",
+        ) from exc
 
 
 def _disposition(tag: str, name: str, known: bool, private: bool, auxiliary: bool):
@@ -236,7 +239,10 @@ def read_lattes(
     except DefusedXmlException as exc:
         raise CVError("XML com DTD ou entidades não é permitido.") from exc
     except (ParseError, LookupError) as exc:
-        raise CVError("XML malformado ou com codificação inválida.") from exc
+        raise CVError(
+            "XML malformado ou com codificação inválida. Exporte o currículo novamente no Lattes.",
+            code="invalid-xml",
+        ) from exc
     if root.tag.startswith("{"):
         raise CVError("Namespace XML não suportado; a fonte foi mantida intacta.")
     if root.tag != "CURRICULO-VITAE":

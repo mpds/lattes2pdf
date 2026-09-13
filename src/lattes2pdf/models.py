@@ -13,6 +13,11 @@ from typing import Literal
 class CVError(ValueError):
     """An actionable input or conversion error."""
 
+    def __init__(self, message: str, *, code: str = "invalid-input", details: str = ""):
+        super().__init__(message)
+        self.code = code
+        self.details = details
+
 
 @cache
 def catalog() -> dict:

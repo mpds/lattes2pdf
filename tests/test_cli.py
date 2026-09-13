@@ -65,7 +65,7 @@ def test_output_collisions_are_rejected_before_writing(
         args.append("--force")
     before = {path: path.read_bytes() for path in tmp_path.iterdir()}
     assert main(args + ["-o", str(output), "--report", str(report)]) == 2
-    assert "Erro:" in capsys.readouterr().err
+    assert "ERROR    lattes2pdf [invalid-input]" in capsys.readouterr().err
     assert {path: path.read_bytes() for path in tmp_path.iterdir()} == before
 
 

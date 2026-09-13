@@ -15,11 +15,13 @@ def rendercv_version() -> str:
         installed = version("rendercv")
     except PackageNotFoundError as exc:
         raise CVError(
-            'RenderCV não está instalado. Execute: python -m pip install "rendercv[full]>=2.8,<2.9".'
+            'RenderCV não está instalado. Execute: python -m pip install "rendercv[full]>=2.8,<2.9".',
+            code="renderer-unavailable",
         ) from exc
     if installed.split(".")[:2] != ["2", "8"]:
         raise CVError(
-            f"RenderCV {installed} não é suportado; instale rendercv[full]>=2.8,<2.9."
+            f"RenderCV {installed} não é suportado; instale rendercv[full]>=2.8,<2.9.",
+            code="renderer-unavailable",
         )
     return installed
 
@@ -67,7 +69,8 @@ def render_pdf(
             )
         except subprocess.TimeoutExpired as exc:
             raise CVError(
-                f"RenderCV excedeu o limite de {timeout} segundos; aumente --timeout."
+                f"RenderCV excedeu o limite de {timeout} segundos; aumente --timeout.",
+                code="renderer-timeout",
             ) from exc
         output = root / "output.pdf"
         if result.returncode or not output.is_file():
@@ -79,13 +82,19 @@ def render_pdf(
             if "failed to download package" in diagnostics:
                 raise CVError(
                     "RenderCV não conseguiu baixar uma dependência do Typst. "
-                    "A primeira compilação precisa de acesso a packages.typst.org; tente novamente com acesso à rede."
+                    "A primeira compilação precisa de acesso a packages.typst.org; tente novamente com acesso à rede.",
+                    code="renderer-download-failed",
+                    details=diagnostics,
                 )
             raise CVError(
-                "RenderCV não gerou o PDF.\n"
-                + (diagnostics[-6000:] or "Nenhum diagnóstico retornado.")
+                "RenderCV não gerou o PDF. Confira o YAML e o tema; use --log-level DEBUG para ver os detalhes.",
+                code="renderer-failed",
+                details=diagnostics or "Nenhum diagnóstico retornado.",
             )
         data = output.read_bytes()
         if not data.startswith(b"%PDF-"):
-            raise CVError("RenderCV retornou um arquivo que não é PDF.")
+            raise CVError(
+                "RenderCV retornou um arquivo que não é PDF.",
+                code="renderer-invalid-output",
+            )
         return data
