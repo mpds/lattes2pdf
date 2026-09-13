@@ -7,6 +7,12 @@ import yaml
 
 from lattes2pdf.categories import CATEGORIES, category_names, matches_selector
 from lattes2pdf.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
+from lattes2pdf.periods import (
+    date_index,
+    period_group,
+    professional_dates,
+    professional_overlap,
+)
 from lattes2pdf.sections import SECTION_OPTIONS, validate_options
 from lattes2pdf.theme import THEMES as THEMES
 from lattes2pdf.theme import is_theme_file, validate_theme
@@ -47,6 +53,7 @@ class Profile:
     hide_fields: list[str] = field(default_factory=list)
     since: int | None = None
     until: int | None = None
+    periods: dict[str, dict[str, int]] = field(default_factory=dict)
     section_years: dict[str, dict[str, int]] = field(default_factory=dict)
     sections: dict[str, dict] = field(default_factory=dict)
     authors: dict = field(default_factory=dict)
@@ -143,6 +150,15 @@ class Profile:
                     "Cada intervalo em section_years aceita somente since e until."
                 )
             _validate_years(years.get("since"), years.get("until"))
+        if not isinstance(self.periods, dict) or set(self.periods) - {
+            "professional",
+            "production",
+        }:
+            raise CVError("periods aceita somente professional e production.")
+        for group, years in self.periods.items():
+            if not isinstance(years, dict) or set(years) - {"since", "until"}:
+                raise CVError(f"periods.{group} aceita somente since e until.")
+            _validate_years(years.get("since"), years.get("until"))
         for name, options in {
             "language": ("pt", "en"),
             "unknown_year": ("keep", "exclude"),
@@ -163,6 +179,11 @@ class Profile:
             or self.since is not None
             or self.until is not None
             or self.section_years
+            or any(
+                value is not None
+                for years in self.periods.values()
+                for value in years.values()
+            )
             or self.unknown_year != "keep"
             or any(
                 key != "title" for options in self.sections.values() for key in options
@@ -254,6 +275,7 @@ def select(cv: Curriculum, profile: Profile) -> Selection:
             f"IDs desconhecidos: {', '.join(sorted(invalid))}. Consulte inspect."
         )
     selected, excluded, issues = [], {}, []
+    dates = date_index(cv.fields) if profile.periods.get("professional") else {}
     for entry in cv.entries:
         reason = None
         if (
@@ -296,6 +318,38 @@ def select(cv: Curriculum, profile: Profile) -> Selection:
                 until is not None and entry.year > until
             ):
                 reason = "year"
+        group = period_group(entry)
+        period = profile.periods.get(group, {})
+        period_since, period_until = period.get("since"), period.get("until")
+        if not reason and (period_since is not None or period_until is not None):
+            if group == "professional":
+                overlaps = professional_overlap(
+                    entry, professional_dates(entry, dates), period_since, period_until
+                )
+            else:
+                overlaps = (
+                    None
+                    if entry.year is None
+                    else (
+                        (period_since is None or entry.year >= period_since)
+                        and (period_until is None or entry.year <= period_until)
+                    )
+                )
+            if overlaps is False:
+                reason = f"{group}-period"
+            elif overlaps is None:
+                if profile.unknown_year == "exclude":
+                    reason = "unknown-year"
+                elif not any(
+                    i.code == "unknown-year" and i.path == entry.path for i in issues
+                ):
+                    issues.append(
+                        Issue(
+                            "unknown-year",
+                            entry.path,
+                            "Datas insuficientes ou inválidas para o período selecionado; registro mantido. Use unknown_year: exclude para removê-lo.",
+                        )
+                    )
         if reason:
             excluded[entry.id] = reason
         else:

@@ -164,6 +164,9 @@ Perfil YAML:
   include: [profile, lattes.formacao, lattes.artigos]
   exclude: [publications.press]
   order: [education, publications, profile]
+  periods:
+    professional: {since: 2020}
+    production: {since: 2022}
   section_years:
     publications: {since: 2020, until: 2026}
   hide_fields: [contact, advisors, thesis]
@@ -188,6 +191,18 @@ Autores (todas as seções):
   authors.use_informed_citation  true | false       (padrão: true; em --full: false)
     Utilizar Citação Bibliográfica Informada: prefere NOME-PARA-CITACAO de cada autor;
     se ausente, usa o nome completo. Não altera o nome no cabeçalho nem o estilo bibliográfico.
+
+Períodos independentes no perfil (sem limites: todo o período):
+  periods.professional  since/until: vínculos, atividades profissionais e linhas de pesquisa.
+    Inclui intervalos que se sobrepõem ao período; preserva as datas originais.
+    Vínculos com início e sem término são atuais; outras atividades exigem FLAG-PERIODO=ATUAL.
+  periods.production    since/until: ano das produções bibliográficas, técnicas e artísticas.
+    Não abrange projetos, orientações, participação/organização de eventos nem bancas.
+  Formação, idiomas, prêmios e demais categorias não são afetados por esses controles.
+  Datas insuficientes: unknown_year (keep com aviso, ou exclude).
+  Os limites são inclusivos e cumulativos com since/until e section_years existentes.
+  --since/--until continuam gerais; para separar atuação e produção, use periods no perfil.
+  --full não aceita períodos limitados.
 
 O perfil também aceita include_ids, exclude_ids, since, until, full,
 allow_unmapped, sections, sort (year_desc ou source) e unknown_year (keep ou exclude).

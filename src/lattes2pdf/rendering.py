@@ -16,6 +16,7 @@ from lattes2pdf.categories import (
 )
 from lattes2pdf.lattes import YEAR_NAMES
 from lattes2pdf.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
+from lattes2pdf.periods import ongoing_employment
 from lattes2pdf.sections import SECTION_OPTIONS
 from lattes2pdf.selection import Profile, Selection, hidden, select, visible_fields
 from lattes2pdf.theme import load_theme
@@ -157,7 +158,9 @@ def _authors(
     return formatted, used
 
 
-def _dates(entry: Entry, issues: list[Issue], language: str) -> tuple[dict, set[str]]:
+def _dates(
+    entry: Entry, issues: list[Issue], language: str, *, infer_employment: bool = False
+) -> tuple[dict, set[str]]:
     used = set()
 
     def partial(year_names, month_names):
@@ -192,6 +195,7 @@ def _dates(entry: Entry, issues: list[Issue], language: str) -> tuple[dict, set[
     end, end_fields = partial(("ANO-DE-CONCLUSAO", "ANO-FIM"), ("MES-FIM",))
     state = entry.find("STATUS-DO-CURSO", "FLAG-PERIODO", "SITUACAO")
     ongoing = state and state.text in {"EM_ANDAMENTO", "EM ANDAMENTO", "ATUAL"}
+    ongoing = ongoing or infer_employment
     if (
         start
         and end
@@ -770,6 +774,7 @@ def _render_entry(
     profile: Profile,
     issues: list[Issue],
     institutions: dict[str, dict[str, SourceField]],
+    current_employment: bool = False,
 ) -> tuple[dict, set[str]]:
     if entry.section == "education" and not profile.full:
         return _render_education(entry, kind, profile, issues, institutions)
@@ -830,7 +835,9 @@ def _render_entry(
             "Autores: " if profile.language == "pt" else "Authors: "
         ) + ", ".join(authors)
         used.update(author_fields)
-    dates, date_fields = _dates(entry, issues, profile.language)
+    dates, date_fields = _dates(
+        entry, issues, profile.language, infer_employment=current_employment
+    )
     if kind == "publication" and "start_date" in dates:
         result["date"] = f"{dates['start_date']} – {dates['end_date']}"
     else:
@@ -1230,6 +1237,11 @@ def export_data(
         ),
         "",
     )
+    current_employment_ids = (
+        {e.id for e in cv.entries if ongoing_employment(e)}
+        if not profile.full
+        else set()
+    )
     self_authors = (
         {
             entry.id: _self_author(entry, owner_id, cv.name)
@@ -1320,7 +1332,14 @@ def export_data(
                 ],
             )
             result, consumed = _render_entry(
-                view, kind, authors, author_fields, profile, issues, institutions
+                view,
+                kind,
+                authors,
+                author_fields,
+                profile,
+                issues,
+                institutions,
+                current_employment=entry.id in current_employment_ids,
             )
             if "description" in result and not re.search(
                 r"\bDESCRIPTION\b", description_template

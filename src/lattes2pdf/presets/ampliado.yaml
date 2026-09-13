@@ -47,3 +47,8 @@ sections:
     show_authors: true
     show_links: true
     show_details: false
+
+# Todo o período; para limitar, use por exemplo {since: 2020}.
+periods:
+  professional: {}
+  production: {}
