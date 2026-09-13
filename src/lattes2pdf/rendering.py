@@ -6,6 +6,7 @@ from dataclasses import asdict, replace
 from datetime import datetime
 from urllib.parse import quote, urlsplit
 
+from lattes2pdf.bibliography import format_reference, is_production
 from lattes2pdf.categories import (
     CATEGORIES,
     category_names,
@@ -19,6 +20,7 @@ from lattes2pdf.models import Curriculum, CVError, Entry, Issue, SourceField, ca
 from lattes2pdf.periods import ongoing_employment
 from lattes2pdf.sections import SECTION_OPTIONS
 from lattes2pdf.selection import Profile, Selection, hidden, select, visible_fields
+from lattes2pdf.text import literal
 from lattes2pdf.theme import load_theme
 
 DEGREE_NAMES = {
@@ -36,23 +38,6 @@ DEGREE_NAMES = {
     "FORMACAO-COMPLEMENTAR-CURSO-DE-CURTA-DURACAO": "Curso de curta duração",
     "MBA": "MBA",
 }
-
-
-def literal(text: str) -> str:
-    """Encode punctuation as literal Typst text through RenderCV's Markdown parser.
-
-    Markdown backslash escapes alone are restored after Typst escaping upstream.
-    Unicode escapes contain no source-controlled code or Markdown delimiters.
-    """
-
-    if not re.search(r"[\\`*_{}\[\]#$!|<>&\n\r\t]", text):
-        return text
-    # One wrapper avoids upstream placeholder collisions at ten or more commands.
-    characters = "".join(
-        char if char.isalnum() or char == " " else f"\\u{{{ord(char):x}}}"
-        for char in text
-    )
-    return f'#text("{characters}")'
 
 
 def label(name: str) -> str:
@@ -766,6 +751,44 @@ def _header_link(entry: Entry, output: dict, profile: Profile) -> set[str]:
     return {source.path} | ({title.path} if title else set())
 
 
+def _render_reference(
+    entry: Entry,
+    authors: list[str],
+    author_fields: set[str],
+    profile: Profile,
+    issues: list[Issue],
+) -> tuple[dict, set[str]]:
+    reference, used = format_reference(entry, authors, profile)
+    used.update(author_fields)
+    extras = []
+    links_allowed = "show_links" not in SECTION_OPTIONS.get(
+        entry.section, {}
+    ) or profile.section_option(entry.section, "show_links")
+    if links_allowed:
+        links, link_fields = _publication_links(entry, issues)
+        used.update(link_fields)
+        url = "https://doi.org/" + links["doi"] if "doi" in links else links.get("url")
+        if url:
+            # Use the same safely escaped Typst links as the existing context renderer.
+            reference += (
+                " " + f'#link("{quote(url, safe=":/?=&%+#@,;~.-_")}")[{literal(url)}]'
+            )
+        for name in ("DOI", "HOME-PAGE-DO-TRABALHO", "HOME-PAGE"):
+            source = entry.find(name)
+            if (
+                source
+                and source.path not in used
+                and not (name.startswith("HOME-PAGE") and "doi" in links)
+            ):
+                extras.append(literal(f"{name}: {source.text}"))
+                used.add(source.path)
+    # Focused sections keep their presentation toggles; generic sections retain
+    # supplementary fields without duplicating anything already in the reference.
+    if entry.section not in SECTION_OPTIONS and "details" not in profile.hide_fields:
+        extras.extend(_details(entry, used))
+    return {"name": reference, "summary": "\n".join(extras)}, used
+
+
 def _render_entry(
     entry: Entry,
     kind: str,
@@ -1004,7 +1027,10 @@ def _profile(
 
 
 def _category_sections(
-    output: dict, selection: Selection, profile: Profile, rendered: dict[str, dict]
+    output: dict,
+    selection: Selection,
+    profile: Profile,
+    rendered: dict[str, dict | str],
 ) -> dict:
     """Regroup selected records once; overlapping categories never copy entries."""
     groups = defaultdict(list)
@@ -1295,7 +1321,12 @@ def export_data(
                 for entry, authors in zip(entries, author_lists)
             }
             kind = next(iter(kinds)) if len(kinds) == 1 else "normal"
-        if kind == "normal" and catalog()["sections"][section]["kind"] != "normal":
+        styled = profile.bibliography_style is not None and is_production(entries[0])
+        if (
+            not styled
+            and kind == "normal"
+            and catalog()["sections"][section]["kind"] != "normal"
+        ):
             issues.append(
                 Issue(
                     "generic-layout",
@@ -1331,16 +1362,21 @@ def export_data(
                     if f.path not in registration_fields | author_excluded
                 ],
             )
-            result, consumed = _render_entry(
-                view,
-                kind,
-                authors,
-                author_fields,
-                profile,
-                issues,
-                institutions,
-                current_employment=entry.id in current_employment_ids,
-            )
+            if styled:
+                result, consumed = _render_reference(
+                    view, authors, author_fields, profile, issues
+                )
+            else:
+                result, consumed = _render_entry(
+                    view,
+                    kind,
+                    authors,
+                    author_fields,
+                    profile,
+                    issues,
+                    institutions,
+                    current_employment=entry.id in current_employment_ids,
+                )
             if "description" in result and not re.search(
                 r"\bDESCRIPTION\b", description_template
             ):
@@ -1354,6 +1390,17 @@ def export_data(
                 )
             consumed.update(registration_used)
             presentation_excluded.update(registration_fields - registration_used)
+            if styled:
+                # TextEntry collapses Markdown newlines. Keep supplementary
+                # metadata on separate lines rather than inside the citation.
+                result = " #linebreak() ".join(
+                    part
+                    for part in (
+                        result["name"],
+                        *result.get("summary", "").splitlines(),
+                    )
+                    if part
+                )
             rendered.append(result)
             rendered_by_id[entry.id] = result
             used.update(consumed)

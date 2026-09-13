@@ -73,3 +73,6 @@ sections:
 periods:
   professional: {}
   production: {}
+
+# Independente do tema: abnt ou chicago (autor-data).
+bibliography_style: abnt

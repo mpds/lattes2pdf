@@ -37,6 +37,7 @@ def test_presentation_order_descriptions_and_registrations_reach_each_theme(
     pdf = render_pdf(yaml.safe_dump(data, allow_unicode=True, sort_keys=False))
     # Some native fonts map visible hyphens to U+00AD in PDF text extraction.
     text = pdf_text(pdf).replace("\u00ad", "-").replace(" ", "")
+    text = re.sub(r"-{2,}", "-", text)
     for first, second in (
         ("Mestrado em Arquivologia", "Universidade Fictícia"),
         ("Curso de curta duração em Preservação digital", "Escola Fictícia de Acervos"),
@@ -619,3 +620,77 @@ def test_author_controls_reach_every_theme(fixtures, tmp_path, theme, enabled):
         assert normalized.count("CamilaSouza") == 2
         assert "etal." not in normalized
     assert not report["issues"]
+
+
+@pytest.mark.parametrize("style", ["abnt", "chicago"])
+@pytest.mark.parametrize("theme", [*THEMES, "custom"])
+def test_bibliography_style_reaches_every_theme(fixtures, tmp_path, style, theme):
+    if theme == "custom":
+        design = tmp_path / "design.yaml"
+        design.write_text(
+            "design:\n  theme: classic\n  page:\n    size: a4\n", encoding="utf-8"
+        )
+        theme = str(design)
+    data, _ = export_data(
+        read_lattes(fixtures / "reference-styles.xml"),
+        Profile(
+            bibliography_style=style,
+            theme=theme,
+            hide_fields=["NATUREZA"],
+            sections={"publications.articles": {"show_details": True}},
+        ),
+    )
+    pdf = render_pdf(yaml.safe_dump(data, allow_unicode=True, sort_keys=False))
+    text = pdf_text(pdf)
+    start = text.index("Extremos de chuva")
+    year = text.index("2024")
+    assert (year < start) == (style == "chicago")
+    for expected in (
+        "Revista Exemplo de Clima",
+        "Editora Exemplo",
+        "ClimaAberto",
+        "Mapas do amanhã",
+        "Anais de Clima",
+        "Simpósio Exemplo",
+    ):
+        assert expected in text
+    assert text.count("Extremos de chuva") == 1
+    raw_text = "\n".join(p.extract_text() for p in PdfReader(io.BytesIO(pdf)).pages)
+    assert re.search(r"\n\s*Finalidade:", raw_text)
+    assert "#text" not in text and "REFERENCE" not in text
+
+
+@pytest.mark.parametrize("style", ["abnt", "chicago"])
+def test_bibliography_source_markup_links_and_editable_yaml(fixtures, tmp_path, style):
+    tree = ET.parse(fixtures / "reference-styles.xml")
+    source_title = 'Clima [urbano] & #read("inexistente")'
+    basic = tree.find(".//DADOS-BASICOS-DO-ARTIGO")
+    basic.set("TITULO-DO-ARTIGO", source_title)
+    basic.set("DOI", "10.0000/example.climate")
+    ET.SubElement(
+        tree.find(".//ARTIGO-PUBLICADO"),
+        "AUTORES",
+        {
+            "NOME-COMPLETO-DO-AUTOR": "Helena Costa",
+            "NOME-PARA-CITACAO": "COSTA, H.",
+            "ORDEM-DE-AUTORIA": "2",
+        },
+    )
+    path = tmp_path / "cv.xml"
+    tree.write(path, encoding="utf-8")
+    data, _ = export_data(
+        read_lattes(path), Profile(bibliography_style=style, include=["lattes.artigos"])
+    )
+    document = yaml.safe_load(yaml.safe_dump(data, allow_unicode=True))
+    document["cv"]["sections"]["Artigos publicados"][0] += " Nota editada."
+    pdf = render_pdf(yaml.safe_dump(document, allow_unicode=True))
+    text = pdf_text(pdf)
+    assert source_title in text and "Nota editada." in text
+    assert "SILVA, M.; COSTA, H." in text
+    links = [
+        a.get_object().get("/A", {}).get("/URI", "")
+        for p in PdfReader(io.BytesIO(pdf)).pages
+        for a in p.get("/Annots", [])
+    ]
+    assert "https://doi.org/10.0000/example.climate" in links
+    assert "#text" not in text

@@ -172,6 +172,7 @@ Perfil YAML:
   hide_fields: [contact, advisors, thesis]
   language: pt
   theme: classic
+  bibliography_style: abnt
   authors:
     name_case: original
     highlight_self: true
@@ -191,6 +192,13 @@ Autores (todas as seções):
   authors.use_informed_citation  true | false       (padrão: true; em --full: false)
     Utilizar Citação Bibliográfica Informada: prefere NOME-PARA-CITACAO de cada autor;
     se ausente, usa o nome completo. Não altera o nome no cabeçalho nem o estilo bibliográfico.
+
+Estilo das referências:
+  bibliography_style  abnt | chicago | null (apresentação do tema)
+  Presets usam ABNT; --bibliography-style substitui o estilo do perfil.
+  Produções bibliográficas, técnicas e artísticas usam referências em texto editável no YAML.
+  Estilos baseados na exportação Lattes; campos ausentes são omitidos, sem inventar dados.
+  Os controles de autores, links e detalhes continuam valendo. --full mantém sua apresentação.
 
 Períodos independentes no perfil (sem limites: todo o período):
   periods.professional  since/until: vínculos, atividades profissionais e linhas de pesquisa.
@@ -263,6 +271,11 @@ hide_fields: [details] omite os detalhes genéricos das demais seções.
             nargs="+",
             help=description + "; aceita vários valores e repetições",
         )
+    conversion.add_argument(
+        "--bibliography-style",
+        choices=("abnt", "chicago"),
+        help="estilo das referências, independente do tema (presets: abnt)",
+    )
     conversion.add_argument("--since", type=int, help="ano inicial, inclusive")
     conversion.add_argument("--until", type=int, help="ano final, inclusive")
     conversion.add_argument(
@@ -357,6 +370,7 @@ def _export(arguments, cv) -> None:
             "sort",
             "language",
             "theme",
+            "bibliography_style",
             "full",
             "allow_unmapped",
         )

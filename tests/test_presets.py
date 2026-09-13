@@ -65,7 +65,8 @@ def test_presets_use_native_selection_and_allow_existing_inputs(
         assert "Artigos publicados" not in data["cv"]["sections"]
     if filename == "academic.xml":
         article = data["cv"]["sections"]["Artigos publicados"][0]
-        assert article["authors"]
+        assert isinstance(article, str) and "Ana Exemplo Fictícia" in article
+        assert profile.bibliography_style == "abnt"
         text = json.dumps(data, ensure_ascii=False)
         assert "Título" in text
         assert "Orientação:" in text
@@ -105,7 +106,7 @@ def test_preset_copy_can_be_customized_with_bio_and_record_ids(fixtures, tmp_pat
     assert data["cv"]["sections"]["Profile"][0].startswith(
         "Researcher in digital preservation"
     )
-    assert data["cv"]["sections"]["Published articles"][0]["authors"]
+    assert "Ana Exemplo Fictícia" in data["cv"]["sections"]["Published articles"][0]
     assert len(data["cv"]["sections"]["Minha formação"]) == 1
     assert data["design"]["theme"] == "moderncv"
     report = json.loads(result.with_suffix(".report.json").read_text())

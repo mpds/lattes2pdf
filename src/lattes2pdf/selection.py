@@ -60,6 +60,7 @@ class Profile:
     unknown_year: str = "keep"
     sort: str = "year_desc"
     language: str = "pt"
+    bibliography_style: str | None = None
     theme: str = "classic"
     full: bool = False
     allow_unmapped: bool = False
@@ -166,6 +167,14 @@ class Profile:
         }.items():
             if getattr(self, name) not in options:
                 raise CVError(f"{name} deve ser um de: {', '.join(options)}.")
+        if self.bibliography_style not in (None, "abnt", "chicago"):
+            raise CVError(
+                "bibliography_style deve ser abnt, chicago ou null (apresentação do tema)."
+            )
+        if self.full and self.bibliography_style is not None:
+            raise CVError(
+                "--full mantém a apresentação original e não aceita bibliography_style."
+            )
         validate_theme(self.theme)
         if type(self.full) is not bool or type(self.allow_unmapped) is not bool:
             raise CVError("full e allow_unmapped devem ser booleanos.")

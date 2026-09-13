@@ -57,6 +57,8 @@ lattes2pdf profile ampliado -o profile.yaml  # gera o arquivo de configuração
 lattes2pdf render curriculo.xml --profile profile.yaml -o ampliado.pdf  # usa o perfil personalizado
 ```
 
+O estilo bibliográfico é independente do tema: os presets usam ABNT; para Chicago (autor-data), use `--bibliography-style chicago` ou `bibliography_style: chicago` no perfil.
+
 | Preset | Ponto de partida |
 | --- | --- |
 | `resumido` | Formação, atuação profissional e categorias de produção do modelo Resumido do Lattes; sem endereço. É o padrão. |
