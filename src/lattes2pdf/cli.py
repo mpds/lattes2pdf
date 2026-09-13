@@ -19,7 +19,7 @@ from lattes2pdf.output import check_outputs, write_outputs
 from lattes2pdf.rendering import export_data, label
 from lattes2pdf.sections import describe_sections, matching_sections
 from lattes2pdf.selection import FIELD_GROUPS, THEMES, load_profile
-from lattes2pdf.theme import BUNDLED_THEMES, load_theme
+from lattes2pdf.theme import load_theme
 
 PRESETS = {
     "resumido": "Seleção do modelo Resumido do Lattes (padrão); sem endereço",
@@ -72,18 +72,14 @@ def parser() -> argparse.ArgumentParser:
     commands = root.add_subparsers(dest="command", required=True)
     theme = commands.add_parser(
         "theme",
-        help="copiar um tema para personalização",
-        description="Copia design, templates e fontes para uma nova pasta.",
+        help="criar configuração visual editável de um tema do RenderCV",
+        description="Cria um design.yaml editável a partir de um tema do RenderCV.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="Temas do lattes2pdf:\n"
-        + "\n".join(
-            f"  {name:<12} {description}"
-            for name, description in BUNDLED_THEMES.items()
-        )
-        + "\n\nExemplo:\n  lattes2pdf theme garamond -o meu-tema\n"
-        "  lattes2pdf render curriculo.xml -o cv.pdf --theme meu-tema/design.yaml",
+        epilog="Exemplo:\n  lattes2pdf theme classic -o meu-tema\n"
+        "  lattes2pdf render curriculo.xml -o cv.pdf --theme meu-tema/design.yaml\n"
+        "\nEdite design.yaml para ajustar fontes, cores, margens e espaçamentos.",
     )
-    theme.add_argument("name", choices=(*THEMES, *BUNDLED_THEMES), help="tema inicial")
+    theme.add_argument("name", choices=THEMES, help="tema inicial do RenderCV")
     theme.add_argument(
         "-o", "--output", required=True, type=Path, help="nova pasta do tema"
     )
@@ -273,7 +269,7 @@ hide_fields: [details] omite os detalhes genéricos das demais seções.
   lattes2pdf render curriculo.xml -o cv.pdf --theme moderncv --include education
   lattes2pdf render curriculo.zip -o completo.pdf --full
   lattes2pdf render curriculo.xml -o cv.pdf --profile perfil.yaml
-  lattes2pdf render curriculo.xml -o cv.pdf --theme garamond
+  lattes2pdf render curriculo.xml -o cv.pdf --theme moderncv
   lattes2pdf render curriculo.xml -o cv.pdf --theme meu-tema/design.yaml
 
 A primeira compilação precisa de internet para obter pacotes do Typst.
@@ -395,9 +391,8 @@ def main(argv: list[str] | None = None) -> int:
                         {"design": theme.design}, allow_unicode=True, sort_keys=False
                     ),
                 ),
-                *theme.output_assets(target),
             ]
-            write_outputs(contents, protected=theme.sources, create_parents=True)
+            write_outputs(contents, protected=[], create_parents=True)
             print(f"Tema: {target / 'design.yaml'}")
             return 0
         if arguments.command == "profile":

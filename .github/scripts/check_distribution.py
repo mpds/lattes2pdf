@@ -56,7 +56,7 @@ def check(wheel: Path, fixture: Path) -> None:
             if e["section"] == "publications.articles"
         )
         run(cli, "profile", "resumido", "-o", "profile.yaml")
-        for name in ("default", "explicit", "full", "moderncv", "garamond", "external"):
+        for name in ("default", "explicit", "full", "moderncv", "sb2nov", "external"):
             (work / name).mkdir()
         run(cli, "export", "curriculo.xml", "-o", "default/cv.yaml")
         run(
@@ -75,7 +75,7 @@ def check(wheel: Path, fixture: Path) -> None:
         assert (work / "full/cv.yaml").read_bytes() != (
             work / "default/cv.yaml"
         ).read_bytes()
-        for theme in ("moderncv", "garamond"):
+        for theme in ("moderncv", "sb2nov"):
             run(
                 cli,
                 "render",
@@ -85,7 +85,13 @@ def check(wheel: Path, fixture: Path) -> None:
                 "-o",
                 f"{theme}/cv.pdf",
             )
-        run(cli, "theme", "garamond", "-o", "editable-theme")
+        run(cli, "theme", "classic", "-o", "editable-theme")
+        templates = work / "editable-theme/classic"
+        templates.mkdir()
+        (templates / "Header.j2.typ").write_text(
+            "{% include 'typst/Header.j2.typ' %}\n#text[Modelo fictício]\n",
+            encoding="utf-8",
+        )
         run(
             cli,
             "render",
@@ -128,14 +134,13 @@ def check(wheel: Path, fixture: Path) -> None:
         )
         for name in (
             "moderncv/cv.pdf",
-            "garamond/cv.pdf",
+            "sb2nov/cv.pdf",
             "external/cv.pdf",
             "external/edited.pdf",
         ):
             pdf = (work / name).read_bytes()
             assert pdf.startswith(b"%PDF") and len(pdf) > 1000, name
-        assert (work / "external/fonts/OFL.txt").is_file()
-        assert (work / "external/classic/entries/PublicationEntry.j2.typ").is_file()
+        assert (work / "external/classic/Header.j2.typ").is_file()
         print(
             "Installed wheel: CLI, profiles, selection, themes and standalone RenderCV passed."
         )

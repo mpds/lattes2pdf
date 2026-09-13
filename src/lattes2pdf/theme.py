@@ -2,7 +2,6 @@
 
 import re
 from dataclasses import dataclass, field
-from importlib.resources import as_file, files
 from pathlib import Path
 
 import yaml
@@ -20,7 +19,6 @@ THEMES = (
     "opal",
     "sb2nov",
 )
-BUNDLED_THEMES = {"garamond": "EB Garamond, colunas e referências compactas"}
 
 
 def is_theme_file(value: str) -> bool:
@@ -31,7 +29,7 @@ def validate_theme(value: str) -> None:
     if (
         not isinstance(value, str)
         or not value.strip()
-        or (value not in (*THEMES, *BUNDLED_THEMES) and not is_theme_file(value))
+        or (value not in THEMES and not is_theme_file(value))
     ):
         raise CVError(
             "theme deve ser um tema disponível ou caminho para design.yaml. "
@@ -129,7 +127,9 @@ def _load_design(path: Path) -> Theme:
     design = data["design"]
     name = design.get("theme") if isinstance(design, dict) else None
     if not isinstance(name, str) or not re.fullmatch(r"[a-z0-9]+", name):
-        raise CVError("design.theme deve conter o nome do tema base do RenderCV.")
+        raise CVError(
+            "design.theme deve conter um nome de tema com letras minúsculas e dígitos."
+        )
     if name not in THEMES and not (path.parent / name).is_dir():
         raise CVError(f"Pasta do tema externo ausente: {path.parent / name}.")
     result = Theme(design, sources=[path.resolve()])
@@ -159,8 +159,4 @@ def load_theme(value: str) -> Theme:
     validate_theme(value)
     if value in THEMES:
         return Theme(default_design(value))
-    if value in BUNDLED_THEMES:
-        resource = files("lattes2pdf").joinpath("themes", value)
-        with as_file(resource) as directory:
-            return _load_design(directory / "design.yaml")
     return _load_design(Path(value))
