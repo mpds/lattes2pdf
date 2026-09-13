@@ -34,9 +34,9 @@ O **perfil** seleciona e organiza o conteúdo e o **tema** define a aparência.
 lattes2pdf render curriculo.xml -o cv.pdf
 ```
 
-O comando usa o preset `academico`, com o tema `classic` por padrão. Para incluir todos os detalhes conhecidos do currículo sem aplicar o preset, use `--full`.
+O comando usa o preset `resumido`, com o tema `classic` por padrão. Para incluir todos os detalhes conhecidos do currículo sem aplicar um preset, use `--full`.
 
-Isso gera três arquivos:
+Esse comando gera três arquivos:
 
 | Arquivo | Para que serve |
 | --- | --- |
@@ -50,20 +50,49 @@ Para testar sem o seu Lattes, baixe o [XML fictício](https://raw.githubusercont
 
 ## Comece com um perfil
 
-O preset `academico` já é usado por padrão em `render` e `export`. Para escolher outro ou editar suas preferências, copie um preset e use o arquivo na geração:
+O preset `resumido` já é usado por padrão em `render` e `export`. Os presets seguem a seleção de categorias dos modelos de exportação presentes na plataforma Lattes. Para escolher outro ou editar suas preferências, copie um preset e use o arquivo na geração:
 
 ```bash
-lattes2pdf profile essencial -o profile.yaml  # gera o arquivo de configuração
-lattes2pdf render curriculo.xml --profile profile.yaml -o essencial.pdf  # usa o perfil personalizado
+lattes2pdf profile ampliado -o profile.yaml  # gera o arquivo de configuração
+lattes2pdf render curriculo.xml --profile profile.yaml -o ampliado.pdf  # usa o perfil personalizado
 ```
 
 | Preset | Ponto de partida |
 | --- | --- |
-| `academico` | Cobertura ampla, incluindo bio e informações do trabalho de formação. |
-| `essencial` | Bio, formação, experiência e principais seções de produção. |
-| `resumido` | Menos seções, sem bio e sem listas de autores. |
+| `resumido` | Formação, atuação profissional e categorias de produção do modelo Resumido do Lattes; sem endereço. É o padrão. |
+| `ampliado` | Resumido com endereço, idiomas, prêmios e áreas de atuação. |
+| `completo` | Todas as categorias de conteúdo, incluindo licenças, projetos, patentes, inovação e divulgação científica; com endereço. |
 
-Os presets são arquivos YAML editáveis, podendo ser modificados conforme a necessidade.
+* Os três são arquivos YAML editáveis e aceitam exclusões, filtros e ajustes por seção. 
+* O preset `completo` é diferente de `--full`. 
+* Nenhum preset limita páginas, anos ou quantidade de registros.
+
+## Categorias do Lattes
+
+Liste as categorias com os mesmos rótulos da plataforma:
+
+```bash
+lattes2pdf sections lattes
+lattes2pdf inspect curriculo.xml --section lattes.patentes
+lattes2pdf render curriculo.xml --include lattes.formacao --include lattes.anais -o selecionado.pdf
+```
+
+Os identificadores `lattes.*` podem ser usados em `include`, `exclude`, `order` e `section_years`, junto das seções existentes. Por exemplo:
+
+```yaml
+include: [profile, lattes.formacao, lattes.atuacao, lattes.livros-capitulos, lattes.web]
+exclude: [publications.books]  # mantém apenas capítulos da categoria livros e capítulos
+show_address: false
+```
+
+## Mostrar ou ocultar endereço
+
+`show_address: true` inclui endereço profissional, residencial e eletrônico, inclusive quando os detalhes genéricos estão ocultos. `show_address: false` oculta esses dados. Na CLI:
+
+```bash
+lattes2pdf render curriculo.xml --show-address -o com-endereco.pdf
+lattes2pdf render curriculo.xml --profile profile.yaml --no-show-address -o sem-endereco.pdf
+```
 
 ## Editar o resultado no RenderCV
 
@@ -161,8 +190,7 @@ Você também pode salvar `theme: meu-tema/design.yaml` no perfil. Nesse caso, o
 
 ## Exportação e limites
 
-Para gerar somente o YAML e o relatório, use `lattes2pdf export curriculo.xml -o cv.yaml`. O modo `--full` inclui todos os registros e detalhes conhecidos permitidos pela ferramenta, podendo produzir um documento extenso; ele não é um preset de apresentação e não aceita filtros de seleção.
+Para gerar somente o YAML e o relatório, use `lattes2pdf export curriculo.xml -o cv.yaml`. O modo `--full` inclui todos os registros e detalhes conhecidos permitidos pela ferramenta, podendo produzir um documento extenso.
 
-Dados privados, como documentos pessoais e endereço residencial, não são exportados. Conteúdo desconhecido e omissões aparecem no relatório; no modo `--full`, campos não mapeados impedem a exportação por padrão.
 
 A integração atual usa RenderCV 2.8. Veja [como contribuir](https://github.com/mpds/lattes2pdf/blob/main/CONTRIBUTING.md) e a [licença MIT](https://github.com/mpds/lattes2pdf/blob/main/LICENSE).

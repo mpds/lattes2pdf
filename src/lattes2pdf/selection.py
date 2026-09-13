@@ -5,6 +5,7 @@ from pathlib import Path
 
 import yaml
 
+from lattes2pdf.categories import CATEGORIES, category_names, matches_selector
 from lattes2pdf.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
 from lattes2pdf.sections import SECTION_OPTIONS, validate_options
 from lattes2pdf.theme import THEMES as THEMES
@@ -53,15 +54,18 @@ class Profile:
     sort: str = "year_desc"
     language: str = "pt"
     theme: str = "classic"
+    show_address: bool | None = None
     full: bool = False
     allow_unmapped: bool = False
 
     def section_title(self, name: str) -> str:
-        return (
-            self.sections.get(name, {})
-            .get("title", catalog()["sections"][name][self.language])
-            .strip()
+        definition = CATEGORIES.get(name)
+        default = (
+            getattr(definition, self.language)
+            if definition
+            else catalog()["sections"][name][self.language]
         )
+        return self.sections.get(name, {}).get("title", default).strip()
 
     def section_option(self, name: str, option: str) -> bool:
         return self.sections.get(name, {}).get(option, SECTION_OPTIONS[name][option][0])
@@ -128,6 +132,8 @@ class Profile:
         validate_theme(self.theme)
         if type(self.full) is not bool or type(self.allow_unmapped) is not bool:
             raise CVError("full e allow_unmapped devem ser booleanos.")
+        if self.show_address is not None and type(self.show_address) is not bool:
+            raise CVError("show_address deve ser true ou false.")
         if self.full and (
             self.include
             or self.exclude
@@ -138,6 +144,7 @@ class Profile:
             or self.since is not None
             or self.until is not None
             or self.section_years
+            or self.show_address is not None
             or self.unknown_year != "keep"
             or any(
                 key != "title" for options in self.sections.values() for key in options
@@ -153,8 +160,9 @@ def _matches(section: str, prefix: str) -> bool:
 
 
 def _validate_section(section: str) -> None:
-    if not isinstance(section, str) or not any(
-        _matches(name, section) for name in catalog()["sections"]
+    if not isinstance(section, str) or not (
+        category_names(section)
+        or any(_matches(name, section) for name in catalog()["sections"])
     ):
         raise CVError(
             f"Seção desconhecida: {section}. Consulte inspect para listar seções."
@@ -232,8 +240,13 @@ def select(cv: Curriculum, profile: Profile) -> Selection:
         reason = None
         if (
             profile.include
-            and not any(_matches(entry.section, s) for s in profile.include)
-        ) or any(_matches(entry.section, s) for s in profile.exclude):
+            and not any(matches_selector(entry, s) for s in profile.include)
+            and not (entry.section == "profile" and profile.show_address is True)
+        ) or any(
+            matches_selector(entry, s)
+            and not (entry.section == "profile" and category_names(s))
+            for s in profile.exclude
+        ):
             reason = "section"
         elif (
             profile.include_ids and entry.id not in profile.include_ids
@@ -243,7 +256,7 @@ def select(cv: Curriculum, profile: Profile) -> Selection:
         for section, years in sorted(
             profile.section_years.items(), key=lambda pair: len(pair[0])
         ):
-            if _matches(entry.section, section):
+            if matches_selector(entry, section):
                 since, until = years.get("since", since), years.get("until", until)
         _validate_years(since, until)
         if (
@@ -270,15 +283,16 @@ def select(cv: Curriculum, profile: Profile) -> Selection:
             excluded[entry.id] = reason
         else:
             selected.append(entry)
-    section_order = []
-    for prefix in profile.order + list(catalog()["sections"]):
-        section_order.extend(
-            name
-            for name in catalog()["sections"]
-            if _matches(name, prefix) and name not in section_order
-        )
+    section_order = list(catalog()["sections"])
+    priorities = profile.order + (
+        profile.include if any(category_names(s) for s in profile.include) else []
+    )
     selected.sort(
         key=lambda entry: (
+            next(
+                (i for i, s in enumerate(priorities) if matches_selector(entry, s)),
+                len(priorities),
+            ),
             section_order.index(entry.section),
             -(entry.year or 0) if profile.sort == "year_desc" else 0,
         )
@@ -296,6 +310,32 @@ def select(cv: Curriculum, profile: Profile) -> Selection:
 
 def hidden(source: SourceField, profile: Profile) -> bool:
     names = profile.hide_fields
+    if "/ENDERECO[" in source.path:
+        if profile.show_address is False:
+            return True
+        if profile.show_address is True and source.name.startswith(
+            ("CODIGO-", "FLAG-")
+        ):
+            return True
+    if source.tag == "OUTRAS-INFORMACOES-RELEVANTES":
+        if any(
+            "lattes.outras-informacoes" in category_names(s) for s in profile.exclude
+        ):
+            return True
+        if any(category_names(s) for s in profile.include) and not any(
+            "lattes.outras-informacoes" in category_names(s) for s in profile.include
+        ):
+            return True
+    if (
+        "/DADOS-GERAIS[" in source.path
+        and not any(s == "profile" for s in profile.include)
+        and profile.include
+        and source.tag in {"DADOS-GERAIS", "RESUMO-CV"}
+    ):
+        # Selecting an address or the additional-information field does not
+        # implicitly select the rest of the profile.
+        if source.name != "NOME-COMPLETO":
+            return True
     if (
         source.name in names
         or source.name.removesuffix("-INGLES").removesuffix("-EN") in names
@@ -329,7 +369,8 @@ def hidden(source: SourceField, profile: Profile) -> bool:
 
 def visible_fields(entry: Entry, profile: Profile) -> list[SourceField]:
     explicit_leave = entry.section == "leave" and (
-        "leave" in profile.include or entry.id in profile.include_ids
+        any(matches_selector(entry, s) for s in profile.include)
+        or entry.id in profile.include_ids
     )
     candidates = [
         replace(f, disposition="content") if f.disposition == "private" else f
@@ -342,6 +383,13 @@ def visible_fields(entry: Entry, profile: Profile) -> list[SourceField]:
                 and f.disposition == "private"
                 and f.tag == "LICENCA"
                 and f.name in catalog()["elements"]["LICENCA"]["attributes"]
+            )
+            or (
+                profile.show_address is True
+                and f.disposition == "private"
+                and f.tag == "ENDERECO-RESIDENCIAL"
+                and f.name
+                in catalog()["elements"]["ENDERECO-RESIDENCIAL"]["attributes"]
             )
         )
         and not hidden(f, profile)

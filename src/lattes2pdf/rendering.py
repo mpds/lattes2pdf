@@ -5,6 +5,13 @@ from collections import Counter, defaultdict
 from dataclasses import asdict, replace
 from urllib.parse import quote, urlsplit
 
+from lattes2pdf.categories import (
+    CATEGORIES,
+    category_names,
+    matches_prefix,
+    matches_selector,
+    presentation_category,
+)
 from lattes2pdf.lattes import YEAR_NAMES
 from lattes2pdf.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
 from lattes2pdf.sections import SECTION_OPTIONS
@@ -763,6 +770,37 @@ def _render_entry(
     return result, used
 
 
+def _addresses(entry: Entry, profile: Profile) -> tuple[list[dict], set[str]]:
+    entries, used = [], set()
+    for tag, pt, en in (
+        ("ENDERECO-PROFISSIONAL", "Endereço profissional", "Professional address"),
+        ("ENDERECO-RESIDENCIAL", "Endereço residencial", "Residential address"),
+        ("ENDERECO", "Endereço eletrônico", "Electronic address"),
+    ):
+        fields = [f for f in entry.fields if f.tag == tag and f.text]
+        if not fields:
+            continue
+        highlights = []
+        labels = {
+            "E-MAIL": "E-mail",
+            "ELETRONICO": "E-mail",
+            "HOME-PAGE": "Website",
+            "CEP": "CEP",
+            "UF": "UF",
+            "DDD": "DDD",
+            "DDI": "DDI",
+        }
+        for source in fields:
+            highlights.append(
+                f"{literal(labels.get(source.name, label(source.name)))}: {literal(source.text)}"
+            )
+            used.add(source.path)
+        entries.append(
+            {"name": pt if profile.language == "pt" else en, "highlights": highlights}
+        )
+    return entries, used
+
+
 def _profile(
     entry: Entry, output: dict, profile: Profile, issues: list[Issue]
 ) -> set[str]:
@@ -770,10 +808,26 @@ def _profile(
     name = entry.find("NOME-COMPLETO")
     if name:
         used.add(name.path)
+    sections = output["sections"]
+    if profile.show_address is True:
+        addresses, address_fields = _addresses(entry, profile)
+        if addresses:
+            title = "Endereço" if profile.language == "pt" else "Address"
+            sections[title] = addresses
+            used.update(address_fields)
+    native = any(category_names(s) for s in profile.include)
+    if native:
+        info = entry.find("OUTRAS-INFORMACOES-RELEVANTES")
+        if info:
+            title = profile.section_title("lattes.outras-informacoes")
+            sections[literal(title)] = [literal(info.text)]
+            used.add(info.path)
     for key, names in {
         "email": ("E-MAIL", "ELETRONICO"),
         "website": ("HOME-PAGE",),
     }.items():
+        if profile.show_address is True:
+            continue
         source = entry.find(*names)
         if source:
             valid = (
@@ -793,7 +847,6 @@ def _profile(
                     )
                 )
     summary = entry.find("TEXTO-RESUMO-CV-RH", language=profile.language)
-    sections = output["sections"]
     content = []
     if summary:
         content.append(literal(summary.text))
@@ -803,6 +856,68 @@ def _profile(
     if content:
         sections[literal(profile.section_title("profile"))] = content
     return used
+
+
+def _category_sections(
+    output: dict, selection: Selection, profile: Profile, rendered: dict[str, dict]
+) -> dict:
+    """Regroup selected records once; overlapping categories never copy entries."""
+    groups = defaultdict(list)
+    originals = {}
+    for entry in selection.entries:
+        if entry.id not in rendered:
+            continue
+        key = (presentation_category(entry, profile.include), entry.section)
+        groups[key].append(rendered[entry.id])
+        originals.setdefault(key, entry)
+    blocks = []
+    profile_entry = next((e for e in selection.entries if e.section == "profile"), None)
+    if profile_entry:
+        for category, title in (
+            ("", literal(profile.section_title("profile"))),
+            ("", "Endereço" if profile.language == "pt" else "Address"),
+            (
+                "lattes.outras-informacoes",
+                literal(profile.section_title("lattes.outras-informacoes")),
+            ),
+        ):
+            if title in output:
+                blocks.append(
+                    (category, "profile", title, output[title], profile_entry)
+                )
+    for (category, section), values in groups.items():
+        title = profile.section_title(section)
+        if category:
+            prefix = profile.section_title(category)
+            title = (
+                prefix
+                if CATEGORIES[category].sections == (section,)
+                else f"{prefix} — {title}"
+            )
+        blocks.append(
+            (category, section, literal(title), values, originals[(category, section)])
+        )
+
+    def rank(block):
+        category, section, _, _, original = block
+        for i, selector in enumerate(profile.order + profile.include):
+            if category_names(selector):
+                if category and category in category_names(selector):
+                    return i
+                if not category and matches_selector(original, selector):
+                    return i
+            elif (not category or i < len(profile.order)) and matches_prefix(
+                section, selector
+            ):
+                return i
+        return len(profile.order) + len(profile.include)
+
+    sections = {}
+    for _, _, title, values, _ in sorted(blocks, key=rank):
+        if title in sections:
+            raise CVError(f"Título de seção repetido: {title}.")
+        sections[title] = values
+    return sections
 
 
 def _report(
@@ -914,6 +1029,7 @@ def export_data(
         else {}
     )
     groups = defaultdict(list)
+    rendered_by_id = {}
     for entry in selection.entries:
         sources = visible[entry.id]
         if not sources and not (entry.section in SECTION_OPTIONS and not profile.full):
@@ -971,6 +1087,7 @@ def export_data(
                 entry, kind, authors, author_fields, profile, issues
             )
             rendered.append(result)
+            rendered_by_id[entry.id] = result
             used.update(consumed)
             if section in SECTION_OPTIONS and not profile.full:
                 presentation_excluded.update(
@@ -978,16 +1095,29 @@ def export_data(
                     for source in visible[entry.id]
                     if source.path not in consumed
                 )
-        output["sections"][literal(profile.section_title(section))] = rendered
+        title = literal(profile.section_title(section))
+        if title in output["sections"]:
+            raise CVError(f"Título de seção repetido: {title}.")
+        output["sections"][title] = rendered
     # Honor profile order including the profile section itself.
     labels = [
         literal(profile.section_title(entry.section)) for entry in selection.entries
     ]
+    for title in list(output["sections"]):
+        if title not in labels:
+            # Additional profile pieces follow the profile's position.
+            profile_title = literal(profile.section_title("profile"))
+            position = labels.index(profile_title) + 1 if profile_title in labels else 0
+            labels.insert(position, title)
     output["sections"] = {
         name: output["sections"][name]
         for name in dict.fromkeys(labels)
         if name in output["sections"]
     }
+    if any(category_names(s) for s in profile.include):
+        output["sections"] = _category_sections(
+            output["sections"], selection, profile, rendered_by_id
+        )
     report = _report(
         cv, selection, visible, used, issues, profile, presentation_excluded
     )

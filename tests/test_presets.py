@@ -6,7 +6,6 @@ import yaml
 
 from lattes2pdf.cli import PRESETS, main
 from lattes2pdf.lattes import read_lattes
-from lattes2pdf.models import catalog
 from lattes2pdf.rendering import export_data
 from lattes2pdf.selection import load_profile, select
 
@@ -31,7 +30,7 @@ def test_preset_stdout_is_a_standalone_editable_profile(preset, tmp_path, capsys
 @pytest.mark.parametrize(
     "filename", ["academic.xml", "professional.xml", "minimal.xml"]
 )
-def test_presets_keep_bio_and_use_the_existing_selection_rules(
+def test_presets_use_native_selection_and_allow_existing_inputs(
     preset, filename, fixtures, tmp_path
 ):
     path = tmp_path / "profile.yaml"
@@ -53,29 +52,23 @@ def test_presets_keep_bio_and_use_the_existing_selection_rules(
         if entry["status"] == "excluded"
     )
     assert not report["counts"].get("unmapped") and not report["counts"].get("unknown")
-    assert set(data["cv"]["sections"]) <= {
-        section["pt"] for section in catalog()["sections"].values()
-    }
     bio = next((f.text for f in cv.fields if f.name == "TEXTO-RESUMO-CV-RH"), None)
+    assert "Perfil" not in data["cv"]["sections"]
     if bio:
-        if preset == "resumido":
-            assert "Perfil" not in data["cv"]["sections"]
-            assert bio not in json.dumps(data, ensure_ascii=False)
-        else:
-            assert data["cv"]["sections"]["Perfil"] == [bio]
-        assert data["cv"]["email"].endswith("@example.org")
-    else:
-        assert "Perfil" not in data["cv"]["sections"]
+        assert bio not in json.dumps(data, ensure_ascii=False)
+    assert ("Endereço" in data["cv"]["sections"]) == (
+        preset != "resumido" and filename != "minimal.xml"
+    )
     if filename == "professional.xml":
         assert "Produção artística e cultural" in data["cv"]["sections"]
         assert "Trabalhos técnicos" in data["cv"]["sections"]
         assert "Artigos publicados" not in data["cv"]["sections"]
     if filename == "academic.xml":
         article = data["cv"]["sections"]["Artigos publicados"][0]
-        assert bool(article["authors"]) == (preset != "resumido")
+        assert article["authors"]
         text = json.dumps(data, ensure_ascii=False)
-        assert ("Título do trabalho" in text) == (preset == "academico")
-        assert ("Orientação:" in text) == (preset == "academico")
+        assert "Título do trabalho" in text
+        assert "Orientação:" in text
 
 
 def test_preset_copy_can_be_customized_with_bio_and_record_ids(fixtures, tmp_path):
@@ -83,7 +76,6 @@ def test_preset_copy_can_be_customized_with_bio_and_record_ids(fixtures, tmp_pat
     assert main(["profile", "resumido", "-o", str(path)]) == 0
     config = yaml.safe_load(path.read_text())
     config["hide_fields"].remove("summary")
-    config["hide_fields"].remove("authors")
     cv = read_lattes(fixtures / "academic.xml")
     degree = next(
         e for e in cv.entries if e.section == "education" and e.tag == "GRADUACAO"
@@ -127,17 +119,17 @@ def test_preset_copy_can_be_customized_with_bio_and_record_ids(fixtures, tmp_pat
 def test_profile_copy_refuses_overwrite_unless_requested(tmp_path, capsys):
     path = tmp_path / "profile.yaml"
     path.write_text("theme: moderncv\n", encoding="utf-8")
-    assert main(["profile", "academico", "-o", str(path)]) == 2
+    assert main(["profile", "completo", "-o", str(path)]) == 2
     assert path.read_text() == "theme: moderncv\n"
     assert "--force" in capsys.readouterr().err
-    assert main(["profile", "academico", "-o", str(path), "--force"]) == 0
+    assert main(["profile", "completo", "-o", str(path), "--force"]) == 0
     assert load_profile(path).section_option("education", "show_thesis")
 
 
 def test_profile_copy_protects_the_distributed_preset_even_with_force(capsys):
-    source = files("lattes2pdf").joinpath("presets", "academico.yaml")
+    source = files("lattes2pdf").joinpath("presets", "completo.yaml")
     original = source.read_bytes()
-    assert main(["profile", "academico", "-o", str(source), "--force"]) == 2
+    assert main(["profile", "completo", "-o", str(source), "--force"]) == 2
     assert "distintas" in capsys.readouterr().err
     assert source.read_bytes() == original
 
@@ -152,15 +144,15 @@ def test_unknown_preset_does_not_create_a_file(tmp_path, capsys):
 
 
 @pytest.mark.parametrize("command", ["export", "render"])
-def test_default_cli_uses_academic_preset_and_full_bypasses_it(
+def test_default_cli_uses_resumido_and_full_bypasses_it(
     command, fixtures, tmp_path, monkeypatch
 ):
     # PDF compilation is covered separately; compare the content passed to it.
     monkeypatch.setattr("lattes2pdf.cli.render_pdf", lambda *a, **kw: b"PDF")
     monkeypatch.setattr("lattes2pdf.cli.rendercv_version", lambda: "2.8")
     source = str(fixtures / "academic.xml")
-    preset = tmp_path / "academic.profile.yaml"
-    assert main(["profile", "academico", "-o", str(preset)]) == 0
+    preset = tmp_path / "resumido.profile.yaml"
+    assert main(["profile", "resumido", "-o", str(preset)]) == 0
     outputs = {}
     for name, options in {
         "default": [],

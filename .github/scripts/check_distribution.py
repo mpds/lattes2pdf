@@ -55,7 +55,7 @@ def check(wheel: Path, fixture: Path) -> None:
             for e in inventory["entries"]
             if e["section"] == "publications.articles"
         )
-        run(cli, "profile", "academico", "-o", "profile.yaml")
+        run(cli, "profile", "resumido", "-o", "profile.yaml")
         for name in ("default", "explicit", "full", "moderncv", "garamond", "external"):
             (work / name).mkdir()
         run(cli, "export", "curriculo.xml", "-o", "default/cv.yaml")

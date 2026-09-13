@@ -315,17 +315,17 @@ def test_preset_profiles_render_contrasting_cvs(fixtures, tmp_path, preset, file
     text = pdf_text(output.read_bytes()).replace(" ", "")
     if filename == "academic.xml":
         bio = "Pesquisadoraempreservaçãodigital"
-        assert "ana@example.org" in text
+        assert ("ana@example.org" in text) == (preset != "resumido")
         assert "Catálogosabertos&memóriadigital" in text
-        assert ("BrunoExemploFictício" in text) == (preset != "resumido")
-        assert ("Títulodotrabalho:" in text) == (preset == "academico")
+        assert "BrunoExemploFictício" in text
+        assert "Títulodotrabalho:" in text
     else:
         bio = "Museólogacomatuaçãoemacessibilidadecultural"
-        assert "sofia@example.org" in text
+        assert ("sofia@example.org" in text) == (preset != "resumido")
         assert "Percursosdamemórialocal" in text
         assert "Diagnósticodeacessibilidadeemmuseuscomunitários" in text
         assert "Artigospublicados" not in text
-    assert (bio in text) == (preset != "resumido")
+    assert bio not in text
 
 
 @pytest.mark.parametrize("theme", THEMES)

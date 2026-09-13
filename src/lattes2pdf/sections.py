@@ -1,5 +1,6 @@
 """Section options and their focused, offline CLI reference."""
 
+from lattes2pdf.categories import CATEGORIES, category_names, matches_prefix
 from lattes2pdf.models import CVError, catalog
 
 SECTION_OPTIONS = {
@@ -49,6 +50,16 @@ SECTION_OPTIONS = {
 
 
 def matching_sections(prefix: str) -> list[str]:
+    if categories := category_names(prefix):
+        return [
+            name
+            for name in catalog()["sections"]
+            if any(
+                matches_prefix(name, s)
+                for c in categories
+                for s in CATEGORIES[c].sections
+            )
+        ]
     names = [
         name
         for name in catalog()["sections"]
@@ -63,9 +74,18 @@ def validate_options(sections: dict) -> None:
     if not isinstance(sections, dict):
         raise CVError("sections deve associar identificadores de seções a opções.")
     for name, options in sections.items():
-        if name not in catalog()["sections"]:
+        if name not in catalog()["sections"] and name not in CATEGORIES:
             raise CVError(
                 f"Seção desconhecida em sections: {name}. Use um identificador exato de lattes2pdf sections."
+            )
+        if (
+            name in CATEGORIES
+            and not CATEGORIES[name].separate
+            and name != "lattes.outras-informacoes"
+        ):
+            raise CVError(
+                f"A categoria {name} usa os títulos das seções de origem. "
+                f"Configure sections para: {', '.join(CATEGORIES[name].sections)}."
             )
         allowed = {"title"} | set(SECTION_OPTIONS.get(name, {}))
         if not isinstance(options, dict) or set(options) - allowed:
@@ -88,6 +108,36 @@ def validate_options(sections: dict) -> None:
 
 
 def describe_sections(prefix: str | None = None) -> str:
+    if names := category_names(prefix or ""):
+        lines = [
+            "usage: lattes2pdf sections [-h] [section]",
+            "",
+            "Categorias do Lattes:",
+        ]
+        width = max(len(name) for name in names)
+        lines.extend(f"  {name:<{width}}  {CATEGORIES[name].pt}" for name in names)
+        lines.extend(
+            [
+                "",
+                "Use estes identificadores em include, exclude e order, junto das seções existentes.",
+                "lattes seleciona todas as categorias abaixo; cada registro aparece uma vez.",
+                "Endereço: show_address: true|false ou --show-address/--no-show-address.",
+                "Citações numéricas e totais de produção não são incluídos no CV.",
+            ]
+        )
+        if prefix in CATEGORIES:
+            lines.extend(
+                [
+                    "",
+                    "Seções de origem: " + ", ".join(CATEGORIES[prefix].sections),
+                    f"Título personalizado: sections.{prefix}.title."
+                    if CATEGORIES[prefix].separate
+                    or prefix == "lattes.outras-informacoes"
+                    else "Personalize os títulos nas seções de origem.",
+                    "A categoria pode selecionar somente um subconjunto dos registros dessas seções.",
+                ]
+            )
+        return "\n".join(lines)
     definitions = catalog()["sections"]
     if prefix is None:
         groups = {}
@@ -114,6 +164,10 @@ def describe_sections(prefix: str | None = None) -> str:
         *(f"  {name:<{width}}  {title}" for name, title in rows),
     ]
     if prefix not in definitions:
+        if prefix is None:
+            lines.extend(
+                ["", "Categorias da exportação Lattes: lattes2pdf sections lattes"]
+            )
         return "\n".join(lines)
 
     lines = [

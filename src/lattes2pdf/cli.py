@@ -12,6 +12,7 @@ from pathlib import Path
 import yaml
 
 from lattes2pdf.backend import render_pdf, rendercv_version
+from lattes2pdf.categories import CATEGORIES, matches_selector
 from lattes2pdf.lattes import read_lattes
 from lattes2pdf.models import CVError, catalog
 from lattes2pdf.output import check_outputs, write_outputs
@@ -21,15 +22,20 @@ from lattes2pdf.selection import FIELD_GROUPS, THEMES, load_profile
 from lattes2pdf.theme import BUNDLED_THEMES, load_theme
 
 PRESETS = {
-    "academico": "Cobertura ampla, bio, título do trabalho e orientação",
-    "essencial": "Bio, formação, experiência e principais seções de produção",
-    "resumido": "Menos seções, sem bio e sem listas de autores",
+    "resumido": "Seleção do modelo Resumido do Lattes (padrão); sem endereço",
+    "ampliado": "Resumido com endereço, idiomas, prêmios e áreas de atuação",
+    "completo": "Todas as categorias de conteúdo do Lattes; editável, distinto de --full",
 }
 
 
 def inspection(cv, sections: list[str] | None = None) -> dict:
-    names = {name for prefix in sections or [] for name in matching_sections(prefix)}
-    entries = [entry for entry in cv.entries if not names or entry.section in names]
+    for prefix in sections or []:
+        matching_sections(prefix)
+    entries = [
+        entry
+        for entry in cv.entries
+        if not sections or any(matches_selector(entry, s) for s in sections)
+    ]
     return {
         "name": cv.name,
         "sections": dict(Counter(entry.section for entry in entries)),
@@ -43,6 +49,11 @@ def inspection(cv, sections: list[str] | None = None) -> dict:
                 else entry.title(),
                 "year": entry.year,
                 "path": entry.path,
+                "categories": [
+                    name
+                    for name, category in CATEGORIES.items()
+                    if category.matches(entry)
+                ],
             }
             for entry in entries
         ],
@@ -85,7 +96,7 @@ def parser() -> argparse.ArgumentParser:
         + "\n".join(
             f"  {name:<10}  {description}" for name, description in PRESETS.items()
         )
-        + "\n\nExemplo:\n  lattes2pdf profile essencial -o meu.profile.yaml\n"
+        + "\n\nExemplo:\n  lattes2pdf profile ampliado -o meu.profile.yaml\n"
         "\nEdite o arquivo e use-o em export/render com --profile.\n"
         "Os presets não limitam anos, quantidade de registros ou páginas.",
     )
@@ -129,14 +140,14 @@ def parser() -> argparse.ArgumentParser:
   lattes2pdf sections education
   lattes2pdf export curriculo.xml -o cv.yaml --include education --include publications
   lattes2pdf export curriculo.xml -o completo.yaml --full
-  lattes2pdf profile essencial -o perfil.yaml
+  lattes2pdf profile ampliado -o perfil.yaml
   lattes2pdf export curriculo.zip -o cv.yaml --profile perfil.yaml
 
-Sem --profile, usa o preset academico. --full usa a exportação completa sem preset.
+Sem --profile, usa o preset resumido. --full usa a exportação completa sem preset.
 Um perfil explícito substitui o preset; as opções da CLI substituem suas chaves.
 
 Perfil YAML:
-  include: [profile, education, publications]
+  include: [profile, lattes.formacao, lattes.artigos]
   exclude: [publications.press]
   order: [education, publications, profile]
   section_years:
@@ -144,6 +155,7 @@ Perfil YAML:
   hide_fields: [contact, advisors, thesis]
   language: pt
   theme: classic
+  show_address: false
   authors:
     name_case: original
     highlight_self: true
@@ -159,6 +171,8 @@ Autores (todas as seções):
 O perfil também aceita include_ids, exclude_ids, since, until, full,
 allow_unmapped, sections, sort (year_desc ou source) e unknown_year (keep ou exclude).
 Consulte lattes2pdf sections SEÇÃO para os ajustes disponíveis.
+Consulte lattes2pdf sections lattes para as categorias da exportação Lattes.
+Categorias e seções podem ser combinadas em include/exclude; cada registro aparece uma vez.
 Listas da CLI usam opções repetidas. Seções aceitam prefixos como publications;
 exclusões prevalecem. O nome permanece no cabeçalho mesmo ao selecionar só registros.
 IDs vêm de inspect e podem mudar se o registro for editado ou ganhar duplicatas.
@@ -168,8 +182,11 @@ O ano do registro prioriza publicação/conclusão; sem ano, o filtro mantém o 
 e emite aviso por padrão. --full inclui o conteúdo conhecido, com dados privados,
 metadados administrativos e variantes de outro idioma discriminados no relatório.
 Em inglês, utiliza a tradução disponível no XML e conserva o original quando faltar.
-Dados privados (documentos pessoais, endereço residencial etc.) não são exportados.
-Afastamentos são incluídos somente com --include leave ou seleção explícita do ID.
+show_address controla o endereço profissional, residencial e eletrônico; hide_fields ainda prevalece.
+Ampliado e completo incluem endereço; resumido não. Documentos pessoais não são exportados.
+Sem show_address, perfis existentes preservam seu comportamento de contato e endereço.
+Afastamentos exigem a seleção de leave, lattes.licencas, lattes ou do ID.
+O preset completo aceita filtros; --full continua independente dos presets e não aceita show_address.
 As seções com apresentação enxuta conservam seu contexto principal; --full inclui os detalhes conhecidos.
 hide_fields: [details] omite os detalhes genéricos das demais seções.
 """,
@@ -189,11 +206,17 @@ hide_fields: [details] omite os detalhes genéricos das demais seções.
     conversion.add_argument(
         "--profile",
         type=Path,
-        help="perfil YAML (padrão: preset academico; exceto --full)",
+        help="perfil YAML (padrão: preset resumido; exceto --full)",
+    )
+    conversion.add_argument(
+        "--show-address",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="mostrar/ocultar endereço profissional, residencial e eletrônico (substitui o perfil)",
     )
     for name, description in {
-        "include": "incluir seção ou prefixo (substitui a lista do perfil)",
-        "exclude": "excluir seção ou prefixo",
+        "include": "incluir seção, prefixo ou categoria lattes.* (substitui a lista do perfil)",
+        "exclude": "excluir seção, prefixo ou categoria lattes.*",
         "include-id": "incluir somente registros com estes IDs",
         "exclude-id": "excluir registro por ID",
         "order": "priorizar seção na ordem de apresentação",
@@ -288,6 +311,7 @@ def _export(arguments, cv) -> None:
             "sort",
             "language",
             "theme",
+            "show_address",
             "full",
             "allow_unmapped",
         )
@@ -299,7 +323,7 @@ def _export(arguments, cv) -> None:
     )
     profile_sources = [arguments.profile] if arguments.profile else []
     if arguments.profile is None and not arguments.full:
-        source = files("lattes2pdf").joinpath("presets", "academico.yaml")
+        source = files("lattes2pdf").joinpath("presets", "resumido.yaml")
         with as_file(source) as path:
             profile = load_profile(path, overrides)
             profile_sources.append(path)

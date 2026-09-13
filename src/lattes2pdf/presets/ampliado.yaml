@@ -1,10 +1,13 @@
-# Seleção de conteúdo do modelo Resumido da exportação Lattes.
+# Seleção de conteúdo do modelo Ampliado da exportação Lattes.
 # Edite as categorias: lattes2pdf sections lattes
 # Cada registro aparece uma vez, mesmo quando pertence a várias categorias.
 include:
   - profile
+  - lattes.idiomas  # Idiomas
+  - lattes.premios  # Prêmios e títulos
   - lattes.formacao  # Formação acadêmica/titulação
   - lattes.atuacao  # Atuação profissional
+  - lattes.areas  # Áreas de atuação
   - lattes.artigos  # Artigos completos publicados
   - lattes.livros-capitulos  # Livros e capítulos
   - lattes.anais  # Trabalhos publicados em anais de eventos
@@ -20,7 +23,7 @@ include:
   - lattes.demais-trabalhos  # Demais trabalhos
 
 # Endereço profissional, residencial e eletrônico.
-show_address: false
+show_address: true
 
 # A bio é opcional; remova summary para incluí-la.
 # Os controles de apresentação são independentes do modelo de seleção.
