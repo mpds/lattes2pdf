@@ -4,9 +4,9 @@
   <img src="https://raw.githubusercontent.com/mpds/lattes2pdf/main/assets/social-preview.png" alt="lattes2pdf: uma xícara de café ao lado de um documento PDF" width="800">
 </p>
 
-Converta seu Currículo Lattes em um CV em PDF, escolhendo o que apresentar e como organizar as informações. Use perfis editáveis para criar versões acadêmicas ou resumidas e temas do [RenderCV](https://rendercv.com) para definir a aparência. O YAML gerado é compatível com o RenderCV e pode ser editado e renderizado diretamente, inclusive com temas personalizados como o [Garamond](https://github.com/mpds/lattes2pdf/tree/main/src/lattes2pdf/themes/garamond), incluído no projeto.
+Converta seu Currículo Lattes em um CV em PDF, escolhendo o que apresentar e como organizar as informações. Use perfis editáveis para criar versões acadêmicas ou resumidas e temas do [RenderCV](https://rendercv.com) para definir a aparência. O YAML gerado é compatível com o RenderCV e pode ser editado e renderizado diretamente, inclusive com temas personalizados pelo usuário.
 
-Veja exemplos fictícios: [ModernCV](https://github.com/mpds/lattes2pdf/blob/main/examples/pdfs/moderncv.pdf), nativo do RenderCV, e [Garamond](https://github.com/mpds/lattes2pdf/blob/main/examples/pdfs/garamond.pdf), um tema alternativo criado com o RenderCV e incluído no lattes2pdf.
+Veja [exemplos fictícios nos nove temas do RenderCV](https://github.com/mpds/lattes2pdf/blob/main/examples/README.md).
 
 ## Instalação
 
@@ -44,7 +44,7 @@ Esse comando gera três arquivos:
 | `cv.yaml` | Conteúdo e configuração visual no formato do RenderCV. |
 | `cv.report.json` | Relatório das informações incluídas, omitidas e dos avisos de conversão. |
 
-Para experimentar outro tema, use `--theme garamond` ou um nome listado em `lattes2pdf theme --help`. Use pastas separadas para comparar temas; com temas personalizados, templates e fontes também são copiados junto ao YAML.
+Para experimentar outro tema, use `--theme moderncv` ou um nome listado em `lattes2pdf theme --help`. Todos os nove temas nativos do RenderCV 2.8 estão disponíveis. Use pastas separadas para comparar temas; com temas personalizados, templates e fontes também são copiados junto ao YAML.
 
 Para testar sem o seu Lattes, baixe o [XML fictício](https://raw.githubusercontent.com/mpds/lattes2pdf/main/examples/curriculo.xml) e use-o no lugar de `curriculo.xml`.
 
@@ -105,7 +105,7 @@ rendercv render cv.yaml --pdf-path cv-editado.pdf
 
 O caminho do PDF é relativo à pasta do YAML. Se houver pastas de templates e fontes ao lado dele, mantenha-as junto do arquivo.
 
-Essa edição afeta o documento gerado. Para preservar escolhas em uma nova exportação do Lattes do `lattes2pdf`, salve-as no `profile.yaml`.
+Essa edição afeta o documento gerado. Para repetir as escolhas em novas exportações, salve as de conteúdo no `profile.yaml` e as visuais no `design.yaml`.
 
 ## Escolher o que aparece
 
@@ -141,7 +141,7 @@ Edite o preset copiado ou crie um `profile.yaml` com apenas as escolhas de que p
 include: [profile, lattes.formacao, lattes.atuacao, lattes.artigos]
 exclude: [training]
 order: [profile, lattes.atuacao, lattes.formacao, lattes.artigos]
-theme: garamond
+theme: moderncv
 
 sections:
   education:
@@ -174,17 +174,30 @@ lattes2pdf sections publications.articles
 
 Um `--profile` explícito substitui o preset padrão, e as opções da linha de comando tem precedência sobre o arquivo de perfil. Para filtros por ano, ordenação e outros ajustes, consulte `lattes2pdf render --help`. Use `--force` quando quiser substituir saídas existentes.
 
-## Personalizar um tema
+## Temas personalizados com RenderCV
 
-Copie o Garamond para uma pasta editável:
+O perfil e o tema podem ser usados juntos. Escolha onde fazer cada ajuste:
+
+| Quero modificar… | Onde ajustar |
+| --- | --- |
+| Registros incluídos, filtros por ano, ordem e títulos das seções, exibição de orientadores ou autores | `profile.yaml` |
+| Fontes, cores, margens e espaçamentos | `design.yaml` do tema |
+| Composição dos blocos e estrutura visual além das opções de design | Templates de um tema personalizado do RenderCV |
+
+Para começar com a configuração de um tema nativo:
 
 ```bash
-lattes2pdf theme garamond -o meu-tema
+lattes2pdf theme classic -o meu-tema
+```
+
+Consulte as [opções de design](https://docs.rendercv.com/user_guide/yaml_input_structure/design/) e o [guia oficial para criar temas e personalizar templates](https://docs.rendercv.com/user_guide/how_to/override_default_templates/) do RenderCV.
+
+Para usar seu tema no lattes2pdf, o `design.yaml` deve conter somente o mapa `design`. Se houver templates personalizados, mantenha a pasta com o nome indicado em `design.theme` ao lado desse arquivo, assim como a pasta `fonts`, se usada.
+
+```bash
 lattes2pdf render curriculo.xml --profile profile.yaml \
   --theme meu-tema/design.yaml -o meu-cv.pdf
 ```
-
-Edite `design.yaml` para ajustar fonte, margens e espaçamentos; os templates permitem alterar a composição das entradas. Para usar um tema externo, forneça um YAML com o mapa `design` e mantenha a pasta do tema e suas fontes ao lado dele, conforme a [estrutura de temas do RenderCV](https://docs.rendercv.com/user_guide/how_to/override_default_templates/).
 
 Você também pode salvar `theme: meu-tema/design.yaml` no perfil. Nesse caso, o caminho é relativo ao `profile.yaml`.
 
