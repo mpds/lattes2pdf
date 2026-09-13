@@ -131,7 +131,7 @@ lattes2pdf render curriculo.xml \
   --exclude-id publications.articles:5af5a2d20b36 -o sem-artigo.pdf
 ```
 
-Use os IDs retornados pelo seu próprio `inspect`. As opções `--exclude` e `--exclude-id` podem ser repetidas para remover mais itens.
+Use os IDs retornados pelo seu próprio `inspect`. As opções de inclusão e exclusão aceitam vários valores separados por espaços, como `--exclude training awards`, e também podem ser repetidas.
 
 ## Guardar suas preferências
 

@@ -129,13 +129,16 @@ def parser() -> argparse.ArgumentParser:
         help="categoria ou grupo (ex.: lattes.formacao, training, publications)",
     )
     inspect = commands.add_parser(
-        "inspect", help="listar seções, IDs e campos desconhecidos"
+        "inspect",
+        help="listar seções, IDs e campos desconhecidos",
+        epilog="Informe o arquivo antes das opções de lista. Exemplo: lattes2pdf inspect curriculo.zip --section education training",
     )
     inspect.add_argument("input", type=Path, help="XML ou ZIP exportado do Lattes")
     inspect.add_argument(
         "--section",
-        action="append",
-        help="filtrar registros e diagnósticos por categoria, grupo ou prefixo; repetível (contagem de campos global)",
+        action="extend",
+        nargs="+",
+        help="filtrar registros e diagnósticos por categoria, grupo ou prefixo; aceita vários valores e repetições (contagem de campos global)",
     )
     inspect.add_argument(
         "--member", help="nome exato do XML dentro de um ZIP com vários XMLs"
@@ -183,7 +186,10 @@ allow_unmapped, sections, sort (year_desc ou source) e unknown_year (keep ou exc
 Consulte lattes2pdf sections para as categorias da exportação Lattes.
 Use lattes2pdf sections CATEGORIA para seus grupos e ajustes disponíveis.
 Categorias e seções podem ser combinadas em include/exclude; cada registro aparece uma vez.
-Listas da CLI usam opções repetidas. Seções aceitam prefixos como publications;
+Listas da CLI aceitam valores separados por espaços e opções repetidas, inclusive combinados.
+Informe o arquivo de entrada antes das opções de lista; não use vírgulas ou colchetes.
+Exemplo: lattes2pdf render curriculo.zip -o cv.pdf --include lattes.formacao lattes.artigos --exclude training awards
+Seções aceitam prefixos como publications;
 exclusões prevalecem. O nome permanece no cabeçalho mesmo ao selecionar só registros.
 IDs vêm de inspect e podem mudar se o registro for editado ou ganhar duplicatas.
 include_ids restringe todos os registros aos IDs listados; exclude_ids remove só os indicados.
@@ -229,7 +235,10 @@ hide_fields: [details] omite os detalhes genéricos das demais seções.
         "hide-field": "ocultar atributo XML ou grupo: " + ", ".join(FIELD_GROUPS),
     }.items():
         conversion.add_argument(
-            f"--{name}", action="append", help=description + "; repetível"
+            f"--{name}",
+            action="extend",
+            nargs="+",
+            help=description + "; aceita vários valores e repetições",
         )
     conversion.add_argument("--since", type=int, help="ano inicial, inclusive")
     conversion.add_argument("--until", type=int, help="ano final, inclusive")
@@ -462,8 +471,10 @@ def _run(arguments) -> int:
                     print(f"  {entry['id']}  {title}{year}")
         if result["entries"]:
             print("\nEm export/render, para excluir:")
-            print("  Um grupo inteiro: --exclude GRUPO")
-            print("  Um registro: --exclude-id ID (repita a opção para mais registros)")
+            print("  Grupos inteiros: --exclude GRUPO [GRUPO ...]")
+            print(
+                "  Registros: --exclude-id ID [ID ...] (também aceita repetir a opção)"
+            )
             print("Ajustes de um grupo: lattes2pdf sections GRUPO")
         sys.stdout.flush()
         log_issues(cv, [Issue(**i) for i in result["issues"]])
