@@ -44,6 +44,9 @@ authors:
   name_case: original
   highlight_self: true
 sections:
+  profile:
+    show_birth_date: false
+    show_birth_place: false
   education:
     show_thesis: true
     show_advisors: true

@@ -27,6 +27,35 @@ def pdf_text(data: bytes) -> str:
 
 
 @pytest.mark.parametrize("theme", THEMES)
+def test_birth_scholarship_and_award_context_reach_each_theme(
+    fixtures, tmp_path, theme
+):
+    tree = ET.parse(fixtures / "personal-details.xml")
+    tree.find("DADOS-GERAIS").set("CIDADE-NASCIMENTO", "Cidade Exemplo [Norte] & Sul")
+    source = tmp_path / "cv.xml"
+    tree.write(source, encoding="utf-8")
+    data, _ = export_data(
+        read_lattes(source),
+        Profile(
+            theme=theme,
+            hide_fields=["details", "summary"],
+            sections={"profile": {"show_birth_date": True, "show_birth_place": True}},
+        ),
+    )
+    pdf = render_pdf(yaml.safe_dump(data, allow_unicode=True, sort_keys=False))
+    text = pdf_text(pdf).replace(" ", "")
+    for expected in (
+        "Nascimento: 15/04/1990 — Cidade Exemplo [Norte] & Sul/PR, Brasil",
+        "Bolsista: Fundação Exemplo de Pesquisa, FEP, Brasil",
+        "Prêmio de destaque científico",
+        "Associação Exemplo de Ciência",
+    ):
+        assert expected.replace(" ", "") in text
+    assert "PRIVAD" not in text and "#text" not in text and "\\u{" not in text
+    assert text.count("15/04/1990") == 1
+
+
+@pytest.mark.parametrize("theme", THEMES)
 def test_themes_render_content_dates_and_links(fixtures, tmp_path, theme):
     output = tmp_path / "currículo final.pdf"
     assert (

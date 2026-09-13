@@ -366,6 +366,14 @@ def hidden(source: SourceField, profile: Profile) -> bool:
 
 
 def visible_fields(entry: Entry, profile: Profile) -> list[SourceField]:
+    birth_fields = set()
+    if entry.section == "profile" and not profile.full:
+        if profile.section_option("profile", "show_birth_date"):
+            birth_fields.add("DATA-NASCIMENTO")
+        if profile.section_option("profile", "show_birth_place"):
+            birth_fields.update(
+                {"CIDADE-NASCIMENTO", "UF-NASCIMENTO", "PAIS-DE-NASCIMENTO"}
+            )
     explicit_leave = entry.section == "leave" and (
         any(matches_selector(entry, s) for s in profile.include)
         or entry.id in profile.include_ids
@@ -376,6 +384,11 @@ def visible_fields(entry: Entry, profile: Profile) -> list[SourceField]:
         if f.text
         and (
             f.disposition == "content"
+            or (
+                f.disposition == "private"
+                and f.tag == "DADOS-GERAIS"
+                and f.name in birth_fields
+            )
             or (
                 explicit_leave
                 and f.disposition == "private"

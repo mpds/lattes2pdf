@@ -179,6 +179,7 @@ metadados administrativos e variantes de outro idioma discriminados no relatóri
 Em inglês, utiliza a tradução disponível no XML e conserva o original quando faltar.
 lattes.endereco seleciona endereço profissional, residencial e eletrônico; hide_fields ainda prevalece.
 Ampliado e completo incluem endereço; resumido não. Documentos pessoais não são exportados.
+Data e local de nascimento são opcionais no cabeçalho: lattes2pdf sections profile.
 Bolsa da formação e entidade promotora dos prêmios aparecem por padrão nas categorias selecionadas.
 Perfis que usam apenas seções existentes preservam seu comportamento de contato e endereço.
 Afastamentos exigem a seleção de leave, lattes.licencas, lattes ou do ID.

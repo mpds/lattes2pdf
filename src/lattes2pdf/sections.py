@@ -4,6 +4,10 @@ from lattes2pdf.categories import CATEGORIES, category_names, matches_prefix
 from lattes2pdf.models import CVError, catalog
 
 SECTION_OPTIONS = {
+    "profile": {
+        "show_birth_date": (False, "Data de nascimento no cabeçalho"),
+        "show_birth_place": (False, "Local de nascimento no cabeçalho"),
+    },
     "education": {
         "show_thesis": (False, "Título do trabalho"),
         "show_advisors": (False, "Orientação e coorientação"),
@@ -192,6 +196,7 @@ def describe_sections(prefix: str | None = None) -> str:
             [
                 "",
                 "Grupos e ajustes de uma categoria: lattes2pdf sections lattes.formacao",
+                "Dados de identificação e nascimento: lattes2pdf sections profile",
                 "Em export/render, use --include CATEGORIA ou --exclude CATEGORIA.",
                 "lattes seleciona todas as categorias; cada registro aparece uma vez.",
             ]

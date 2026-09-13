@@ -4,7 +4,7 @@ from importlib.resources import files
 
 import pytest
 
-from lattes2pdf.cli import PRESETS
+from lattes2pdf.cli import PRESETS, main
 from lattes2pdf.lattes import read_lattes
 from lattes2pdf.rendering import export_data
 from lattes2pdf.selection import Profile, load_profile
@@ -98,6 +98,98 @@ def test_scholarship_handles_incomplete_data_and_existing_acronyms(
     assert degree.get("summary") == expected
 
 
+@pytest.mark.parametrize(
+    "date,place,language,expected",
+    [
+        (True, True, "pt", "Nascimento: 15/04/1990 — Cidade Exemplo/PR, Brasil"),
+        (True, False, "pt", "Nascimento: 15/04/1990"),
+        (False, True, "pt", "Naturalidade: Cidade Exemplo/PR, Brasil"),
+        (True, True, "en", "Born: 1990-04-15 — Cidade Exemplo/PR, Brasil"),
+        (False, True, "en", "Place of birth: Cidade Exemplo/PR, Brasil"),
+    ],
+)
+def test_birth_is_opt_in_independent_and_only_appears_once_in_the_header(
+    fixtures, date, place, language, expected
+):
+    cv = read_lattes(fixtures / "personal-details.xml")
+    data, report = export_data(
+        cv,
+        Profile(
+            include=["profile"],
+            language=language,
+            sections={"profile": {"show_birth_date": date, "show_birth_place": place}},
+        ),
+    )
+    assert data["cv"]["custom_connections"] == [
+        {
+            "placeholder": expected,
+            "fontawesome_icon": "calendar-days" if date else "location-dot",
+            "url": None,
+        }
+    ]
+    assert not data["cv"]["sections"]
+    assert "PRIVAD" not in json.dumps(data)
+    fields = {f["path"]: f for f in report["fields"]}
+    for source in cv.fields:
+        if "NASCIMENTO" in source.name:
+            selected = date if source.name == "DATA-NASCIMENTO" else place
+            assert source.disposition == "private"
+            assert fields[source.path]["status"] == (
+                "exported" if selected else "private"
+            )
+            if selected:
+                assert fields[source.path]["reason"] == "explicit-selection"
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"include": ["lattes.endereco"]},
+        {"exclude": ["profile"]},
+        {
+            "hide_fields": [
+                "date",
+                "CIDADE-NASCIMENTO",
+                "UF-NASCIMENTO",
+                "PAIS-DE-NASCIMENTO",
+            ]
+        },
+    ],
+)
+def test_birth_opt_in_respects_profile_selection_and_field_filters(fixtures, overrides):
+    data, _ = export_data(
+        read_lattes(fixtures / "personal-details.xml"),
+        Profile(
+            sections={"profile": {"show_birth_date": True, "show_birth_place": True}},
+            **overrides,
+        ),
+    )
+    assert "custom_connections" not in data["cv"]
+    assert "1990" not in json.dumps(data) and "Cidade Exemplo" not in json.dumps(data)
+
+
+def test_missing_and_invalid_birth_data_remain_usable(fixtures, tmp_path):
+    profile = Profile(
+        include=["profile"],
+        sections={"profile": {"show_birth_date": True, "show_birth_place": True}},
+    )
+    empty, _ = export_data(read_lattes(fixtures / "minimal.xml"), profile)
+    assert "custom_connections" not in empty["cv"]
+    tree = ET.parse(fixtures / "personal-details.xml")
+    person = tree.find("DADOS-GERAIS")
+    person.set("DATA-NASCIMENTO", "31021990")
+    person.set("CIDADE-NASCIMENTO", "")
+    person.set("UF-NASCIMENTO", "")
+    source = tmp_path / "cv.xml"
+    tree.write(source, encoding="utf-8")
+    data, report = export_data(read_lattes(source), profile)
+    assert (
+        data["cv"]["custom_connections"][0]["placeholder"]
+        == "Nascimento: 31021990 — Brasil"
+    )
+    assert any(i["code"] == "invalid-date" for i in report["issues"])
+
+
 def test_field_hiding_applies_to_scholarship_metadata_and_award_institution(fixtures):
     data, _ = export_data(
         read_lattes(fixtures / "personal-details.xml"),
@@ -121,3 +213,16 @@ def test_full_keeps_existing_private_and_auxiliary_field_policy(fixtures):
         and "Associação Exemplo de Ciência" in text
     )
     assert not any(f.get("reason") == "presentation" for f in report["fields"])
+
+
+def test_new_controls_are_discoverable_from_the_catalogue(capsys):
+    assert main(["sections"]) == 0
+    assert "lattes2pdf sections profile" in capsys.readouterr().out
+    for name, options in [
+        ("profile", ["show_birth_date", "show_birth_place"]),
+        ("lattes.formacao", ["show_scholarship"]),
+        ("lattes.premios", ["show_institution"]),
+    ]:
+        assert main(["sections", name]) == 0
+        text = capsys.readouterr().out
+        assert all(option in text for option in options)

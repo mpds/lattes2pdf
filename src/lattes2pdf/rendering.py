@@ -3,6 +3,7 @@
 import re
 from collections import Counter, defaultdict
 from dataclasses import asdict, replace
+from datetime import datetime
 from urllib.parse import quote, urlsplit
 
 from lattes2pdf.categories import (
@@ -865,6 +866,61 @@ def _addresses(entry: Entry, profile: Profile) -> tuple[list[dict], set[str]]:
     return entries, used
 
 
+def _birth_connection(
+    entry: Entry, output: dict, profile: Profile, issues: list[Issue]
+) -> set[str]:
+    used = set()
+
+    def take(name):
+        source = entry.find(name)
+        if source:
+            used.add(source.path)
+            return source.text
+        return ""
+
+    birth_date = take("DATA-NASCIMENTO")
+    if birth_date:
+        try:
+            if not re.fullmatch(r"\d{8}", birth_date):
+                raise ValueError
+            date = datetime.strptime(birth_date, "%d%m%Y")
+            birth_date = date.strftime(
+                "%d/%m/%Y" if profile.language == "pt" else "%Y-%m-%d"
+            )
+        except ValueError:
+            issues.append(
+                Issue(
+                    "invalid-date",
+                    entry.find("DATA-NASCIMENTO").path,
+                    "Data de nascimento inválida; exibida como texto original.",
+                )
+            )
+    city, state, country = (
+        take("CIDADE-NASCIMENTO"),
+        take("UF-NASCIMENTO"),
+        take("PAIS-DE-NASCIMENTO"),
+    )
+    place = ", ".join(
+        p for p in ("/".join(p for p in (city, state) if p), country) if p
+    )
+    if birth_date or place:
+        prefix = (
+            ("Nascimento" if birth_date else "Naturalidade")
+            if profile.language == "pt"
+            else ("Born" if birth_date else "Place of birth")
+        )
+        output.setdefault("custom_connections", []).append(
+            {
+                "fontawesome_icon": "calendar-days" if birth_date else "location-dot",
+                "placeholder": literal(
+                    prefix + ": " + " — ".join(p for p in (birth_date, place) if p)
+                ),
+                "url": None,
+            }
+        )
+    return used
+
+
 def _profile(
     entry: Entry, output: dict, profile: Profile, issues: list[Issue]
 ) -> set[str]:
@@ -872,6 +928,8 @@ def _profile(
     name = entry.find("NOME-COMPLETO")
     if name:
         used.add(name.path)
+    if not profile.full:
+        used.update(_birth_connection(entry, output, profile, issues))
     sections = output["sections"]
     if profile.category_selection("lattes.endereco") is True:
         addresses, address_fields = _addresses(entry, profile)

@@ -170,6 +170,7 @@ Consulte os possíveis ajustes de uma categoria ou diretamente de um grupo mostr
 ```bash
 lattes2pdf sections lattes.formacao
 lattes2pdf sections publications.articles
+lattes2pdf sections profile
 ```
 
 Um `--profile` explícito substitui o preset padrão, e as opções da linha de comando tem precedência sobre o arquivo de perfil. Para filtros por ano, ordenação e outros ajustes, consulte `lattes2pdf render --help`. Use `--force` quando quiser substituir saídas existentes.
