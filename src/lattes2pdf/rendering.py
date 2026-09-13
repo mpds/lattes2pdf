@@ -414,8 +414,12 @@ def _publication_links(entry: Entry, issues: list[Issue]) -> tuple[dict, set[str
             )
     url = entry.find("HOME-PAGE-DO-TRABALHO", "HOME-PAGE")
     if url and not result.get("doi"):
-        if _url(url.text):
-            result["url"] = url.text
+        # Lattes exports may wrap homepage addresses in square brackets.
+        value = url.text
+        if value.startswith("[") and value.endswith("]"):
+            value = value[1:-1].strip()
+        if _url(value):
+            result["url"] = value
             used.add(url.path)
         else:
             issues.append(

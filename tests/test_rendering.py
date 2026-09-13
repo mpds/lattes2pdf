@@ -7,6 +7,7 @@ from lattes2pdf.lattes import read_lattes
 from lattes2pdf.models import CVError
 from lattes2pdf.rendering import export_data
 from lattes2pdf.selection import Profile
+from lattes2pdf.text import literal
 
 
 @pytest.mark.parametrize(
@@ -260,3 +261,47 @@ def test_career_breaks_require_explicit_selection(fixtures):
         for f in report["fields"]
     )
     assert all(f.disposition == "private" for f in cv.fields if f.tag == "LICENCA")
+
+
+@pytest.mark.parametrize("style", [None, "abnt", "chicago"])
+@pytest.mark.parametrize(
+    "address,valid",
+    [
+        ("[https://example.org/work/file_123/view]", True),
+        ("[javascript:invalid]", False),
+        ("[https://example.org/work", False),
+    ],
+)
+def test_bracketed_publication_links(fixtures, tmp_path, style, address, valid):
+    tree = ET.parse(fixtures / "bibliography.xml")
+    basic = tree.find(".//DADOS-BASICOS-DO-ARTIGO")
+    basic.set("DOI", "")
+    basic.set("HOME-PAGE-DO-TRABALHO", address)
+    path = tmp_path / "cv.xml"
+    tree.write(path, encoding="utf-8")
+    cv = read_lattes(path)
+    data, report = export_data(
+        cv,
+        Profile(include=["publications.articles"], bibliography_style=style),
+    )
+    article = data["cv"]["sections"]["Artigos publicados"][0]
+    assert any(i["code"] == "invalid-url" for i in report["issues"]) is not valid
+    if valid:
+        url = "https://example.org/work/file_123/view"
+        if style:
+            assert f'#link("{url}")' in article
+        else:
+            assert article["url"] == url
+        assert "HOME-PAGE-DO-TRABALHO" not in str(article)
+    else:
+        assert (
+            literal(f"HOME-PAGE-DO-TRABALHO: {address}") in article
+            if style
+            else literal(f"URL: {address}") in article["summary"]
+        )
+    assert (
+        next(e for e in cv.entries if e.section == "publications.articles")
+        .find("HOME-PAGE-DO-TRABALHO")
+        .text
+        == address
+    )
