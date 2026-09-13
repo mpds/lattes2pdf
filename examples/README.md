@@ -1,6 +1,6 @@
 # Exemplo fictício
 
-O [currículo XML](curriculo.xml) apresenta um arquivo de exemplo. Todos os dados são inventados, incluindo vínculos e publicações. O [perfil de seleção](profile.yaml) usa as categorias do Lattes para escolher o conteúdo dos PDFs.
+O [currículo XML](curriculo.xml) apresenta um arquivo de exemplo com dados inventados. O [perfil de seleção](profile.yaml) usa as categorias do Lattes para escolher o conteúdo dos PDFs.
 
 Todos os PDFs abaixo usam o mesmo conteúdo e o mesmo perfil, com RenderCV 2.8:
 
