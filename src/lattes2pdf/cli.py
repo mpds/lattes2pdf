@@ -109,13 +109,13 @@ def parser() -> argparse.ArgumentParser:
     )
     sections = commands.add_parser(
         "sections",
-        help="listar seções e opções de perfil",
-        description="Lista seções e opções de perfil.",
+        help="listar categorias do Lattes e ajustes de perfil",
+        description="Lista categorias do Lattes. Escolha uma categoria para ver seus grupos e ajustes.",
     )
     sections.add_argument(
         "section",
         nargs="?",
-        help="seção ou prefixo (ex.: education, publications)",
+        help="categoria ou grupo (ex.: lattes.formacao, training, publications)",
     )
     inspect = commands.add_parser(
         "inspect", help="listar seções, IDs e campos desconhecidos"
@@ -124,7 +124,7 @@ def parser() -> argparse.ArgumentParser:
     inspect.add_argument(
         "--section",
         action="append",
-        help="filtrar registros exibidos por seção ou prefixo; repetível (campos e avisos continuam globais)",
+        help="filtrar registros por categoria, grupo ou prefixo; repetível (campos e avisos continuam globais)",
     )
     inspect.add_argument(
         "--member", help="nome exato do XML dentro de um ZIP com vários XMLs"
@@ -137,8 +137,8 @@ def parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""Exemplos:
   lattes2pdf inspect curriculo.zip
-  lattes2pdf sections education
-  lattes2pdf export curriculo.xml -o cv.yaml --include education --include publications
+  lattes2pdf sections lattes.formacao
+  lattes2pdf export curriculo.xml -o cv.yaml --include lattes.formacao --exclude training
   lattes2pdf export curriculo.xml -o completo.yaml --full
   lattes2pdf profile ampliado -o perfil.yaml
   lattes2pdf export curriculo.zip -o cv.yaml --profile perfil.yaml
@@ -170,8 +170,8 @@ Autores (todas as seções):
 
 O perfil também aceita include_ids, exclude_ids, since, until, full,
 allow_unmapped, sections, sort (year_desc ou source) e unknown_year (keep ou exclude).
-Consulte lattes2pdf sections SEÇÃO para os ajustes disponíveis.
-Consulte lattes2pdf sections lattes para as categorias da exportação Lattes.
+Consulte lattes2pdf sections para as categorias da exportação Lattes.
+Use lattes2pdf sections CATEGORIA para seus grupos e ajustes disponíveis.
 Categorias e seções podem ser combinadas em include/exclude; cada registro aparece uma vez.
 Listas da CLI usam opções repetidas. Seções aceitam prefixos como publications;
 exclusões prevalecem. O nome permanece no cabeçalho mesmo ao selecionar só registros.
@@ -443,6 +443,13 @@ def main(argv: list[str] | None = None) -> int:
                             title = f"{label(entry['type'])} — {title}"
                         year = f" ({entry['year']})" if entry["year"] else ""
                         print(f"  {entry['id']}  {title}{year}")
+            if result["entries"]:
+                print("\nEm export/render, para excluir:")
+                print("  Um grupo inteiro: --exclude GRUPO")
+                print(
+                    "  Um registro: --exclude-id ID (repita a opção para mais registros)"
+                )
+                print("Ajustes de um grupo: lattes2pdf sections GRUPO")
             for issue in cv.issues:
                 print(
                     f"Aviso [{issue.code}] {issue.path}: {issue.message}",

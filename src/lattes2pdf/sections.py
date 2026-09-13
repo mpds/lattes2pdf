@@ -107,84 +107,100 @@ def validate_options(sections: dict) -> None:
                 raise CVError(f"sections.{name}.{key} deve ser true ou false.")
 
 
-def describe_sections(prefix: str | None = None) -> str:
-    if names := category_names(prefix or ""):
-        lines = [
-            "usage: lattes2pdf sections [-h] [section]",
-            "",
-            "Categorias do Lattes:",
-        ]
-        width = max(len(name) for name in names)
-        lines.extend(f"  {name:<{width}}  {CATEGORIES[name].pt}" for name in names)
-        lines.extend(
-            [
-                "",
-                "Use estes identificadores em include, exclude e order, junto das seções existentes.",
-                "lattes seleciona todas as categorias abaixo; cada registro aparece uma vez.",
-                "Endereço: show_address: true|false ou --show-address/--no-show-address.",
-                "Citações numéricas e totais de produção não são incluídos no CV.",
-            ]
-        )
-        if prefix in CATEGORIES:
-            lines.extend(
-                [
-                    "",
-                    "Seções de origem: " + ", ".join(CATEGORIES[prefix].sections),
-                    f"Título personalizado: sections.{prefix}.title."
-                    if CATEGORIES[prefix].separate
-                    or prefix == "lattes.outras-informacoes"
-                    else "Personalize os títulos nas seções de origem.",
-                    "A categoria pode selecionar somente um subconjunto dos registros dessas seções.",
-                ]
-            )
-        return "\n".join(lines)
-    definitions = catalog()["sections"]
-    if prefix is None:
-        groups = {}
-        for name in definitions:
-            groups.setdefault(name.split(".")[0], []).append(name)
-        rows = [
-            (
-                name,
-                definitions[name]["pt"]
-                if name in definitions
-                else f"{len(children)} subseções",
-            )
-            for name, children in groups.items()
-        ]
-    else:
-        rows = [(name, definitions[name]["pt"]) for name in matching_sections(prefix)]
-
-    width = max(len(name) for name, _ in rows)
-    usage = "usage: lattes2pdf sections [-h] [section]"
-    lines = [
-        usage,
-        "",
-        "Seções:",
-        *(f"  {name:<{width}}  {title}" for name, title in rows),
-    ]
-    if prefix not in definitions:
-        if prefix is None:
-            lines.extend(
-                ["", "Categorias da exportação Lattes: lattes2pdf sections lattes"]
-            )
-        return "\n".join(lines)
-
-    lines = [
-        usage,
-        "",
-        f"{prefix}  {definitions[prefix]['pt']}",
-        "",
-        f"Perfil YAML: sections.{prefix}",
-    ]
-    options = [("title", "texto", "Título da seção (padrão: original)")]
-    for key, (default, description) in SECTION_OPTIONS.get(prefix, {}).items():
+def _option_lines(name: str, *, show_title: bool = True) -> list[str]:
+    options = (
+        [("title", "texto", "Título da seção (padrão: original)")] if show_title else []
+    )
+    for key, (default, description) in SECTION_OPTIONS.get(name, {}).items():
         options.append(
             (key, "true|false", f"{description} (padrão: {str(default).lower()})")
         )
+    if not options:
+        return []
     width = max(13, *(len(key) for key, _, _ in options))
-    lines.extend(
+    return [f"Perfil YAML: sections.{name}"] + [
         f"  {key:<{width}}  {kind:<10}  {description}"
         for key, kind, description in options
+    ]
+
+
+def _category_lines(name: str) -> list[str]:
+    category = CATEGORIES[name]
+    definitions = catalog()["sections"]
+    lines = [f"{name} — {category.pt}"]
+    if category.predicate:
+        lines.extend(
+            [
+                "",
+                "Esta categoria seleciona apenas os registros que atendem ao seu critério nos grupos abaixo.",
+            ]
+        )
+    elif name == "lattes.outras-informacoes":
+        lines.extend(
+            ["", "Seleciona somente as outras informações relevantes do perfil."]
+        )
+    if category.separate or name == "lattes.outras-informacoes":
+        lines.extend(["", f"Título da categoria: sections.{name}.title."])
+    lines.extend(["", "Grupos relacionados:"])
+    for section in category.sections:
+        if section in definitions:
+            lines.extend(["", f"  {section} — {definitions[section]['pt']}"])
+            lines.extend(
+                "    " + line
+                for line in _option_lines(
+                    section,
+                    show_title=not category.separate
+                    and name != "lattes.outras-informacoes",
+                )
+            )
+        else:
+            lines.extend(
+                [
+                    "",
+                    f"  {section} — {len(matching_sections(section))} grupos",
+                    f"    Ver grupos e ajustes: lattes2pdf sections {section}",
+                ]
+            )
+    lines.extend(
+        [
+            "",
+            "Em export/render, --include GRUPO e --exclude GRUPO atuam sobre o grupo inteiro.",
+            f"Ver registros e IDs: lattes2pdf inspect curriculo.xml --section {name}",
+        ]
     )
+    return lines
+
+
+def describe_sections(prefix: str | None = None) -> str:
+    lines = ["usage: lattes2pdf sections [-h] [section]", ""]
+    if prefix is None or prefix == "lattes":
+        width = max(len(name) for name in CATEGORIES)
+        lines.append("Categorias do Lattes:")
+        lines.extend(
+            f"  {name:<{width}}  {category.pt}" for name, category in CATEGORIES.items()
+        )
+        lines.extend(
+            [
+                "",
+                "Grupos e ajustes de uma categoria: lattes2pdf sections lattes.formacao",
+                "Em export/render, use --include CATEGORIA ou --exclude CATEGORIA.",
+                "lattes seleciona todas as categorias; cada registro aparece uma vez.",
+                "Endereço: show_address: true|false ou --show-address/--no-show-address.",
+            ]
+        )
+    elif prefix in CATEGORIES:
+        lines.extend(_category_lines(prefix))
+    else:
+        definitions = catalog()["sections"]
+        names = matching_sections(prefix)
+        if prefix in definitions:
+            lines.extend([f"{prefix}  {definitions[prefix]['pt']}", ""])
+            lines.extend(_option_lines(prefix))
+        else:
+            width = max(len(name) for name in names)
+            lines.append("Grupos:")
+            lines.extend(
+                f"  {name:<{width}}  {definitions[name]['pt']}" for name in names
+            )
+            lines.extend(["", "Ajustes de um grupo: lattes2pdf sections GRUPO"])
     return "\n".join(lines)

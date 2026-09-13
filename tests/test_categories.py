@@ -216,8 +216,16 @@ def test_full_does_not_accept_address_options(value):
 
 
 def test_cli_address_override_and_category_help(fixtures, tmp_path, capsys):
+    assert main(["sections"]) == 0
+    default_catalogue = capsys.readouterr().out
+    assert "lattes.formacao" in default_catalogue
     assert main(["sections", "lattes"]) == 0
-    assert "Formação acadêmica/titulação" in capsys.readouterr().out
+    assert capsys.readouterr().out == default_catalogue
+    assert main(["sections", "lattes.formacao"]) == 0
+    category_help = capsys.readouterr().out
+    assert "education — Formação acadêmica/titulação" in category_help
+    assert "training — Formação complementar" in category_help
+    assert "sections.education" in category_help and "show_advisors" in category_help
     profile = tmp_path / "profile.yaml"
     assert main(["profile", "ampliado", "-o", str(profile)]) == 0
     output = tmp_path / "cv.yaml"
@@ -257,6 +265,40 @@ def test_cli_address_override_and_category_help(fixtures, tmp_path, capsys):
         "Formação acadêmica/titulação",
         "Formação complementar",
     }
+
+
+def test_category_inspection_groups_and_ids_drive_exclusions(
+    fixtures, tmp_path, capsys
+):
+    source = str(fixtures / "native-categories.xml")
+    inspect_args = ["inspect", source, "--section", "lattes.formacao"]
+    assert main(inspect_args) == 0
+    text = capsys.readouterr().out
+    assert "training — Formação complementar" in text
+    assert "--exclude GRUPO" in text and "--exclude-id ID" in text
+    assert main(inspect_args + ["--json"]) == 0
+    inventory = json.loads(capsys.readouterr().out)
+    training = next(e for e in inventory["entries"] if e["section"] == "training")
+    assert training["id"] in text
+    for option, value in [("--exclude", "training"), ("--exclude-id", training["id"])]:
+        output = tmp_path / (option + ".yaml")
+        assert (
+            main(
+                [
+                    "export",
+                    source,
+                    "--include",
+                    "lattes.formacao",
+                    option,
+                    value,
+                    "-o",
+                    str(output),
+                ]
+            )
+            == 0
+        )
+        data = yaml.safe_load(output.read_text())
+        assert list(data["cv"]["sections"]) == ["Formação acadêmica/titulação"]
 
 
 @pytest.mark.parametrize("name", ["resumido", "ampliado", "completo"])

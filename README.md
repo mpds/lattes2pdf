@@ -63,36 +63,33 @@ lattes2pdf render curriculo.xml --profile profile.yaml -o ampliado.pdf  # usa o 
 | `ampliado` | Resumido com endereço, idiomas, prêmios e áreas de atuação. |
 | `completo` | Todas as categorias de conteúdo, incluindo licenças, projetos, patentes, inovação e divulgação científica; com endereço. |
 
-* Os três são arquivos YAML editáveis e aceitam exclusões, filtros e ajustes por seção. 
-* O preset `completo` é diferente de `--full`. 
+* Os três são arquivos YAML editáveis e aceitam exclusões, filtros e ajustes por seção.
+* O preset `completo` é diferente de `--full`.
 * Nenhum preset limita páginas, anos ou quantidade de registros.
 
 ## Categorias do Lattes
 
-Liste as categorias com os mesmos rótulos da plataforma:
+Liste as seções do currículo e consulte os grupos e possíveis ajustes de cada uma delas:
 
 ```bash
-lattes2pdf sections lattes
-lattes2pdf inspect curriculo.xml --section lattes.patentes
-lattes2pdf render curriculo.xml --include lattes.formacao --include lattes.anais -o selecionado.pdf
+lattes2pdf sections
+lattes2pdf sections lattes.formacao
 ```
 
-Os identificadores `lattes.*` podem ser usados em `include`, `exclude`, `order` e `section_years`, junto das seções existentes. Por exemplo:
+Por exemplo, `lattes.formacao` reúne `education` (formação acadêmica) e `training` (formação complementar). Veja os grupos e registros presentes no seu currículo:
+
+```bash
+lattes2pdf inspect curriculo.xml --section lattes.formacao
+```
+
+Você pode combinar categorias e grupos no arquivo de configuração do perfil. Para manter a formação acadêmica e omitir a complementar:
 
 ```yaml
-include: [profile, lattes.formacao, lattes.atuacao, lattes.livros-capitulos, lattes.web]
-exclude: [publications.books]  # mantém apenas capítulos da categoria livros e capítulos
+include: [profile, lattes.formacao, lattes.atuacao, lattes.artigos]
+exclude: [training]
 show_address: false
 ```
 
-## Mostrar ou ocultar endereço
-
-`show_address: true` inclui endereço profissional, residencial e eletrônico, inclusive quando os detalhes genéricos estão ocultos. `show_address: false` oculta esses dados. Na CLI:
-
-```bash
-lattes2pdf render curriculo.xml --show-address -o com-endereco.pdf
-lattes2pdf render curriculo.xml --profile profile.yaml --no-show-address -o sem-endereco.pdf
-```
 
 ## Editar o resultado no RenderCV
 
@@ -104,7 +101,7 @@ rendercv render cv.yaml --pdf-path cv-editado.pdf
 
 O caminho do PDF é relativo à pasta do YAML. Se houver pastas de templates e fontes ao lado dele, mantenha-as junto do arquivo.
 
-Essa edição afeta o documento gerado. Para reaplicar escolhas a uma nova exportação do Lattes, salve-as no `profile.yaml`.
+Essa edição afeta o documento gerado. Para preservar escolhas em uma nova exportação do Lattes do `lattes2pdf`, salve-as no `profile.yaml`.
 
 ## Escolher o que aparece
 
@@ -112,7 +109,7 @@ Veja as seções e os registros do seu currículo:
 
 ```bash
 lattes2pdf inspect curriculo.xml
-lattes2pdf inspect curriculo.xml --section publications.articles
+lattes2pdf inspect curriculo.xml --section lattes.artigos
 ```
 
 Por exemplo, a publicação do XML fictício aparece assim:
@@ -122,24 +119,24 @@ publications.articles — Artigos publicados (1)
   publications.articles:5af5a2d20b36  Catálogos abertos & memória digital (2024)
 ```
 
-Você pode excluir uma seção inteira ou copiar o ID de um registro específico:
+Use o nome de um grupo para excluí-lo inteiro ou copie o ID de um registro específico:
 
 ```bash
-lattes2pdf render curriculo.xml --exclude awards -o sem-premios.pdf
+lattes2pdf render curriculo.xml --exclude training -o sem-formacao-complementar.pdf
 lattes2pdf render curriculo.xml \
   --exclude-id publications.articles:5af5a2d20b36 -o sem-artigo.pdf
 ```
 
-Use os IDs retornados pelo seu próprio `inspect`. Eles podem mudar quando o registro é alterado ou ganha duplicatas. As opções `--exclude` e `--exclude-id` podem ser repetidas para remover mais itens.
+Use os IDs retornados pelo seu próprio `inspect`. As opções `--exclude` e `--exclude-id` podem ser repetidas para remover mais itens.
 
 ## Guardar suas preferências
 
 Edite o preset copiado ou crie um `profile.yaml` com apenas as escolhas de que precisa:
 
 ```yaml
-include: [profile, education, experience, publications]
-exclude: [publications.press]
-order: [profile, experience, education, publications]
+include: [profile, lattes.formacao, lattes.atuacao, lattes.artigos]
+exclude: [training]
+order: [profile, lattes.atuacao, lattes.formacao, lattes.artigos]
 theme: garamond
 
 sections:
@@ -164,15 +161,14 @@ Depois, aplique o arquivo:
 lattes2pdf render curriculo.xml --profile profile.yaml -o personalizado.pdf
 ```
 
-Descubra os nomes das seções e as opções disponíveis sem precisar conhecer os atributos internos do XML:
+Consulte os possíveis ajustes de uma categoria ou diretamente de um grupo mostrado pelo `inspect`:
 
 ```bash
-lattes2pdf sections
-lattes2pdf sections education
+lattes2pdf sections lattes.formacao
 lattes2pdf sections publications.articles
 ```
 
-Um `--profile` explícito substitui o preset padrão. As opções da linha de comando substituem as correspondentes no perfil. Para filtros por ano, ordenação e outros ajustes, consulte `lattes2pdf render --help`. Use `--force` quando quiser substituir saídas existentes.
+Um `--profile` explícito substitui o preset padrão, e as opções da linha de comando tem precedência sobre o arquivo de perfil. Para filtros por ano, ordenação e outros ajustes, consulte `lattes2pdf render --help`. Use `--force` quando quiser substituir saídas existentes.
 
 ## Personalizar um tema
 
