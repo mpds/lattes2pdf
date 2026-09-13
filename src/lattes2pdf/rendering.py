@@ -1061,6 +1061,62 @@ def _category_sections(
     return sections
 
 
+def _registration_details(
+    entry: Entry, profile: Profile, issues: list[Issue]
+) -> tuple[list[str], set[str], set[str]]:
+    """Render selected registration fields once, independent of the display category."""
+    definitions = {
+        "INSTITUICAO-DEPOSITO-REGISTRO": (
+            "show_registration_institution",
+            "Instituição de registro",
+            "Registration institution",
+        ),
+        "CODIGO-DO-REGISTRO-OU-PATENTE": (
+            "show_registration_number",
+            "Número do registro",
+            "Registration number",
+        ),
+        "DATA-PEDIDO-DE-DEPOSITO": (
+            "show_deposit_date",
+            "Data de depósito",
+            "Filing date",
+        ),
+        "DATA-DE-CONCESSAO": ("show_grant_date", "Data da concessão", "Grant date"),
+    }
+    groups = defaultdict(dict)
+    handled = set()
+    for source in entry.fields:
+        if source.tag == "REGISTRO-OU-PATENTE" and source.name in definitions:
+            handled.add(source.path)
+            groups[source.path.rsplit("/", 1)[0]][source.name] = source
+    lines, used = [], set()
+    for group in groups.values():
+        for name, (option, pt, en) in definitions.items():
+            source = group.get(name)
+            if not source or not profile.section_option("lattes.patentes", option):
+                continue
+            value = source.text
+            if name.startswith("DATA-"):
+                try:
+                    if not re.fullmatch(r"\d{8}", value):
+                        raise ValueError
+                    date = datetime.strptime(value, "%d%m%Y")
+                    value = date.strftime(
+                        "%d/%m/%Y" if profile.language == "pt" else "%Y-%m-%d"
+                    )
+                except ValueError:
+                    issues.append(
+                        Issue(
+                            "invalid-date",
+                            source.path,
+                            "Data de registro inválida; exibida como texto original.",
+                        )
+                    )
+            lines.append(literal(f"{pt if profile.language == 'pt' else en}: {value}"))
+            used.add(source.path)
+    return lines, used, handled
+
+
 def _report(
     cv: Curriculum,
     selection: Selection,
@@ -1233,8 +1289,17 @@ def export_data(
             )
         rendered = []
         for entry, (authors, author_fields) in zip(entries, author_lists):
+            registration_lines, registration_used, registration_fields = (
+                ([], set(), set())
+                if profile.full
+                else _registration_details(entry, profile, issues)
+            )
+            view = replace(
+                entry,
+                fields=[f for f in entry.fields if f.path not in registration_fields],
+            )
             result, consumed = _render_entry(
-                entry, kind, authors, author_fields, profile, issues, institutions
+                view, kind, authors, author_fields, profile, issues, institutions
             )
             if "description" in result and not re.search(
                 r"\bDESCRIPTION\b", description_template
@@ -1243,6 +1308,12 @@ def export_data(
                 result["summary"] = "\n".join(
                     s for s in (result.get("summary"), result.pop("description")) if s
                 )
+            if registration_lines:
+                result["summary"] = "\n".join(
+                    s for s in (result.get("summary"), *registration_lines) if s
+                )
+            consumed.update(registration_used)
+            presentation_excluded.update(registration_fields - registration_used)
             rendered.append(result)
             rendered_by_id[entry.id] = result
             used.update(consumed)

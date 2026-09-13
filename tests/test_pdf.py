@@ -5,6 +5,7 @@ import subprocess
 import xml.etree.ElementTree as ET
 import zipfile
 from importlib.metadata import PackageNotFoundError
+from importlib.resources import files
 
 import pytest
 import yaml
@@ -15,7 +16,7 @@ from lattes2pdf.cli import PRESETS, main
 from lattes2pdf.lattes import read_lattes
 from lattes2pdf.models import CVError
 from lattes2pdf.rendering import export_data
-from lattes2pdf.selection import THEMES, Profile
+from lattes2pdf.selection import THEMES, Profile, load_profile
 
 
 def pdf_text(data: bytes) -> str:
@@ -24,6 +25,37 @@ def pdf_text(data: bytes) -> str:
         " ",
         " ".join(page.extract_text() for page in PdfReader(io.BytesIO(data)).pages),
     )
+
+
+@pytest.mark.parametrize("theme", THEMES)
+def test_presentation_order_descriptions_and_registrations_reach_each_theme(
+    fixtures, theme
+):
+    profile = load_profile(files("lattes2pdf").joinpath("presets", "completo.yaml"))
+    profile.theme = theme
+    data, _ = export_data(read_lattes(fixtures / "presentation.xml"), profile)
+    pdf = render_pdf(yaml.safe_dump(data, allow_unicode=True, sort_keys=False))
+    # Some native fonts map visible hyphens to U+00AD in PDF text extraction.
+    text = pdf_text(pdf).replace("\u00ad", "-").replace(" ", "")
+    for first, second in (
+        ("Mestrado em Arquivologia", "Universidade Fictícia"),
+        ("Curso de curta duração em Preservação digital", "Escola Fictícia de Acervos"),
+        ("Pesquisadora", "Instituto Fictício de Memória"),
+        ("Trabalhos completos publicados em eventos", "Resumos publicados em eventos"),
+    ):
+        assert text.index(first.replace(" ", "")) < text.index(second.replace(" ", ""))
+    for expected in (
+        "Título: Memória comunitária",
+        "Descrição: Pesquisa fictícia",
+        "documentos [públicos] & relatos locais",
+        "Instituição de registro: Instituto Fictício de Registros",
+        "Número do registro: REG-FICTICIO-001",
+        "Data de depósito: 31/12/2023",
+        "Data da concessão: 29/02/2024",
+    ):
+        assert text.count(expected.replace(" ", "")) == 1
+    for omitted in ("Título do trabalho", "Exposição; Outras Formas", "#text", "\\u{"):
+        assert omitted.replace(" ", "") not in text
 
 
 @pytest.mark.parametrize("theme", THEMES)

@@ -55,6 +55,11 @@ sections:
     show_institution: true
   research.projects:
     show_description: true
+  lattes.patentes:
+    show_registration_institution: true
+    show_registration_number: true
+    show_deposit_date: true
+    show_grant_date: true
   events:
     show_event_type: false
   publications.articles:

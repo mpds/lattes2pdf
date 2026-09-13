@@ -36,6 +36,12 @@ SECTION_OPTIONS = {
         "show_event_type": (False, "Tipo do evento e participação"),
         "show_links": (True, "DOI ou endereço do trabalho"),
     },
+    "lattes.patentes": {
+        "show_registration_institution": (True, "Instituição de registro"),
+        "show_registration_number": (True, "Número do registro"),
+        "show_deposit_date": (True, "Data de depósito"),
+        "show_grant_date": (True, "Data da concessão"),
+    },
     **{
         name: {"show_institution": (True, "Instituição e unidade")}
         for name in (
@@ -154,6 +160,15 @@ def _category_lines(name: str) -> list[str]:
         )
     if category.separate or name == "lattes.outras-informacoes":
         lines.extend(["", f"Título da categoria: sections.{name}.title."])
+    if name in SECTION_OPTIONS:
+        lines.extend(["", *_option_lines(name, show_title=False)])
+    if name == "lattes.patentes":
+        lines.extend(
+            [
+                "",
+                "Os ajustes do registro também valem quando o item aparece em Inovação ou em outro grupo.",
+            ]
+        )
     lines.extend(["", "Grupos relacionados:"])
     for section in category.sections:
         if section in definitions:
