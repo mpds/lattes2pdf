@@ -1,6 +1,6 @@
 # Exemplo fictício
 
-O [currículo XML](curriculo.xml) e o [perfil de seleção](profile.yaml) representam um exemplo fictício de um currículo Lattes.
+O [currículo XML](curriculo.xml) apresenta Mariana da Silva, uma cientista do clima com atuação em modelagem, eventos extremos e adaptação. Todos os dados são inventados, incluindo vínculos e publicações. O [perfil de seleção](profile.yaml) usa as categorias do Lattes para escolher o conteúdo dos PDFs.
 
 Todos os PDFs abaixo usam o mesmo conteúdo e o mesmo perfil, com RenderCV 2.8:
 

@@ -1,8 +1,24 @@
-# Conteúdo do exemplo; o tema é escolhido separadamente com --theme.
-include: [profile, experience, education, publications, technical, languages, awards]
-order: [profile, experience, education, publications, technical, languages, awards]
-hide_fields: [details]
+# Selecione as categorias desejadas; veja todas com: lattes2pdf sections
+# O tema é escolhido separadamente com --theme.
+include:
+  - profile  # Resumo e identificação
+  - lattes.endereco  # Endereço
+  - lattes.formacao  # Formação acadêmica/titulação, incluindo formação complementar
+  - lattes.atuacao  # Atuação profissional
+  - lattes.projetos  # Projetos
+  - lattes.artigos  # Artigos completos publicados
+  - lattes.anais  # Trabalhos publicados em anais de eventos
+  - lattes.software  # Programa de computador sem registro
+  - lattes.trabalhos-tecnicos  # Trabalhos técnicos
+  - lattes.orientacoes  # Orientações e supervisões
+  - lattes.eventos  # Eventos
+  - lattes.idiomas  # Idiomas
+  - lattes.premios  # Prêmios e títulos
+
+order: [profile, lattes.formacao, lattes.atuacao, lattes.projetos]
+hide_fields: [NATUREZA]  # Omite a classificação técnica dos tipos de produção.
 sections:
   education:
-    show_thesis: false
-    show_advisors: false
+    show_thesis: true
+  research.projects:
+    show_description: true
