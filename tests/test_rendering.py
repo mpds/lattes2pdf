@@ -35,7 +35,7 @@ def test_publication_authors_dates_and_default_fields(fixtures):
     cv = read_lattes(fixtures / "bibliography.xml")
     data, _ = export_data(cv, Profile(include=["publications.articles"]))
     article = data["cv"]["sections"]["Artigos publicados"][0]
-    assert article["authors"] == ["**Ana Exemplo Fictícia**", "Bruno Exemplo Fictício"]
+    assert article["authors"] == ["**EXEMPLO, A.**", "EXEMPLO, B."]
     assert article["date"] == 2024
     assert article["doi"] == "10.0000/example.article"
     assert article["journal"] == "Revista Fictícia de Acervos"
@@ -205,7 +205,7 @@ def test_invalid_links_and_author_order_preserve_original_information(
         read_lattes(path), Profile(include=["publications.articles"])
     )
     article = data["cv"]["sections"]["Artigos publicados"][0]
-    assert article["authors"][0] == "Bruno Exemplo Fictício"
+    assert article["authors"][0] == "EXEMPLO, B."
     assert "doi" not in article and "url" not in article
     assert "identificador incompleto" in article["summary"]
     assert "javascript:invalid" in article["summary"]

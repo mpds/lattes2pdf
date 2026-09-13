@@ -172,6 +172,8 @@ Perfil YAML:
   authors:
     name_case: original
     highlight_self: true
+    use_informed_citation: true
+    et_al: false
 
 Autores (todas as seções):
   authors.name_case        original | upper | title  (padrão: original)
@@ -180,6 +182,12 @@ Autores (todas as seções):
     title     inicial de cada palavra maiúscula, inclusive Da e De
   authors.highlight_self  true | false              (padrão: true)
     Negrito por ID CNPq; sem ID comparável, por nome completo exato e único.
+  authors.et_al            true | false              (padrão: false)
+    Mais de três autores: primeiro autor seguido de et al.; até três: lista completa.
+    Aplica-se antes do tema, inclusive em temas personalizados e no YAML exportado.
+  authors.use_informed_citation  true | false       (padrão: true; em --full: false)
+    Utilizar Citação Bibliográfica Informada: prefere NOME-PARA-CITACAO de cada autor;
+    se ausente, usa o nome completo. Não altera o nome no cabeçalho nem o estilo bibliográfico.
 
 O perfil também aceita include_ids, exclude_ids, since, until, full,
 allow_unmapped, sections, sort (year_desc ou source) e unknown_year (keep ou exclude).

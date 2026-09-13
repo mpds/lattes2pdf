@@ -26,7 +26,9 @@ def test_author_formatting_preserves_source_order_and_header(
 ):
     source = fixtures / "authors.xml"
     cv = read_lattes(source)
-    data, report = export_data(cv, Profile(authors={"name_case": name_case}))
+    data, report = export_data(
+        cv, Profile(authors={"name_case": name_case, "use_informed_citation": False})
+    )
     first, second = data["cv"]["sections"]["Artigos publicados"]
     assert first["authors"] == expected
     assert second["authors"][0].count("**") == 2
@@ -84,7 +86,8 @@ def test_self_matching_uses_original_identity_and_rejects_ambiguity(
     tree.write(source, encoding="utf-8")
     # Formatting makes different spellings look alike; it must not affect identity.
     data, report = export_data(
-        read_lattes(source), Profile(authors={"name_case": "upper"})
+        read_lattes(source),
+        Profile(authors={"name_case": "upper", "use_informed_citation": False}),
     )
     rendered_authors = data["cv"]["sections"]["Artigos publicados"][0]["authors"]
     expected = [
@@ -113,7 +116,12 @@ def test_citation_name_alone_is_not_an_exact_full_name_match(fixtures, tmp_path)
 @pytest.mark.parametrize("full", [False, True])
 def test_global_author_options_cover_publications_and_generic_entries(fixtures, full):
     cv = read_lattes(fixtures / "authors.xml")
-    data, _ = export_data(cv, Profile(full=full, authors={"name_case": "title"}))
+    data, _ = export_data(
+        cv,
+        Profile(
+            full=full, authors={"name_case": "title", "use_informed_citation": False}
+        ),
+    )
     assert data["cv"]["sections"]["Artigos publicados"][0]["authors"] == [
         "Bruno D'Ávila",
         "**Silva, Ana**",
@@ -158,6 +166,10 @@ def test_identity_survives_hidden_metadata_without_reintroducing_names(fixtures)
         {"name_case": []},
         {"highlight_self": "false"},
         {"highlight_self": 1},
+        {"et_al": "false"},
+        {"et_al": 1},
+        {"use_informed_citation": "true"},
+        {"use_informed_citation": 0},
     ],
 )
 def test_author_profile_rejects_invalid_options(tmp_path, authors):
@@ -176,3 +188,125 @@ def test_profile_loads_global_author_options(tmp_path):
     loaded = load_profile(profile)
     assert loaded.authors == {"name_case": "title", "highlight_self": False}
     assert loaded.full
+
+
+@pytest.mark.parametrize("full", [False, True])
+def test_informed_citation_uses_each_author_spelling_and_preserves_identity(
+    fixtures, tmp_path, full
+):
+    tree = ET.parse(fixtures / "authors.xml")
+    tree.find(".//SOFTWARE/AUTORES[2]").set("NOME-PARA-CITACAO", "SILVA, A.")
+    source = tmp_path / "cv.xml"
+    tree.write(source, encoding="utf-8")
+    cv = read_lattes(source)
+    data, _ = export_data(
+        cv, Profile(full=full, authors={"use_informed_citation": True})
+    )
+    assert data["cv"]["name"] == "Ana da Silva"
+    assert data["cv"]["sections"]["Artigos publicados"][0]["authors"] == [
+        "BRUNO d'ÁVILA",
+        "**SILVA, A.**",
+        "Clara de Souza",
+    ]
+    assert "Autores: BRUNO d'ÁVILA, **SILVA, A.**" in json.dumps(
+        data, ensure_ascii=False
+    )
+    hidden, report = export_data(
+        cv,
+        Profile(
+            authors={"use_informed_citation": True},
+            hide_fields=["NOME-PARA-CITACAO"],
+        ),
+    )
+    assert (
+        hidden["cv"]["sections"]["Artigos publicados"][0]["authors"][1]
+        == "**SILVA, ANA**"
+    )
+    assert all(
+        f["status"] == "excluded"
+        for f in report["fields"]
+        if f["path"].endswith("/@NOME-PARA-CITACAO")
+    )
+    hidden, _ = export_data(
+        cv, Profile(authors={"use_informed_citation": True}, hide_fields=["authors"])
+    )
+    assert hidden["cv"]["sections"]["Artigos publicados"][0]["authors"] == []
+
+
+@pytest.mark.parametrize("count", [0, 1, 3, 4])
+@pytest.mark.parametrize("et_al", [False, True])
+def test_abbreviation_boundary_and_report(fixtures, tmp_path, count, et_al):
+    tree = ET.parse(fixtures / "author-controls.xml")
+    for entry in (tree.find(".//ARTIGO-PUBLICADO"), tree.find(".//SOFTWARE")):
+        for author in entry.findall("AUTORES")[count:]:
+            entry.remove(author)
+    source = tmp_path / "cv.xml"
+    tree.write(source, encoding="utf-8")
+    cv = read_lattes(source)
+    data, report = export_data(
+        cv, Profile(authors={"et_al": et_al, "use_informed_citation": False})
+    )
+    article = data["cv"]["sections"]["Artigos publicados"][0]
+    expected = ["Helena Costa", "**Mariana da Silva**", "Luísa Santos", "Camila Souza"][
+        :count
+    ]
+    abbreviated = et_al and count > 3
+    assert article["authors"] == (["Helena Costa et al."] if abbreviated else expected)
+    text = json.dumps(data["cv"], ensure_ascii=False)
+    assert ("et al." in text) == abbreviated
+    if abbreviated:
+        assert "Camila Souza" not in text and "SOUZA, C." not in text
+        omitted = [f for f in report["fields"] if "/AUTORES[4]/@NOME-" in f["path"]]
+        assert omitted and all(
+            f["status"] == "excluded" and f["reason"] == "presentation" for f in omitted
+        )
+    assert not report["issues"]
+
+
+def test_abbreviation_uses_declared_order_before_formatting(fixtures, tmp_path):
+    tree = ET.parse(fixtures / "author-controls.xml")
+    for entry in (tree.find(".//ARTIGO-PUBLICADO"), tree.find(".//SOFTWARE")):
+        entry.findall("AUTORES")[0].set("ORDEM-DE-AUTORIA", "5")
+    source = tmp_path / "cv.xml"
+    tree.write(source, encoding="utf-8")
+    cv = read_lattes(source)
+    data, _ = export_data(
+        cv,
+        Profile(
+            authors={"et_al": True, "use_informed_citation": True, "name_case": "title"}
+        ),
+    )
+    assert data["cv"]["sections"]["Artigos publicados"][0]["authors"] == [
+        "**Silva, M.** et al."
+    ]
+    # Ambiguous order retains XML order and its existing diagnostic.
+    tree.find(".//ARTIGO-PUBLICADO/AUTORES").set("ORDEM-DE-AUTORIA", "2")
+    tree.write(source, encoding="utf-8")
+    data, report = export_data(
+        read_lattes(source),
+        Profile(authors={"et_al": True, "use_informed_citation": False}),
+    )
+    assert data["cv"]["sections"]["Artigos publicados"][0]["authors"] == [
+        "Helena Costa et al."
+    ]
+    assert any(i["code"] == "author-order" for i in report["issues"])
+
+
+def test_informed_citation_defaults_on_and_can_be_disabled(fixtures):
+    cv = read_lattes(fixtures / "authors.xml")
+    default, _ = export_data(cv, Profile())
+    assert (
+        default["cv"]["sections"]["Artigos publicados"][0]["authors"][1]
+        == "**SILVA, A.**"
+    )
+    disabled, _ = export_data(cv, Profile(authors={"use_informed_citation": False}))
+    assert (
+        disabled["cv"]["sections"]["Artigos publicados"][0]["authors"][1]
+        == "**SILVA, ANA**"
+    )
+    # --full remains independent of the presets and keeps its previous default.
+    full, _ = export_data(cv, Profile(full=True))
+    assert (
+        full["cv"]["sections"]["Artigos publicados"][0]["authors"][1]
+        == "**SILVA, ANA**"
+    )

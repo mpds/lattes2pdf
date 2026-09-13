@@ -111,14 +111,12 @@ def _authors(
     """Return safely formatted names in the declared authorship order."""
     authors = []
     used = set()
+    name_fields = ("NOME-COMPLETO-DO-AUTOR", "NOME-PARA-CITACAO")
+    if profile.authors.get("use_informed_citation", not profile.full):
+        name_fields = tuple(reversed(name_fields))
     for path, sources in _author_groups(entry).items():
         name = next(
-            (
-                f
-                for key in ("NOME-COMPLETO-DO-AUTOR", "NOME-PARA-CITACAO")
-                for f in sources
-                if f.name == key and f.text
-            ),
+            (f for key in name_fields for f in sources if f.name == key and f.text),
             None,
         )
         if name:
@@ -138,6 +136,10 @@ def _authors(
         )
     else:
         authors.sort(key=lambda pair: pair[0])
+    abbreviate = profile.authors.get("et_al", False) and len(authors) > 3
+    if abbreviate:
+        authors = authors[:1]
+        used = {name.path for _, name in authors}
     formatted = []
     name_case = profile.authors.get("name_case", "original")
     for _, name in authors:
@@ -150,6 +152,8 @@ def _authors(
         if self_path == name.path.rsplit("/", 1)[0]:
             display = f"**{display}**"
         formatted.append(display)
+    if abbreviate:
+        formatted[0] += " et al."
     return formatted, used
 
 
@@ -1295,9 +1299,25 @@ def export_data(
                 if profile.full
                 else _registration_details(entry, profile, issues)
             )
+            author_excluded = {
+                f.path
+                for f in entry.fields
+                if f.tag == "AUTORES"
+                and f.name in {"NOME-COMPLETO-DO-AUTOR", "NOME-PARA-CITACAO"}
+                and f.path not in author_fields
+                and (
+                    profile.authors.get("et_al", False)
+                    or profile.authors.get("use_informed_citation", not profile.full)
+                )
+            }
+            presentation_excluded.update(author_excluded)
             view = replace(
                 entry,
-                fields=[f for f in entry.fields if f.path not in registration_fields],
+                fields=[
+                    f
+                    for f in entry.fields
+                    if f.path not in registration_fields | author_excluded
+                ],
             )
             result, consumed = _render_entry(
                 view, kind, authors, author_fields, profile, issues, institutions

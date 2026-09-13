@@ -82,8 +82,12 @@ class Profile:
         if not isinstance(self.authors, dict) or set(self.authors) - {
             "name_case",
             "highlight_self",
+            "use_informed_citation",
+            "et_al",
         }:
-            raise CVError("authors aceita somente name_case e highlight_self.")
+            raise CVError(
+                "authors aceita somente name_case, highlight_self, use_informed_citation e et_al."
+            )
         if self.authors.get("name_case", "original") not in (
             "original",
             "upper",
@@ -92,6 +96,16 @@ class Profile:
             raise CVError("authors.name_case deve ser um de: original, upper, title.")
         if type(self.authors.get("highlight_self", True)) is not bool:
             raise CVError("authors.highlight_self deve ser booleano.")
+        for option in ("use_informed_citation", "et_al"):
+            if (
+                type(
+                    self.authors.get(
+                        option, option == "use_informed_citation" and not self.full
+                    )
+                )
+                is not bool
+            ):
+                raise CVError(f"authors.{option} deve ser booleano.")
         for name in (
             "include",
             "exclude",

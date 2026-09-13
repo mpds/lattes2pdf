@@ -29,6 +29,8 @@ hide_fields: [details, summary]
 authors:
   name_case: original
   highlight_self: true
+  et_al: false  # Utilizar abreviação et al.
+  use_informed_citation: true  # Utilizar Citação Bibliográfica Informada
 sections:
   profile:
     show_birth_date: false

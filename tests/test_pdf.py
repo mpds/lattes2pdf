@@ -210,7 +210,7 @@ def test_articles_with_missing_authors_keep_dates_journals_and_links(fixtures, t
     text = pdf_text(result).replace(" ", "")
     for expected in (
         "Catálogos abertos e memória comunitária",
-        "Clara Exemplo Fictícia",
+        "EXEMPLO, C.",
         "Organização de coleções sem autoria informada",
         "Cadernos Fictícios de Documentação",
         "Inventário de fontes orais",
@@ -223,7 +223,7 @@ def test_articles_with_missing_authors_keep_dates_journals_and_links(fixtures, t
         assert expected.replace(" ", "") in text
     for omitted in ("Nota cadastral", "Natureza", "0000-0000", "presente", "et al."):
         assert omitted.replace(" ", "") not in text
-    assert "AnaExemploFictícia,BrunoExemploFictício,ClaraExemploFictícia" in text
+    assert "EXEMPLO,A.,EXEMPLO,B.,EXEMPLO,C." in text
     bold, regular = [], []
     for page in PdfReader(io.BytesIO(result)).pages:
         page.extract_text(
@@ -239,8 +239,9 @@ def test_articles_with_missing_authors_keep_dates_journals_and_links(fixtures, t
         .replace(" ", "")
         .split("Catálogosabertosememóriacomunitária", 1)[1]
     )
-    assert article_bold.count("AnaExemploFictícia") == 2
-    assert "BrunoExemploFictício," in "".join(regular).replace(" ", "")
+    assert article_bold.count("EXEMPLO,A.") == 1
+    assert article_bold.count("AnaExemploFictícia") == 1
+    assert "EXEMPLO,B.," in "".join(regular).replace(" ", "")
     links = [
         annotation.get_object().get("/A", {}).get("/URI", "")
         for page in PdfReader(io.BytesIO(result)).pages
@@ -302,7 +303,8 @@ def test_chapter_book_title_survives_compilation_without_details(
 @pytest.mark.parametrize("name_case", ["original", "upper", "title"])
 def test_author_case_and_self_identity_reach_the_pdf(fixtures, name_case):
     data, _ = export_data(
-        read_lattes(fixtures / "authors.xml"), Profile(authors={"name_case": name_case})
+        read_lattes(fixtures / "authors.xml"),
+        Profile(authors={"name_case": name_case, "use_informed_citation": False}),
     )
     result = render_pdf(yaml.safe_dump(data, allow_unicode=True, sort_keys=False))
     text = pdf_text(result).replace(" ", "").replace("’", "'")
@@ -344,7 +346,7 @@ def test_author_symbols_are_literal_even_when_highlighted(fixtures, tmp_path):
     tree = ET.parse(fixtures / "authors.xml")
     author = tree.find(".//ARTIGO-PUBLICADO/AUTORES")
     name = 'Silva_* & #read("inexistente") [Nome]'
-    author.set("NOME-COMPLETO-DO-AUTOR", name)
+    author.set("NOME-PARA-CITACAO", name)
     path = tmp_path / "cv.xml"
     tree.write(path, encoding="utf-8")
     data, _ = export_data(read_lattes(path), Profile(include=["publications.articles"]))
@@ -585,3 +587,35 @@ def test_missing_or_unsupported_backend_has_an_install_hint(monkeypatch):
     monkeypatch.setattr("lattes2pdf.backend.version", lambda _: "3.0")
     with pytest.raises(CVError, match="não é suportado"):
         rendercv_version()
+
+
+@pytest.mark.parametrize("theme", [*THEMES, "custom"])
+@pytest.mark.parametrize("enabled", [False, True])
+def test_author_controls_reach_every_theme(fixtures, tmp_path, theme, enabled):
+    if theme == "custom":
+        design = tmp_path / "design.yaml"
+        design.write_text(
+            "design:\n  theme: classic\n  page:\n    size: a4\n    show_top_note: false\n",
+            encoding="utf-8",
+        )
+        theme = str(design)
+    data, report = export_data(
+        read_lattes(fixtures / "author-controls.xml"),
+        Profile(
+            theme=theme,
+            hide_fields=["details"],
+            authors={"et_al": enabled, "use_informed_citation": enabled},
+        ),
+    )
+    text = pdf_text(
+        render_pdf(yaml.safe_dump(data, allow_unicode=True, sort_keys=False))
+    )
+    normalized = re.sub(r"\s+", "", text)
+    if enabled:
+        assert normalized.count("COSTA,H.etal.") == 2
+        assert "Camila" not in text and "SOUZA" not in text
+    else:
+        assert normalized.count("HelenaCosta") == 2
+        assert normalized.count("CamilaSouza") == 2
+        assert "etal." not in normalized
+    assert not report["issues"]
