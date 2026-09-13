@@ -71,9 +71,10 @@ PATENT_SECTIONS = (
 )
 TECHNICAL_SUBTYPES = {"ASSESSORIA", "CONSULTORIA", "EXTENSAO_TECNOLOGICA"}
 
-# Address is controlled by show_address. Citation metrics and totals do not
-# belong in the CV. These categories cover the remaining native checkboxes.
+# Citation metrics and totals do not belong in the CV. These categories cover
+# the remaining native checkboxes over the existing source records.
 CATEGORIES = {
+    "lattes.endereco": Category("Endereço", "Address", ("profile",), separate=True),
     "lattes.licencas": Category("Licenças", "Leave", ("leave",)),
     "lattes.idiomas": Category("Idiomas", "Languages", ("languages",)),
     "lattes.premios": Category("Prêmios e títulos", "Awards and honors", ("awards",)),

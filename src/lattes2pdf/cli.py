@@ -155,7 +155,6 @@ Perfil YAML:
   hide_fields: [contact, advisors, thesis]
   language: pt
   theme: classic
-  show_address: false
   authors:
     name_case: original
     highlight_self: true
@@ -182,11 +181,11 @@ O ano do registro prioriza publicação/conclusão; sem ano, o filtro mantém o 
 e emite aviso por padrão. --full inclui o conteúdo conhecido, com dados privados,
 metadados administrativos e variantes de outro idioma discriminados no relatório.
 Em inglês, utiliza a tradução disponível no XML e conserva o original quando faltar.
-show_address controla o endereço profissional, residencial e eletrônico; hide_fields ainda prevalece.
+lattes.endereco seleciona endereço profissional, residencial e eletrônico; hide_fields ainda prevalece.
 Ampliado e completo incluem endereço; resumido não. Documentos pessoais não são exportados.
-Sem show_address, perfis existentes preservam seu comportamento de contato e endereço.
+Perfis que usam apenas seções existentes preservam seu comportamento de contato e endereço.
 Afastamentos exigem a seleção de leave, lattes.licencas, lattes ou do ID.
-O preset completo aceita filtros; --full continua independente dos presets e não aceita show_address.
+O preset completo aceita filtros; --full continua independente dos presets.
 As seções com apresentação enxuta conservam seu contexto principal; --full inclui os detalhes conhecidos.
 hide_fields: [details] omite os detalhes genéricos das demais seções.
 """,
@@ -207,12 +206,6 @@ hide_fields: [details] omite os detalhes genéricos das demais seções.
         "--profile",
         type=Path,
         help="perfil YAML (padrão: preset resumido; exceto --full)",
-    )
-    conversion.add_argument(
-        "--show-address",
-        action=argparse.BooleanOptionalAction,
-        default=None,
-        help="mostrar/ocultar endereço profissional, residencial e eletrônico (substitui o perfil)",
     )
     for name, description in {
         "include": "incluir seção, prefixo ou categoria lattes.* (substitui a lista do perfil)",
@@ -311,7 +304,6 @@ def _export(arguments, cv) -> None:
             "sort",
             "language",
             "theme",
-            "show_address",
             "full",
             "allow_unmapped",
         )

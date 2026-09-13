@@ -1,8 +1,9 @@
 # Seleção de conteúdo do modelo Completo da exportação Lattes.
-# Edite as categorias: lattes2pdf sections lattes
+# Edite as categorias: lattes2pdf sections
 # Cada registro aparece uma vez, mesmo quando pertence a várias categorias.
 include:
   - profile
+  - lattes.endereco  # Endereço
   - lattes.licencas  # Licenças
   - lattes.idiomas  # Idiomas
   - lattes.premios  # Prêmios e títulos
@@ -35,9 +36,6 @@ include:
   - lattes.eventos  # Eventos
   - lattes.bancas  # Bancas
   - lattes.outras-informacoes  # Outras informações relevantes
-
-# Endereço profissional, residencial e eletrônico.
-show_address: true
 
 # A bio é opcional; remova summary para incluí-la.
 # Os controles de apresentação são independentes do modelo de seleção.

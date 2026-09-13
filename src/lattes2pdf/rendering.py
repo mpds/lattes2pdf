@@ -809,10 +809,10 @@ def _profile(
     if name:
         used.add(name.path)
     sections = output["sections"]
-    if profile.show_address is True:
+    if profile.category_selection("lattes.endereco") is True:
         addresses, address_fields = _addresses(entry, profile)
         if addresses:
-            title = "Endereço" if profile.language == "pt" else "Address"
+            title = literal(profile.section_title("lattes.endereco"))
             sections[title] = addresses
             used.update(address_fields)
     native = any(category_names(s) for s in profile.include)
@@ -826,7 +826,7 @@ def _profile(
         "email": ("E-MAIL", "ELETRONICO"),
         "website": ("HOME-PAGE",),
     }.items():
-        if profile.show_address is True:
+        if profile.category_selection("lattes.endereco") is True:
             continue
         source = entry.find(*names)
         if source:
@@ -875,7 +875,7 @@ def _category_sections(
     if profile_entry:
         for category, title in (
             ("", literal(profile.section_title("profile"))),
-            ("", "Endereço" if profile.language == "pt" else "Address"),
+            ("lattes.endereco", literal(profile.section_title("lattes.endereco"))),
             (
                 "lattes.outras-informacoes",
                 literal(profile.section_title("lattes.outras-informacoes")),

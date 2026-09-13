@@ -101,15 +101,15 @@ def test_category_exclusions_and_years_compose_with_canonical_sections(native_cv
     assert any(e.title() == "Consultoria em acervos" for e in entries)
 
 
-def test_address_toggle_is_independent_of_generic_details_and_other_private_fields(
+def test_address_category_is_independent_of_generic_details_and_other_private_fields(
     native_cv,
 ):
     for show in [False, True]:
         data, report = export_data(
             native_cv,
             Profile(
-                include=["profile"],
-                show_address=show,
+                include=["profile", "lattes.endereco"],
+                exclude=[] if show else ["lattes.endereco"],
                 hide_fields=["details", "summary"],
             ),
         )
@@ -130,7 +130,7 @@ def test_address_toggle_is_independent_of_generic_details_and_other_private_fiel
                 for f in residential
             )
     data, _ = export_data(
-        native_cv, Profile(show_address=True, hide_fields=["contact"])
+        native_cv, Profile(include=["lattes.endereco"], hide_fields=["contact"])
     )
     assert "Rua Residencial Fictícia" not in json.dumps(data, ensure_ascii=False)
     legacy, _ = export_data(native_cv, Profile(include=["profile"]))
@@ -156,9 +156,8 @@ def test_other_information_and_leave_are_explicit_categories(native_cv):
 
 def test_excluding_other_information_preserves_address_and_profile(native_cv):
     profile = Profile(
-        include=["profile", "lattes.outras-informacoes"],
+        include=["profile", "lattes.outras-informacoes", "lattes.endereco"],
         exclude=["lattes.outras-informacoes"],
-        show_address=True,
     )
     data, report = export_data(native_cv, profile)
     text = json.dumps(data, ensure_ascii=False)
@@ -171,6 +170,53 @@ def test_excluding_other_information_preserves_address_and_profile(native_cv):
     assert info["status"] == "excluded"
 
 
+@pytest.mark.parametrize("include", [["profile"], ["profile", "lattes"]])
+def test_excluding_address_preserves_bio_other_information_and_name(native_cv, include):
+    data, report = export_data(
+        native_cv,
+        Profile(include=include, exclude=["lattes.endereco"]),
+    )
+    assert data["cv"]["name"] == native_cv.name
+    text = json.dumps(data, ensure_ascii=False)
+    assert "Pesquisadora fictícia em acervos" in text
+    assert "Disponibilidade para colaboração fictícia" in text
+    assert "Rua Profissional Fictícia" not in text
+    assert "Rua Residencial Fictícia" not in text
+    assert "@example.org" not in text
+    assert (
+        next(e for e in report["entries"] if e["section"] == "profile")["status"]
+        == "selected"
+    )
+
+
+def test_address_only_selection_can_be_named_ordered_and_excluded_by_profile_id(
+    native_cv,
+):
+    profile = Profile(
+        include=["lattes.endereco", "lattes.formacao"],
+        order=["lattes.formacao", "lattes.endereco"],
+        sections={"lattes.endereco": {"title": "Contato"}},
+        hide_fields=["details"],
+    )
+    data, report = export_data(native_cv, profile)
+    assert list(data["cv"]["sections"]) == [
+        "Formação acadêmica/titulação",
+        "Formação complementar",
+        "Contato",
+    ]
+    text = json.dumps(data, ensure_ascii=False)
+    assert text.count("Rua Profissional Fictícia") == 1
+    assert text.count("Rua Residencial Fictícia") == 1
+    assert "Pesquisadora fictícia em acervos" not in text
+    assert "Disponibilidade para colaboração fictícia" not in text
+    assert "email" not in data["cv"]
+    source = next(e for e in inspection(native_cv, ["lattes.endereco"])["entries"])
+    assert source["section"] == "profile"
+    profile.exclude_ids = [source["id"]]
+    data, _ = export_data(native_cv, profile)
+    assert "Contato" not in data["cv"]["sections"]
+
+
 def test_custom_order_and_titles_apply_with_native_categories(native_cv):
     profile = Profile(
         include=[
@@ -178,13 +224,13 @@ def test_custom_order_and_titles_apply_with_native_categories(native_cv):
             "lattes.formacao",
             "lattes.patentes",
             "lattes.outras-informacoes",
+            "lattes.endereco",
         ],
         order=["lattes.patentes", "education", "profile"],
         sections={
             "lattes.patentes": {"title": "Registros"},
             "education": {"title": "Estudos"},
         },
-        show_address=True,
         hide_fields=["details"],
     )
     data, _ = export_data(native_cv, profile)
@@ -199,7 +245,7 @@ def test_custom_order_and_titles_apply_with_native_categories(native_cv):
 def test_all_native_categories_remain_editable_and_do_not_mean_full(native_cv):
     data, report = export_data(
         native_cv,
-        Profile(include=["lattes"], exclude=["lattes.patentes"], show_address=False),
+        Profile(include=["lattes"], exclude=["lattes.patentes", "lattes.endereco"]),
     )
     assert not report["full_requested"]
     assert "Software Registrado Exemplo" not in json.dumps(data, ensure_ascii=False)
@@ -209,16 +255,17 @@ def test_all_native_categories_remain_editable_and_do_not_mean_full(native_cv):
     )
 
 
-@pytest.mark.parametrize("value", [True, False, "yes", 1])
-def test_full_does_not_accept_address_options(value):
+@pytest.mark.parametrize("option", ["include", "exclude"])
+def test_full_does_not_accept_address_filters(option):
     with pytest.raises(CVError):
-        Profile(full=True, show_address=value).validate()
+        Profile(full=True, **{option: ["lattes.endereco"]}).validate()
 
 
-def test_cli_address_override_and_category_help(fixtures, tmp_path, capsys):
+def test_cli_address_selection_and_category_help(fixtures, tmp_path, capsys):
     assert main(["sections"]) == 0
     default_catalogue = capsys.readouterr().out
     assert "lattes.formacao" in default_catalogue
+    assert "lattes.endereco" in default_catalogue
     assert main(["sections", "lattes"]) == 0
     assert capsys.readouterr().out == default_catalogue
     assert main(["sections", "lattes.formacao"]) == 0
@@ -236,7 +283,8 @@ def test_cli_address_override_and_category_help(fixtures, tmp_path, capsys):
                 str(fixtures / "native-categories.xml"),
                 "--profile",
                 str(profile),
-                "--no-show-address",
+                "--exclude",
+                "lattes.endereco",
                 "-o",
                 str(output),
             ]
@@ -249,7 +297,8 @@ def test_cli_address_override_and_category_help(fixtures, tmp_path, capsys):
             [
                 "export",
                 str(fixtures / "native-categories.xml"),
-                "--show-address",
+                "--include",
+                "lattes.endereco",
                 "--include",
                 "lattes.formacao",
                 "--force",

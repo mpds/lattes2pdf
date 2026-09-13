@@ -135,6 +135,13 @@ def _category_lines(name: str) -> list[str]:
                 "Esta categoria seleciona apenas os registros que atendem ao seu critério nos grupos abaixo.",
             ]
         )
+    elif name == "lattes.endereco":
+        lines.extend(
+            [
+                "",
+                "Seleciona os endereços profissional, residencial e eletrônico do perfil.",
+            ]
+        )
     elif name == "lattes.outras-informacoes":
         lines.extend(
             ["", "Seleciona somente as outras informações relevantes do perfil."]
@@ -185,7 +192,6 @@ def describe_sections(prefix: str | None = None) -> str:
                 "Grupos e ajustes de uma categoria: lattes2pdf sections lattes.formacao",
                 "Em export/render, use --include CATEGORIA ou --exclude CATEGORIA.",
                 "lattes seleciona todas as categorias; cada registro aparece uma vez.",
-                "Endereço: show_address: true|false ou --show-address/--no-show-address.",
             ]
         )
     elif prefix in CATEGORIES:

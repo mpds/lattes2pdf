@@ -1,5 +1,5 @@
 # Seleção de conteúdo do modelo Resumido da exportação Lattes.
-# Edite as categorias: lattes2pdf sections lattes
+# Edite as categorias: lattes2pdf sections
 # Cada registro aparece uma vez, mesmo quando pertence a várias categorias.
 include:
   - profile
@@ -18,9 +18,6 @@ include:
   - lattes.artistica  # Produção artística/cultural
   - lattes.orientacoes  # Orientações e supervisões
   - lattes.demais-trabalhos  # Demais trabalhos
-
-# Endereço profissional, residencial e eletrônico.
-show_address: false
 
 # A bio é opcional; remova summary para incluí-la.
 # Os controles de apresentação são independentes do modelo de seleção.

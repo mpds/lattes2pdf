@@ -54,7 +54,6 @@ class Profile:
     sort: str = "year_desc"
     language: str = "pt"
     theme: str = "classic"
-    show_address: bool | None = None
     full: bool = False
     allow_unmapped: bool = False
 
@@ -69,6 +68,14 @@ class Profile:
 
     def section_option(self, name: str, option: str) -> bool:
         return self.sections.get(name, {}).get(option, SECTION_OPTIONS[name][option][0])
+
+    def category_selection(self, name: str) -> bool | None:
+        """Resolve shared profile fields; None preserves selection by source section."""
+        if any(name in category_names(s) for s in self.exclude):
+            return False
+        if any(category_names(s) for s in self.include):
+            return any(name in category_names(s) for s in self.include)
+        return None
 
     def validate(self) -> None:
         validate_options(self.sections)
@@ -132,8 +139,6 @@ class Profile:
         validate_theme(self.theme)
         if type(self.full) is not bool or type(self.allow_unmapped) is not bool:
             raise CVError("full e allow_unmapped devem ser booleanos.")
-        if self.show_address is not None and type(self.show_address) is not bool:
-            raise CVError("show_address deve ser true ou false.")
         if self.full and (
             self.include
             or self.exclude
@@ -144,7 +149,6 @@ class Profile:
             or self.since is not None
             or self.until is not None
             or self.section_years
-            or self.show_address is not None
             or self.unknown_year != "keep"
             or any(
                 key != "title" for options in self.sections.values() for key in options
@@ -241,7 +245,6 @@ def select(cv: Curriculum, profile: Profile) -> Selection:
         if (
             profile.include
             and not any(matches_selector(entry, s) for s in profile.include)
-            and not (entry.section == "profile" and profile.show_address is True)
         ) or any(
             matches_selector(entry, s)
             and not (entry.section == "profile" and category_names(s))
@@ -311,21 +314,16 @@ def select(cv: Curriculum, profile: Profile) -> Selection:
 def hidden(source: SourceField, profile: Profile) -> bool:
     names = profile.hide_fields
     if "/ENDERECO[" in source.path:
-        if profile.show_address is False:
+        address = profile.category_selection("lattes.endereco")
+        if address is False:
             return True
-        if profile.show_address is True and source.name.startswith(
-            ("CODIGO-", "FLAG-")
-        ):
+        if address is True and source.name.startswith(("CODIGO-", "FLAG-")):
             return True
-    if source.tag == "OUTRAS-INFORMACOES-RELEVANTES":
-        if any(
-            "lattes.outras-informacoes" in category_names(s) for s in profile.exclude
-        ):
-            return True
-        if any(category_names(s) for s in profile.include) and not any(
-            "lattes.outras-informacoes" in category_names(s) for s in profile.include
-        ):
-            return True
+    if (
+        source.tag == "OUTRAS-INFORMACOES-RELEVANTES"
+        and profile.category_selection("lattes.outras-informacoes") is False
+    ):
+        return True
     if (
         "/DADOS-GERAIS[" in source.path
         and not any(s == "profile" for s in profile.include)
@@ -385,7 +383,7 @@ def visible_fields(entry: Entry, profile: Profile) -> list[SourceField]:
                 and f.name in catalog()["elements"]["LICENCA"]["attributes"]
             )
             or (
-                profile.show_address is True
+                profile.category_selection("lattes.endereco") is True
                 and f.disposition == "private"
                 and f.tag == "ENDERECO-RESIDENCIAL"
                 and f.name

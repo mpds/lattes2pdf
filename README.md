@@ -87,9 +87,13 @@ Você pode combinar categorias e grupos no arquivo de configuração do perfil. 
 ```yaml
 include: [profile, lattes.formacao, lattes.atuacao, lattes.artigos]
 exclude: [training]
-show_address: false
 ```
 
+Endereço também é uma categoria: use `lattes.endereco` em `include` ou `exclude`. Por exemplo, para gerar um currículo sem endereço a partir do seu perfil:
+
+```bash
+lattes2pdf render curriculo.xml --profile profile.yaml --exclude lattes.endereco -o cv.pdf
+```
 
 ## Editar o resultado no RenderCV
 
