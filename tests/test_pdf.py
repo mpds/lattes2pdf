@@ -148,7 +148,7 @@ def test_education_presentation_and_profile_options_reach_the_pdf(fixtures, tmp_
     text = pdf_text(output.read_bytes()).replace(" ", "")
     for expected in [
         "Minha formação",
-        "Título do trabalho: Preservação de acervos comunitários",
+        "Título: Preservação de acervos comunitários",
         "Coorientação: Bruno Exemplo",
         "Incompleto",
         "Início: 2013",
@@ -347,7 +347,7 @@ def test_preset_profiles_render_contrasting_cvs(fixtures, tmp_path, preset, file
         assert ("ana@example.org" in text) == (preset != "resumido")
         assert "Catálogosabertos&memóriadigital" in text
         assert "BrunoExemploFictício" in text
-        assert "Títulodotrabalho:" in text
+        assert "Título:" in text
     else:
         bio = "Museólogacomatuaçãoemacessibilidadecultural"
         assert ("sofia@example.org" in text) == (preset != "resumido")

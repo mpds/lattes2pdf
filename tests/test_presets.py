@@ -67,7 +67,7 @@ def test_presets_use_native_selection_and_allow_existing_inputs(
         article = data["cv"]["sections"]["Artigos publicados"][0]
         assert article["authors"]
         text = json.dumps(data, ensure_ascii=False)
-        assert "Título do trabalho" in text
+        assert "Título" in text
         assert "Orientação:" in text
 
 

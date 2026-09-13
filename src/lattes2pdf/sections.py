@@ -9,7 +9,7 @@ SECTION_OPTIONS = {
         "show_birth_place": (False, "Local de nascimento no cabeçalho"),
     },
     "education": {
-        "show_thesis": (False, "Título do trabalho"),
+        "show_thesis": (False, "Título"),
         "show_advisors": (False, "Orientação e coorientação"),
         "show_scholarship": (True, "Bolsa e agência financiadora"),
     },
@@ -33,7 +33,7 @@ SECTION_OPTIONS = {
     },
     "languages": {"show_proficiency": (True, "Leitura, fala, escrita e compreensão")},
     "events": {
-        "show_event_type": (True, "Tipo do evento e participação"),
+        "show_event_type": (False, "Tipo do evento e participação"),
         "show_links": (True, "DOI ou endereço do trabalho"),
     },
     **{

@@ -63,7 +63,7 @@ def test_education_options_translation_and_explicit_hiding(fixtures):
     assert "Preserving community collections" in text
     assert "Preservação de acervos comunitários" not in text
     assert "Memória e acesso a coleções digitais" in text  # No English version in XML.
-    assert "Work title: Preserving community collections" in text
+    assert "Title: Preserving community collections" in text
     assert "Advisor: Clara Exemplo" in text and "Co-advisor: Bruno Exemplo" in text
     assert "Incomplete" in text
     assert all(e["section"] in {"profile", "education"} for e in report["entries"])
@@ -98,9 +98,7 @@ def test_work_title_variants_from_the_cnpq_schema(tmp_path, tag, field):
     ET.ElementTree(root).write(source, encoding="utf-8")
     cv = read_lattes(source)
     data, _ = export_data(cv, Profile(sections={"education": {"show_thesis": True}}))
-    assert "Título do trabalho: Trabalho fictício" in json.dumps(
-        data, ensure_ascii=False
-    )
+    assert "Título: Trabalho fictício" in json.dumps(data, ensure_ascii=False)
 
 
 def test_status_remains_explicit_without_visible_end_dates(fixtures):

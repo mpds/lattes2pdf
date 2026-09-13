@@ -34,12 +34,9 @@ def test_concise_sections_keep_context_and_report_what_was_displayed(fixtures):
     assert language["summary"] == "Leitura: bem; Fala: razoavelmente; Escrita: pouco"
     events = sections["Participação em eventos"]
     assert events[0]["name"] == "Mapas e comunidades"
-    assert events[0]["summary"].splitlines() == [
-        "Simpósio Fictício de Memória",
-        "Simpósio; Apresentação Oral",
-    ]
+    assert events[0]["summary"] == "Simpósio Fictício de Memória"
     assert events[1]["name"] == "Congresso Fictício de Arquivos"
-    assert events[1]["summary"] == "Congresso"
+    assert "summary" not in events[1]
     assert any(
         e["title"] == "Congresso Fictício de Arquivos"
         for e in inspection(cv, ["events"])["entries"]
@@ -87,7 +84,7 @@ def test_context_options_and_explicit_field_filters_do_not_leak(fixtures):
     text = json.dumps(sections, ensure_ascii=False)
     assert "Diana Exemplo Fictícia" not in text
     assert "Bruno Exemplo Fictício" not in text
-    assert "Descrição extensa" in sections["Projetos"][0]["summary"]
+    assert "Descrição extensa" in sections["Projetos"][0]["description"]
     assert "summary" not in sections["Idiomas"][0]
     assert "summary" not in sections["Estágios"][0]
     assert "Carla Exemplo Fictícia" in sections["Organização de eventos"][0]["summary"]
@@ -128,7 +125,10 @@ def test_supervision_level_uses_canonical_values_and_preserves_other_text(
 def test_context_english_uses_source_translations_and_keeps_proficiency_values(
     fixtures,
 ):
-    data, _ = export_data(read_lattes(fixtures / "context.xml"), Profile(language="en"))
+    data, _ = export_data(
+        read_lattes(fixtures / "context.xml"),
+        Profile(language="en", sections={"events": {"show_event_type": True}}),
+    )
     sections = data["cv"]["sections"]
     assert sections["Completed supervision"][0]["name"] == "Cataloguing historical maps"
     assert "Undergraduate research" in sections["Completed supervision"][0]["summary"]

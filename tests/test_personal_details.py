@@ -59,7 +59,7 @@ def test_scholarship_and_award_toggles_hide_only_the_requested_context(fixtures)
     text = json.dumps(data, ensure_ascii=False)
     assert "Bolsista" not in text and "Fundação Exemplo" not in text
     assert "Associação Exemplo" not in text
-    assert "Título do trabalho: Memória comunitária" in text
+    assert "Título: Memória comunitária" in text
     assert "Prêmio de destaque científico" in text and "2024" in text
     fields = {f["path"]: f for f in report["fields"]}
     for source in cv.fields:

@@ -122,8 +122,8 @@ def test_dates_do_not_invent_precision_or_ongoing_status(fixtures, tmp_path):
         read_lattes(path), Profile(include=["education", "experience"])
     )
     education = data["cv"]["sections"]["Formação acadêmica/titulação"]
-    masters = next(e for e in education if e["name"].startswith("Mestrado —"))
-    doctorate = next(e for e in education if e["name"].startswith("Doutorado —"))
+    masters = next(e for e in education if e["name"].startswith("Mestrado em "))
+    doctorate = next(e for e in education if e["name"].startswith("Doutorado em "))
     assert masters["date"] == "Início: 2022"
     assert "end_date" not in masters
     assert doctorate["start_date"] == 2022

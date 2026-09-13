@@ -326,7 +326,8 @@ def _render_education(
             "degree": degree,
         }
     else:
-        result = {"name": literal(degree + (f" — {course}" if course else ""))}
+        connector = " em " if profile.language == "pt" else " in "
+        result = {"name": literal(degree + (connector + course if course else ""))}
         if institution:
             lines.append(institution)
 
@@ -364,7 +365,7 @@ def _render_education(
             "TITULO-DO-TRABALHO",
         )
         if thesis:
-            prefix = "Título do trabalho" if profile.language == "pt" else "Work title"
+            prefix = "Título" if profile.language == "pt" else "Title"
             lines.append(f"{prefix}: {thesis}")
     if profile.section_option("education", "show_advisors"):
         for names, labels in (
@@ -579,6 +580,7 @@ def _render_context(
     if title:
         used.add(title.path)
     lines = []
+    description = ""
     if entry.section.startswith("supervision."):
         level = next(
             (
@@ -659,7 +661,7 @@ def _render_context(
                     ("Members: " if english else "Integrantes: ") + ", ".join(members)
                 )
         if option("show_description"):
-            lines.append(take("DESCRICAO-DO-PROJETO"))
+            description = take("DESCRICAO-DO-PROJETO")
     elif entry.section == "languages":
         if option("show_proficiency"):
             skills = []
@@ -712,6 +714,9 @@ def _render_context(
         lines.append(_term(take("NATUREZA"), profile.language))
 
     result = {"name": literal(name or label(entry.tag))}
+    if description:
+        prefix = "Description" if english else "Descrição"
+        result["description"] = literal(f"{prefix}: {description}")
     dates, date_fields = _dates(entry, issues, profile.language)
     result.update(dates)
     used.update(date_fields)
@@ -783,7 +788,10 @@ def _render_entry(
         and title
         and len(catalog()["sections"][entry.section]["tags"]) > 1
     ):
-        result["name"] = f"{label(entry.tag)} — {name}"
+        connector = " — "
+        if entry.section == "training" and not profile.full:
+            connector = " em " if profile.language == "pt" else " in "
+        result["name"] = f"{label(entry.tag)}{connector}{name}"
     institution = entry.find("NOME-INSTITUICAO", "NOME-INSTITUICAO-EMPRESA")
     if kind == "education":
         result = {
@@ -794,6 +802,9 @@ def _render_entry(
         used.add(institution.path)
     elif kind == "experience":
         result = {"company": literal(institution.text), "position": name}
+        used.add(institution.path)
+    elif entry.section == "training" and institution and not profile.full:
+        result["summary"] = literal(institution.text)
         used.add(institution.path)
     elif kind == "publication":
         result = {"title": name, "authors": authors}
@@ -1120,6 +1131,12 @@ def export_data(
     cv: Curriculum, profile: Profile, *, design: dict | None = None
 ) -> tuple[dict, dict]:
     selection = select(cv, profile)
+    active_design = design if design is not None else load_theme(profile.theme).design
+    description_template = (
+        active_design.get("templates", {})
+        .get("normal_entry", {})
+        .get("main_column", "")
+    )
     titles = {}
     for section in dict.fromkeys(entry.section for entry in selection.entries):
         title = literal(profile.section_title(section))
@@ -1211,6 +1228,13 @@ def export_data(
             result, consumed = _render_entry(
                 entry, kind, authors, author_fields, profile, issues, institutions
             )
+            if "description" in result and not re.search(
+                r"\bDESCRIPTION\b", description_template
+            ):
+                # External themes that do not use the extra field retain its content.
+                result["summary"] = "\n".join(
+                    s for s in (result.get("summary"), result.pop("description")) if s
+                )
             rendered.append(result)
             rendered_by_id[entry.id] = result
             used.update(consumed)
@@ -1254,7 +1278,7 @@ def export_data(
         )
     data = {
         "cv": output,
-        "design": design if design is not None else load_theme(profile.theme).design,
+        "design": active_design,
         "locale": {"language": "portuguese" if profile.language == "pt" else "english"},
     }
     return data, report

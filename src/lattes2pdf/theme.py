@@ -38,15 +38,24 @@ def validate_theme(value: str) -> None:
 
 
 def default_design(name: str) -> dict:
-    education = {"degree_column": None}
-    if name in {"classic", "sb2nov"}:
-        area = "*DEGREE_WITH_AREA*" if name == "sb2nov" else "DEGREE_WITH_AREA"
-        education["main_column"] = f"**INSTITUTION**\n{area}\nSUMMARY\nHIGHLIGHTS"
     return {
         "theme": name,
         "page": {"size": "a4", "show_top_note": False},
         "entries": {"allow_page_break": True},
-        "templates": {"education_entry": education},
+        "templates": {
+            "education_entry": {
+                "degree_column": None,
+                "main_column": "**DEGREE_WITH_AREA**\nINSTITUTION\nSUMMARY\nHIGHLIGHTS",
+            },
+            "experience_entry": {
+                "main_column": "**POSITION**\nCOMPANY\nSUMMARY\nHIGHLIGHTS",
+            },
+            "normal_entry": {
+                # Keep the optional wrapper whitespace-free so RenderCV removes it
+                # entirely when DESCRIPTION is absent. The comment separates tokens.
+                "main_column": '**NAME**\nSUMMARY\n#text(size:0.95em)[#set/**/text(fill:rgb("666666"));DESCRIPTION]\nHIGHLIGHTS',
+            },
+        },
     }
 
 

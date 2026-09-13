@@ -53,6 +53,10 @@ sections:
     show_scholarship: true
   awards:
     show_institution: true
+  research.projects:
+    show_description: true
+  events:
+    show_event_type: false
   publications.articles:
     show_authors: true
     show_links: true
