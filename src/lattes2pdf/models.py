@@ -42,6 +42,7 @@ class Issue:
     code: str
     path: str
     message: str
+    level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "WARNING"
 
 
 @dataclass

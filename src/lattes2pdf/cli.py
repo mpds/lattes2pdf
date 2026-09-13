@@ -13,6 +13,7 @@ import yaml
 
 from lattes2pdf.backend import render_pdf, rendercv_version
 from lattes2pdf.categories import CATEGORIES, matches_selector
+from lattes2pdf.diagnostics import relevant_issues
 from lattes2pdf.lattes import read_lattes
 from lattes2pdf.models import CVError, catalog
 from lattes2pdf.output import check_outputs, write_outputs
@@ -58,7 +59,7 @@ def inspection(cv, sections: list[str] | None = None) -> dict:
             for entry in entries
         ],
         "fields": dict(Counter(field.disposition for field in cv.fields)),
-        "issues": [asdict(issue) for issue in cv.issues],
+        "issues": [asdict(issue) for issue in relevant_issues(cv, entries, cv.issues)],
     }
 
 
@@ -120,7 +121,7 @@ def parser() -> argparse.ArgumentParser:
     inspect.add_argument(
         "--section",
         action="append",
-        help="filtrar registros por categoria, grupo ou prefixo; repetível (campos e avisos continuam globais)",
+        help="filtrar registros e diagnósticos por categoria, grupo ou prefixo; repetível (contagem de campos global)",
     )
     inspect.add_argument(
         "--member", help="nome exato do XML dentro de um ZIP com vários XMLs"
@@ -439,9 +440,11 @@ def main(argv: list[str] | None = None) -> int:
                     "  Um registro: --exclude-id ID (repita a opção para mais registros)"
                 )
                 print("Ajustes de um grupo: lattes2pdf sections GRUPO")
-            for issue in cv.issues:
+            for issue in result["issues"]:
+                if issue["level"] != "WARNING":
+                    continue
                 print(
-                    f"Aviso [{issue.code}] {issue.path}: {issue.message}",
+                    f"Aviso [{issue['code']}] {issue['path']}: {issue['message']}",
                     file=sys.stderr,
                 )
         return 0

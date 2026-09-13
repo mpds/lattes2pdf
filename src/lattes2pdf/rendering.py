@@ -1285,6 +1285,7 @@ def export_data(
                     "generic-layout",
                     section,
                     "Seção usa entradas genéricas para preservar registros incompletos ou campos ocultos.",
+                    level="DEBUG",
                 )
             )
         rendered = []

@@ -219,7 +219,8 @@ def _identify(entries: list[Entry], issues: list[Issue]) -> None:
                 Issue(
                     "duplicate-identity",
                     entry.path,
-                    "Identidade repetida; registros mantidos com IDs distintos.",
+                    "Chave inicial compartilhada; registros preservados com IDs distintos.",
+                    level="DEBUG",
                 )
             )
 
