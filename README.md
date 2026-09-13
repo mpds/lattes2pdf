@@ -103,7 +103,6 @@ Abra o `cv.yaml` gerado, ajuste o texto ou a aparência e compile novamente:
 rendercv render cv.yaml --pdf-path cv-editado.pdf
 ```
 
-O caminho do PDF é relativo à pasta do YAML. Se houver pastas de templates e fontes ao lado dele, mantenha-as junto do arquivo.
 
 Essa edição afeta o documento gerado. Para repetir as escolhas em novas exportações, salve as de conteúdo no `profile.yaml` e as visuais no `design.yaml`.
 
