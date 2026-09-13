@@ -50,9 +50,9 @@ Tags e títulos de releases devem conter somente a versão no formato `vX.Y.Z`,
 por exemplo, `v0.1.0`. Descreva as mudanças no corpo da release. A versão do
 pacote correspondente é `0.1.0`, sem o prefixo `v`.
 
-O CI testa Python 3.12, 3.13 e 3.14 em Linux e macOS. Além da suíte, instala o
-wheel em um ambiente limpo e gera PDFs fora do checkout, incluindo um tema externo
-e a recompilação de um YAML editado. O script `.github/scripts/check_distribution.py`
+O CI testa Python 3.12 e 3.14 em Linux e Python 3.14 em macOS. Em Python 3.14,
+também instala o wheel em um ambiente limpo e gera PDFs fora do checkout, incluindo
+um tema externo e a recompilação de um YAML editado. O script `.github/scripts/check_distribution.py`
 também pode ser executado localmente, recebendo o wheel e um XML fictício.
 
 ### Publicação
