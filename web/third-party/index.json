@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "retrieved_on": "2026-09-13",
+  "scope": "Notices for direct browser runtime components absent from their installed distributions. Other bundled dependency notices are copied by scripts/bundle.py. This is not a complete transitive license audit.",
+  "notices": [
+    {
+      "component": "RenderCV",
+      "version": "2.8",
+      "file": "rendercv-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/rendercv/rendercv/v2.8/LICENSE",
+      "source_url": "https://github.com/rendercv/rendercv/tree/v2.8",
+      "sha256": "6495753a42bcc99bc41ee3752d08c7226e9d141386dd2280cdcee90c6be49d59",
+      "format": "upstream-text-line-endings-normalized-to-LF",
+      "source_sha256": "9b7a082e203987b6df516af8b055e8ccaacbdf5522724e5e82a62f07ccc0b812"
+    },
+    {
+      "component": "Pyodide",
+      "version": "314.0.6",
+      "file": "pyodide-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/pyodide/pyodide/314.0.6/LICENSE",
+      "source_url": "https://github.com/pyodide/pyodide/tree/314.0.6",
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+      "format": "upstream-original"
+    },
+    {
+      "component": "CPython",
+      "version": "3.14.2",
+      "file": "python-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/python/cpython/v3.14.2/LICENSE",
+      "source_url": "https://github.com/python/cpython/tree/v3.14.2",
+      "sha256": "b0e25a78cffb43f4d92de8b61ccfa1f1f98ecbc22330b54b5251e7b6ba010231",
+      "format": "upstream-original"
+    },
+    {
+      "component": "typst.ts / typst-ts-web-compiler",
+      "version": "0.7.0",
+      "file": "typst-ts-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/Myriad-Dreamin/typst.ts/v0.7.0/LICENSE",
+      "source_url": "https://github.com/Myriad-Dreamin/typst.ts/tree/v0.7.0",
+      "sha256": "06292ffcdd7d313747999255a8411e14933df33e24427a46d169cc5ff845227c",
+      "format": "upstream-original"
+    },
+    {
+      "component": "Typst",
+      "version": "0.14.2",
+      "file": "typst-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/typst/typst/v0.14.2/LICENSE",
+      "source_url": "https://github.com/typst/typst/tree/v0.14.2",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "format": "upstream-original"
+    },
+    {
+      "component": "Fontin",
+      "version": "001.000 (OTF files in rendercv-fonts 0.5.1)",
+      "file": "fontin-FREE-LICENSE.txt",
+      "url": "https://www.exljbris.com/eula.html",
+      "source_url": "https://www.exljbris.com/fontin.html",
+      "sha256": "094a1d060105f795829b3c509a8a317ed6e3b23c567d06b064be499d9d5333cd",
+      "source_sha256": "efe41be4509f72bb4ea04c42688656aab8d0e05322c9eb10624e2f09b76f9a26",
+      "format": "complete-free-font-agreement-section-text-extracted-from-html",
+      "note": "The official Fontin download page links this agreement. The three OTF files bundled by rendercv-fonts 0.5.1 are byte-identical to the corresponding files in the current official OpenType ZIP. The agreement allows embedding but separately restricts redistribution without permission. No separate redistribution permission was included in either ZIP or wheel. This notice does not establish that serving standalone OTF assets to third parties is authorized.",
+      "font_source_url": "https://www.exljbris.com/fontin.html"
+    },
+    {
+      "component": "Typst",
+      "version": "0.14.2",
+      "file": "typst-NOTICE.txt",
+      "url": "https://raw.githubusercontent.com/typst/typst/v0.14.2/NOTICE",
+      "source_url": "https://github.com/typst/typst/tree/v0.14.2",
+      "sha256": "43c0daf3d23f533d45c869f21126716c23aaf2c111dc0f1ee7c95f8ca7ea43f8",
+      "format": "upstream-original",
+      "note": "Complete upstream NOTICE retained; applicability of each transitive component to the npm WASM build was not independently established."
+    },
+    {
+      "component": "typst.ts / typst-ts-web-compiler",
+      "version": "0.7.0",
+      "file": "typst-ts-MODIFICATIONS.txt",
+      "url": "https://github.com/Myriad-Dreamin/typst.ts/tree/v0.7.0",
+      "sha256": "aff5674f0564514d5a74633eab1724a8515f2093c8db479e9b1d27e6bb00ed61",
+      "format": "lattes2pdf-authored-modification-notice",
+      "source_file": "web/scripts/compiler-csp.ts"
+    }
+  ]
+}

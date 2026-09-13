@@ -1,0 +1,100 @@
+{
+  "rendercv": {
+    "url": "https://files.pythonhosted.org/packages/67/88/9123cdc74e2c93ffcbc2e55039568fbce3ec5527df2b639b6471ceaac270/rendercv-2.8-py3-none-any.whl",
+    "sha256": "38c8192931f1bb11958a9935a7b2698460829d4cf37543629be715a520376024",
+    "file": "rendercv-2.8-py3-none-any.whl"
+  },
+  "rendercv-fonts": {
+    "url": "https://files.pythonhosted.org/packages/d7/1f/fb31a6659c8251373f4361266d2ca79d146b0d502702d1da43a567aa324d/rendercv_fonts-0.5.1-py3-none-any.whl",
+    "sha256": "e82ee2cc9f6078c8aa05ea8bb5ab38b369e3487f638c44e4f329092f433dd460",
+    "file": "rendercv_fonts-0.5.1-py3-none-any.whl"
+  },
+  "markdown": {
+    "url": "https://files.pythonhosted.org/packages/64/69/4a5af2bc115a9a33fefe51709749de8262be3f9ba063d1753a837cdbc49c/markdown-3.10.3-py3-none-any.whl",
+    "sha256": "fa6c92a00a4a3c98b22728c64a935ae1928250ae65058a6ded814d2cc29a4cea",
+    "file": "markdown-3.10.3-py3-none-any.whl"
+  },
+  "phonenumbers": {
+    "url": "https://files.pythonhosted.org/packages/99/53/238c99f028b9c638ceae8218a33904e4b84d60e1c3bd707c0ff231b388cf/phonenumbers-9.0.39-py2.py3-none-any.whl",
+    "sha256": "d83b878d0188c81a5f5e8572cedcc7262bd0ea3806eb7c8e35d8666d262a8af0",
+    "file": "phonenumbers-9.0.39-py2.py3-none-any.whl"
+  },
+  "pydantic-extra-types": {
+    "url": "https://files.pythonhosted.org/packages/17/c1/3226e6d7f5a4f736f38ac11a6fbb262d701889802595cdb0f53a885ac2e0/pydantic_extra_types-2.11.1-py3-none-any.whl",
+    "sha256": "1722ea2bddae5628ace25f2aa685b69978ef533123e5638cfbddb999e0100ec1",
+    "file": "pydantic_extra_types-2.11.1-py3-none-any.whl"
+  },
+  "email-validator": {
+    "url": "https://files.pythonhosted.org/packages/de/15/545e2b6cf2e3be84bc1ed85613edd75b8aea69807a71c26f4ca6a9258e82/email_validator-2.3.0-py3-none-any.whl",
+    "sha256": "80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4",
+    "file": "email_validator-2.3.0-py3-none-any.whl"
+  },
+  "dnspython": {
+    "url": "https://files.pythonhosted.org/packages/ba/5a/18ad964b0086c6e62e2e7500f7edc89e3faa45033c71c1893d34eed2b2de/dnspython-2.8.0-py3-none-any.whl",
+    "sha256": "01d9bbc4a2d76bf0db7c1f729812ded6d912bd318d3b1cf81d30c0f845dbf3af",
+    "file": "dnspython-2.8.0-py3-none-any.whl"
+  },
+  "idna": {
+    "url": "https://files.pythonhosted.org/packages/57/b0/0e52c878c53f245edd3a11020f20979b3f490f245af532c7cae3027754b5/idna-3.19-py3-none-any.whl",
+    "sha256": "815e7be7a7806d54abb586dc943addc79e8b2ee16915059658cbeff4b1b43bf4",
+    "file": "idna-3.19-py3-none-any.whl"
+  },
+  "defusedxml": {
+    "url": "https://files.pythonhosted.org/packages/07/6c/aa3f2f849e01cb6a001cd8554a88d4c77c5c1a31c95bdf1cf9301e6d9ef4/defusedxml-0.7.1-py2.py3-none-any.whl",
+    "sha256": "a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61",
+    "file": "defusedxml-0.7.1-py2.py3-none-any.whl"
+  },
+  "pydantic": {
+    "url": "https://cdn.jsdelivr.net/pyodide/v314.0.6/full/pydantic-2.12.5-py3-none-any.whl",
+    "sha256": "52d15d19fbe2a62ac9b63348df7b38e5ebb186063a9b923a837dd6e43273b414",
+    "file": "pydantic-2.12.5-py3-none-any.whl"
+  },
+  "typing-extensions": {
+    "url": "https://cdn.jsdelivr.net/pyodide/v314.0.6/full/typing_extensions-4.15.0-py3-none-any.whl",
+    "sha256": "3f122252f0d498d80f7a684cc1d8baa6fa65b75e99447d77a6dd90e0f04302e3",
+    "file": "typing_extensions-4.15.0-py3-none-any.whl"
+  },
+  "pydantic-core": {
+    "url": "https://cdn.jsdelivr.net/pyodide/v314.0.6/full/pydantic_core-2.41.5-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
+    "sha256": "9802bd7a5e6679ec4c13be778f19f021e6147459c89cc916b913f7970f86dddb",
+    "file": "pydantic_core-2.41.5-cp314-cp314-pyemscripten_2026_0_wasm32.whl"
+  },
+  "annotated-types": {
+    "url": "https://cdn.jsdelivr.net/pyodide/v314.0.6/full/annotated_types-0.7.0-py3-none-any.whl",
+    "sha256": "6b34f564725f8d309442f8d15abcceed1bf140fe2412e2c58da721426ae2222e",
+    "file": "annotated_types-0.7.0-py3-none-any.whl"
+  },
+  "typing-inspection": {
+    "url": "https://cdn.jsdelivr.net/pyodide/v314.0.6/full/typing_inspection-0.4.2-py3-none-any.whl",
+    "sha256": "c9270737700f07813e1a87b63138993997afedbd2548f20fa739cc398f1b9f2f",
+    "file": "typing_inspection-0.4.2-py3-none-any.whl"
+  },
+  "pyyaml": {
+    "url": "https://cdn.jsdelivr.net/pyodide/v314.0.6/full/pyyaml-6.0.3-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
+    "sha256": "b1447216501f0d3aef290558fe33691dd51b0839e70f9a970defb12b36d82df8",
+    "file": "pyyaml-6.0.3-cp314-cp314-pyemscripten_2026_0_wasm32.whl"
+  },
+  "jinja2": {
+    "url": "https://cdn.jsdelivr.net/pyodide/v314.0.6/full/jinja2-3.1.6-py3-none-any.whl",
+    "sha256": "2022253dfc8bbe43e8f0cbdea5295444d071f595a3f47bbef1c0983996ba4001",
+    "file": "jinja2-3.1.6-py3-none-any.whl"
+  },
+  "markupsafe": {
+    "url": "https://cdn.jsdelivr.net/pyodide/v314.0.6/full/markupsafe-3.0.3-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
+    "sha256": "2a95fbfa8456ceffeee3004eae70266976c968e74994cf0be775cb1f5fad399a",
+    "file": "markupsafe-3.0.3-cp314-cp314-pyemscripten_2026_0_wasm32.whl"
+  },
+  "ruamel-yaml": {
+    "url": "https://cdn.jsdelivr.net/pyodide/v314.0.6/full/ruamel_yaml-0.19.1-py3-none-any.whl",
+    "sha256": "5365da90f948b8904cf7f94d52020a316859f9426b4176f8fe93cb27ba0be810",
+    "file": "ruamel_yaml-0.19.1-py3-none-any.whl"
+  },
+  "fontawesome": {
+    "url": "https://packages.typst.org/preview/fontawesome-0.6.0.tar.gz",
+    "sha256": "31374c788d6850c7fd3da742a67e8a753e5644fa0c677b845f75be8aa488380c"
+  },
+  "typst-assets": {
+    "url": "https://static.crates.io/crates/typst-assets/typst-assets-0.14.2.crate",
+    "sha256": "5613cb719a6222fe9b74027c3625d107767ec187bff26b8fc931cf58942c834f"
+  }
+}

@@ -1,0 +1,13 @@
+lattes2pdf browser build — typst.ts modification notice
+
+The local lattes2pdf web build modifies typst_ts_web_compiler.mjs from
+@myriaddreamin/typst-ts-web-compiler 0.7.0 using web/scripts/compiler-csp.ts.
+
+The two wasm-bindgen Function-construction wrappers are replaced with static
+JavaScript functions for the known fixed callbacks. Unsupported callback bodies
+are rejected. This permits the local runtime to use a CSP without unsafe-eval.
+The compiler.wasm binary is not modified by that transform.
+
+Upstream source and license:
+https://github.com/Myriad-Dreamin/typst.ts/tree/v0.7.0
+See typst-ts-LICENSE.txt for the complete Apache License 2.0 notice.

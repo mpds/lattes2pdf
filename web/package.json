@@ -1,0 +1,30 @@
+{
+  "name": "lattes2pdf-web",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run bundle && vite --host 127.0.0.1",
+    "build": "npm run bundle && tsc --noEmit && vite build",
+    "preview": "../.venv/bin/python scripts/serve.py",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check --config-path=biome.json .",
+    "format": "biome check --write --config-path=biome.json .",
+    "test": "playwright test",
+    "test:parity": "node tests/parity.mjs",
+    "bundle": "../.venv/bin/python scripts/bundle.py",
+    "check:artifacts": "../.venv/bin/python scripts/check_artifacts.py"
+  },
+  "dependencies": {
+    "@myriaddreamin/typst-ts-web-compiler": "0.7.0",
+    "pdfjs-dist": "6.3.289",
+    "pyodide": "314.0.6"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.13",
+    "@playwright/test": "1.63.0",
+    "@types/node": "24.10.0",
+    "typescript": "5.9.3",
+    "vite": "8.3.0"
+  }
+}
