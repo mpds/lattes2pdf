@@ -348,6 +348,8 @@
     "publications.articles": {"pt": "Artigos publicados", "en": "Published articles", "tags": ["ARTIGO-PUBLICADO"], "kind": "publication", "titles": ["TITULO-DO-ARTIGO"]},
     "publications.accepted": {"pt": "Artigos aceitos", "en": "Accepted articles", "tags": ["ARTIGO-ACEITO-PARA-PUBLICACAO"], "kind": "publication", "titles": ["TITULO-DO-ARTIGO"]},
     "publications.conference": {"pt": "Trabalhos em eventos", "en": "Conference papers", "tags": ["TRABALHO-EM-EVENTOS"], "kind": "publication", "titles": ["TITULO-DO-TRABALHO"]},
+    "publications.conference.full": {"pt": "Trabalhos completos publicados em eventos", "en": "Full conference papers", "tags": [], "kind": "publication", "titles": ["TITULO-DO-TRABALHO"]},
+    "publications.conference.abstracts": {"pt": "Resumos publicados em eventos", "en": "Conference abstracts", "tags": [], "kind": "publication", "titles": ["TITULO-DO-TRABALHO"]},
     "publications.books": {"pt": "Livros", "en": "Books", "tags": ["LIVRO-PUBLICADO-OU-ORGANIZADO"], "kind": "publication", "titles": ["TITULO-DO-LIVRO"]},
     "publications.chapters": {"pt": "Capítulos de livros", "en": "Book chapters", "tags": ["CAPITULO-DE-LIVRO-PUBLICADO"], "kind": "publication", "titles": ["TITULO-DO-CAPITULO-DO-LIVRO"]},
     "publications.press": {"pt": "Textos em jornais e revistas", "en": "Press articles", "tags": ["TEXTO-EM-JORNAL-OU-REVISTA"], "kind": "publication", "titles": ["TITULO-DO-TEXTO"]},

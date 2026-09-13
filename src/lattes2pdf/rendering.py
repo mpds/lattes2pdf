@@ -12,6 +12,7 @@ from lattes2pdf.categories import (
     matches_prefix,
     matches_selector,
     presentation_category,
+    presentation_section,
 )
 from lattes2pdf.lattes import YEAR_NAMES
 from lattes2pdf.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
@@ -1000,7 +1001,12 @@ def _category_sections(
     for entry in selection.entries:
         if entry.id not in rendered:
             continue
-        key = (presentation_category(entry, profile.include), entry.section)
+        section = entry.section if profile.full else presentation_section(entry)
+        category = presentation_category(entry, profile.include)
+        if entry.section == "publications.conference" and not profile.full:
+            for subtype in ("full", "abstracts"):
+                groups.setdefault((category, "publications.conference." + subtype), [])
+        key = (category, section)
         groups[key].append(rendered[entry.id])
         originals.setdefault(key, entry)
     blocks = []
@@ -1019,6 +1025,8 @@ def _category_sections(
                     (category, "profile", title, output[title], profile_entry)
                 )
     for (category, section), values in groups.items():
+        if not values:
+            continue
         title = profile.section_title(section)
         if category:
             prefix = profile.section_title(category)
@@ -1263,7 +1271,10 @@ def export_data(
         for name in dict.fromkeys(labels)
         if name in output["sections"]
     }
-    if any(category_names(s) for s in profile.include):
+    if any(category_names(s) for s in profile.include) or (
+        not profile.full
+        and any(presentation_section(e) != e.section for e in selection.entries)
+    ):
         output["sections"] = _category_sections(
             output["sections"], selection, profile, rendered_by_id
         )

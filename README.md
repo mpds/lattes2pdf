@@ -168,9 +168,11 @@ lattes2pdf render curriculo.xml --profile profile.yaml -o personalizado.pdf
 Consulte os possíveis ajustes de uma categoria ou diretamente de um grupo mostrado pelo `inspect`:
 
 ```bash
+# exemplos
 lattes2pdf sections lattes.formacao
 lattes2pdf sections publications.articles
 lattes2pdf sections profile
+lattes2pdf sections lattes.anais
 ```
 
 Um `--profile` explícito substitui o preset padrão, e as opções da linha de comando tem precedência sobre o arquivo de perfil. Para filtros por ano, ordenação e outros ajustes, consulte `lattes2pdf render --help`. Use `--force` quando quiser substituir saídas existentes.

@@ -166,6 +166,7 @@ def _category_lines(name: str) -> list[str]:
                     and name != "lattes.outras-informacoes",
                 )
             )
+            lines.extend("    " + line for line in _subsection_lines(section))
         else:
             lines.extend(
                 [
@@ -182,6 +183,17 @@ def _category_lines(name: str) -> list[str]:
         ]
     )
     return lines
+
+
+def _subsection_lines(name: str) -> list[str]:
+    subgroups = [s for s in catalog()["sections"] if s.startswith(name + ".")]
+    if not subgroups:
+        return []
+    return [
+        "",
+        "Subgrupos selecionáveis (include/exclude):",
+        *(f"  {s} — {catalog()['sections'][s]['pt']}" for s in subgroups),
+    ]
 
 
 def describe_sections(prefix: str | None = None) -> str:
@@ -209,6 +221,7 @@ def describe_sections(prefix: str | None = None) -> str:
         if prefix in definitions:
             lines.extend([f"{prefix}  {definitions[prefix]['pt']}", ""])
             lines.extend(_option_lines(prefix))
+            lines.extend(_subsection_lines(prefix))
         else:
             width = max(len(name) for name in names)
             lines.append("Grupos:")

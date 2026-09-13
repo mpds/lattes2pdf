@@ -224,10 +224,21 @@ def category_names(selector: str) -> list[str]:
     return [name for name in CATEGORIES if matches_prefix(name, selector)]
 
 
+def presentation_section(entry: Entry) -> str:
+    """Split conference headings and selectors while retaining canonical IDs."""
+    if entry.section == "publications.conference":
+        value = nature(entry).upper()
+        if value == "COMPLETO":
+            return "publications.conference.full"
+        if value in {"RESUMO", "RESUMO_EXPANDIDO"}:
+            return "publications.conference.abstracts"
+    return entry.section
+
+
 def matches_selector(entry: Entry, selector: str) -> bool:
     if selector == "lattes" or selector.startswith("lattes."):
         return any(CATEGORIES[name].matches(entry) for name in category_names(selector))
-    return matches_prefix(entry.section, selector)
+    return matches_prefix(presentation_section(entry), selector)
 
 
 def presentation_category(entry: Entry, includes: list[str]) -> str:
