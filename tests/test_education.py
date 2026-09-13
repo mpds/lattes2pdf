@@ -118,7 +118,7 @@ def test_concise_presentation_does_not_change_other_sections_or_reclassify_unkno
     cv = read_lattes(fixtures / "academic.xml")
     full, _ = export_data(cv, Profile(full=True))
     normal, _ = export_data(cv, Profile())
-    concise = {TITLE, "Artigos publicados", "Idiomas"}
+    concise = {TITLE, "Artigos publicados", "Idiomas", "Prêmios e títulos"}
     assert {k: v for k, v in full["cv"]["sections"].items() if k not in concise} == {
         k: v for k, v in normal["cv"]["sections"].items() if k not in concise
     }

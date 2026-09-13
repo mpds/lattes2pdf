@@ -7,7 +7,9 @@ SECTION_OPTIONS = {
     "education": {
         "show_thesis": (False, "Título do trabalho"),
         "show_advisors": (False, "Orientação e coorientação"),
+        "show_scholarship": (True, "Bolsa e agência financiadora"),
     },
+    "awards": {"show_institution": (True, "Entidade promotora")},
     "publications.articles": {
         "show_authors": (True, "Autores"),
         "show_links": (True, "DOI ou endereço do artigo"),

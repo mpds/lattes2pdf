@@ -248,8 +248,61 @@ def _details(entry: Entry, used: set[str]) -> list[str]:
     return details
 
 
+def _institution_details(
+    cv: Curriculum, profile: Profile
+) -> dict[str, dict[str, SourceField]]:
+    """Index auxiliary institution metadata without adding records or changing IDs."""
+    groups = defaultdict(dict)
+    for source in cv.fields:
+        if (
+            source.tag == "INFORMACAO-ADICIONAL-INSTITUICAO"
+            and source.disposition == "administrative"
+            and source.text
+            and not hidden(source, profile)
+        ):
+            groups[source.path.rsplit("/", 1)[0]][source.name] = source
+    return {
+        fields["CODIGO-INSTITUICAO"].text: fields
+        for fields in groups.values()
+        if "CODIGO-INSTITUICAO" in fields
+    }
+
+
+def _scholarship(
+    entry: Entry, institutions: dict[str, dict[str, SourceField]], language: str
+) -> tuple[str, set[str]]:
+    scholarship = entry.find("FLAG-BOLSA")
+    if not scholarship or scholarship.text != "SIM":
+        return "", set()
+    used = {scholarship.path}
+    prefix = "Bolsista" if language == "pt" else "Scholarship holder"
+    agency = entry.find("NOME-AGENCIA")
+    if not agency:
+        return prefix, used
+    used.add(agency.path)
+    parts = [agency.text]
+    code = entry.find("CODIGO-AGENCIA-FINANCIADORA")
+    institution = institutions.get(code.text, {}) if code else {}
+    for name in ("SIGLA-INSTITUICAO", "NOME-PAIS-INSTITUICAO"):
+        source = institution.get(name)
+        if source:
+            # The registered agency name may already contain its acronym or country.
+            if not re.search(
+                rf"(?<!\w){re.escape(source.text)}(?!\w)",
+                ", ".join(parts),
+                re.IGNORECASE,
+            ):
+                parts.append(source.text)
+            used.add(source.path)
+    return prefix + ": " + ", ".join(parts), used
+
+
 def _render_education(
-    entry: Entry, kind: str, profile: Profile, issues: list[Issue]
+    entry: Entry,
+    kind: str,
+    profile: Profile,
+    issues: list[Issue],
+    institutions: dict[str, dict[str, SourceField]],
 ) -> tuple[dict, set[str]]:
     """Present education without copying leftover registration fields into the CV."""
     used = set()
@@ -336,6 +389,13 @@ def _render_education(
             advisor = take(*names)
             if advisor:
                 lines.append(f"{labels[profile.language == 'en']}: {advisor}")
+    if profile.section_option("education", "show_scholarship"):
+        scholarship, scholarship_fields = _scholarship(
+            entry, institutions, profile.language
+        )
+        if scholarship:
+            lines.append(scholarship)
+            used.update(scholarship_fields)
     if lines:
         result["summary"] = "\n".join(literal(line) for line in lines)
     return result, used
@@ -549,6 +609,9 @@ def _render_context(
             if english
             else "Orientação sem título de trabalho"
         )
+    elif entry.section == "awards":
+        if option("show_institution"):
+            lines.append(take("NOME-DA-ENTIDADE-PROMOTORA"))
     elif entry.section.startswith("activities."):
         if option("show_institution"):
             context = [
@@ -695,9 +758,10 @@ def _render_entry(
     author_fields: set[str],
     profile: Profile,
     issues: list[Issue],
+    institutions: dict[str, dict[str, SourceField]],
 ) -> tuple[dict, set[str]]:
     if entry.section == "education" and not profile.full:
-        return _render_education(entry, kind, profile, issues)
+        return _render_education(entry, kind, profile, issues, institutions)
     if entry.section == "publications.articles" and not profile.full:
         return _render_article(entry, authors, author_fields, profile, issues)
     if entry.section in SECTION_OPTIONS and not profile.full:
@@ -942,6 +1006,8 @@ def _report(
         if source.path in used and status == "private":
             status = "exported"
             reason = "explicit-selection"
+        elif source.path in used and status == "administrative":
+            status = "exported"
         elif status in {"content", "unknown"}:
             if source.path in used:
                 status = "exported"
@@ -1005,6 +1071,7 @@ def export_data(
             )
         titles[title] = section
     issues = cv.issues + selection.issues
+    institutions = _institution_details(cv, profile) if not profile.full else {}
     output = {"name": literal(cv.name), "sections": {}}
     name_field = next(entry for entry in cv.entries if entry.section == "profile").find(
         "NOME-COMPLETO"
@@ -1084,7 +1151,7 @@ def export_data(
         rendered = []
         for entry, (authors, author_fields) in zip(entries, author_lists):
             result, consumed = _render_entry(
-                entry, kind, authors, author_fields, profile, issues
+                entry, kind, authors, author_fields, profile, issues, institutions
             )
             rendered.append(result)
             rendered_by_id[entry.id] = result

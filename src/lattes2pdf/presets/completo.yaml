@@ -47,6 +47,9 @@ sections:
   education:
     show_thesis: true
     show_advisors: true
+    show_scholarship: true
+  awards:
+    show_institution: true
   publications.articles:
     show_authors: true
     show_links: true
