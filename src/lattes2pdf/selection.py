@@ -5,7 +5,12 @@ from pathlib import Path
 
 import yaml
 
-from lattes2pdf.categories import CATEGORIES, category_names, matches_selector
+from lattes2pdf.categories import (
+    CANONICAL_CATEGORY_ORDER,
+    CATEGORIES,
+    category_names,
+    matches_selector,
+)
 from lattes2pdf.models import Curriculum, CVError, Entry, Issue, SourceField, catalog
 from lattes2pdf.periods import (
     date_index,
@@ -364,9 +369,7 @@ def select(cv: Curriculum, profile: Profile) -> Selection:
         else:
             selected.append(entry)
     section_order = list(catalog()["sections"])
-    priorities = profile.order + (
-        profile.include if any(category_names(s) for s in profile.include) else []
-    )
+    priorities = profile.order + list(CANONICAL_CATEGORY_ORDER)
     selected.sort(
         key=lambda entry: (
             next(

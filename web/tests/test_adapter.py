@@ -137,6 +137,22 @@ def test_empty_categories_cannot_become_complete_cv(settings):
         adapter.export_profile(settings)
 
 
+def test_custom_selection_uses_the_core_canonical_order(settings):
+    settings.update(
+        model="personalizado",
+        categories=["lattes.premios", "lattes.formacao"],
+    )
+    profile = adapter._profile(settings)
+    assert profile.include == [
+        "profile",
+        "lattes.formacao",
+        "lattes.premios",
+    ]
+    catalogue = json.loads(adapter.catalog_data())
+    keys = [category["key"] for category in catalogue["categories"]]
+    assert keys.index("lattes.formacao") < keys.index("lattes.premios")
+
+
 def test_address_and_other_information_are_independent(settings):
     adapter.load_document((FIXTURES / "native-categories.xml").read_bytes())
     settings.update(model="personalizado", categories=["lattes.formacao"])

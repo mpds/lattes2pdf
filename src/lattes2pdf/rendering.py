@@ -8,6 +8,7 @@ from urllib.parse import quote, urlsplit
 
 from lattes2pdf.bibliography import format_reference, is_production
 from lattes2pdf.categories import (
+    CANONICAL_CATEGORY_ORDER,
     CATEGORIES,
     category_names,
     matches_prefix,
@@ -1082,7 +1083,8 @@ def _category_sections(
 
     def rank(block):
         category, section, _, _, original = block
-        for i, selector in enumerate(profile.order + profile.include):
+        priorities = profile.order + list(CANONICAL_CATEGORY_ORDER)
+        for i, selector in enumerate(priorities):
             if category_names(selector):
                 if category and category in category_names(selector):
                     return i
@@ -1092,7 +1094,7 @@ def _category_sections(
                 section, selector
             ):
                 return i
-        return len(profile.order) + len(profile.include)
+        return len(priorities)
 
     sections = {}
     for _, _, title, values, _ in sorted(blocks, key=rank):

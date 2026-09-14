@@ -219,6 +219,45 @@ CATEGORIES = {
     ),
 }
 
+# Default presentation order for academic CVs. Selection and presentation are
+# deliberately independent: ``include`` chooses content, while ``Profile.order``
+# remains the explicit way to override this sequence.
+CANONICAL_CATEGORY_ORDER = (
+    "lattes.endereco",
+    "lattes.formacao",
+    "lattes.atuacao",
+    "lattes.licencas",
+    "lattes.areas",
+    "lattes.projetos",
+    "lattes.premios",
+    "lattes.artigos",
+    "lattes.artigos-aceitos",
+    "lattes.livros-capitulos",
+    "lattes.anais",
+    "lattes.apresentacoes",
+    "lattes.jornais-revistas",
+    "lattes.outras-bibliograficas",
+    "lattes.patentes",
+    "lattes.inovacao",
+    "lattes.software",
+    "lattes.produtos",
+    "lattes.processos",
+    "lattes.assessoria-consultoria",
+    "lattes.extensao-tecnologica",
+    "lattes.trabalhos-tecnicos",
+    "lattes.outras-tecnicas",
+    "lattes.artistica",
+    "lattes.orientacoes",
+    "lattes.eventos",
+    "lattes.bancas",
+    "lattes.popularizacao",
+    "lattes.midia",
+    "lattes.web",
+    "lattes.idiomas",
+    "lattes.demais-trabalhos",
+    "lattes.outras-informacoes",
+)
+
 
 def category_names(selector: str) -> list[str]:
     return [name for name in CATEGORIES if matches_prefix(name, selector)]

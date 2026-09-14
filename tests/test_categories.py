@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from lattes2pdf.categories import CANONICAL_CATEGORY_ORDER, CATEGORIES
 from lattes2pdf.cli import inspection, main
 from lattes2pdf.lattes import read_lattes
 from lattes2pdf.models import CVError
@@ -16,6 +17,11 @@ def native_cv(fixtures):
     cv = read_lattes(fixtures / "native-categories.xml")
     assert not cv.issues
     return cv
+
+
+def test_canonical_order_covers_every_category_once():
+    assert len(CANONICAL_CATEGORY_ORDER) == len(set(CANONICAL_CATEGORY_ORDER))
+    assert set(CANONICAL_CATEGORY_ORDER) == set(CATEGORIES)
 
 
 @pytest.mark.parametrize(
@@ -32,6 +38,20 @@ def test_native_categories_include_related_sections_without_project_context_dupl
 ):
     selection = select(native_cv, Profile(include=["lattes." + category]))
     assert {e.section for e in selection.entries} == expected
+
+
+def test_default_order_is_canonical_and_independent_of_include_order(native_cv):
+    profile = Profile(include=["lattes.premios", "lattes.formacao"])
+    data, _ = export_data(native_cv, profile)
+    assert list(data["cv"]["sections"]) == [
+        "Formação acadêmica/titulação",
+        "Formação complementar",
+        "Prêmios e títulos",
+    ]
+
+    profile.order = ["lattes.premios"]
+    data, _ = export_data(native_cv, profile)
+    assert list(data["cv"]["sections"])[0] == "Prêmios e títulos"
 
 
 @pytest.mark.parametrize(

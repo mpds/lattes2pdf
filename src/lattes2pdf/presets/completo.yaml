@@ -4,37 +4,37 @@
 include:
   - profile
   - lattes.endereco  # Endereço
-  - lattes.licencas  # Licenças
-  - lattes.idiomas  # Idiomas
-  - lattes.premios  # Prêmios e títulos
   - lattes.formacao  # Formação acadêmica/titulação
   - lattes.atuacao  # Atuação profissional
+  - lattes.licencas  # Licenças
   - lattes.areas  # Áreas de atuação
   - lattes.projetos  # Projetos
+  - lattes.premios  # Prêmios e títulos
   - lattes.artigos  # Artigos completos publicados
   - lattes.artigos-aceitos  # Artigos aceitos para publicação
   - lattes.livros-capitulos  # Livros e capítulos
   - lattes.anais  # Trabalhos publicados em anais de eventos
-  - lattes.jornais-revistas  # Texto em jornal ou revista
   - lattes.apresentacoes  # Apresentação de trabalho e palestra
+  - lattes.jornais-revistas  # Texto em jornal ou revista
   - lattes.outras-bibliograficas  # Outras produções bibliográficas
-  - lattes.assessoria-consultoria  # Assessoria e consultoria
-  - lattes.extensao-tecnologica  # Extensão tecnológica
+  - lattes.patentes  # Patentes e registros
+  - lattes.inovacao  # Inovação
   - lattes.software  # Programa de computador sem registro
   - lattes.produtos  # Produtos
   - lattes.processos  # Processos
+  - lattes.assessoria-consultoria  # Assessoria e consultoria
+  - lattes.extensao-tecnologica  # Extensão tecnológica
   - lattes.trabalhos-tecnicos  # Trabalhos técnicos
   - lattes.outras-tecnicas  # Outras produções técnicas
-  - lattes.midia  # Entrevistas, mesas redondas, programas e comentários na mídia
-  - lattes.web  # Redes sociais, websites, blogs
   - lattes.artistica  # Produção artística/cultural
-  - lattes.patentes  # Patentes e registros
-  - lattes.inovacao  # Inovação
-  - lattes.popularizacao  # Educação e Popularização de C&T
   - lattes.orientacoes  # Orientações e supervisões
-  - lattes.demais-trabalhos  # Demais trabalhos
   - lattes.eventos  # Eventos
   - lattes.bancas  # Bancas
+  - lattes.popularizacao  # Educação e Popularização de C&T
+  - lattes.midia  # Entrevistas, mesas redondas, programas e comentários na mídia
+  - lattes.web  # Redes sociais, websites, blogs
+  - lattes.idiomas  # Idiomas
+  - lattes.demais-trabalhos  # Demais trabalhos
   - lattes.outras-informacoes  # Outras informações relevantes
 
 # A bio é opcional; remova summary para incluí-la.

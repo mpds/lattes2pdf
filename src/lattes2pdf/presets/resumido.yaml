@@ -14,9 +14,9 @@ include:
   - lattes.produtos  # Produtos
   - lattes.processos  # Processos
   - lattes.trabalhos-tecnicos  # Trabalhos técnicos
-  - lattes.web  # Redes sociais, websites, blogs
   - lattes.artistica  # Produção artística/cultural
   - lattes.orientacoes  # Orientações e supervisões
+  - lattes.web  # Redes sociais, websites, blogs
   - lattes.demais-trabalhos  # Demais trabalhos
 
 # A bio é opcional; remova summary para incluí-la.

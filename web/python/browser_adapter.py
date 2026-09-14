@@ -19,7 +19,7 @@ from rendercv.schema.rendercv_model_builder import (
     build_rendercv_model_from_commented_map,
 )
 
-from lattes2pdf.categories import CATEGORIES
+from lattes2pdf.categories import CANONICAL_CATEGORY_ORDER, CATEGORIES
 from lattes2pdf.lattes import read_lattes
 from lattes2pdf.models import CVError
 from lattes2pdf.rendering import export_data
@@ -44,7 +44,8 @@ def catalog_data():
     return json.dumps(
         {
             "categories": [
-                {"key": key, "label": value.pt} for key, value in CATEGORIES.items()
+                {"key": key, "label": CATEGORIES[key].pt}
+                for key in CANONICAL_CATEGORY_ORDER
             ],
             "presets": {
                 name: [key for key in _preset(name).include if key in CATEGORIES]
@@ -91,7 +92,10 @@ def _profile(settings):
             or len(set(selected)) != len(selected)
         ):
             raise CVError("Selecione ao menos uma categoria válida.")
-        profile.include = ["profile", *(key for key in CATEGORIES if key in selected)]
+        profile.include = [
+            "profile",
+            *(key for key in CANONICAL_CATEGORY_ORDER if key in selected),
+        ]
     if settings["theme"] not in THEMES:
         raise CVError("Selecione um dos nove temas disponíveis.")
     profile.theme = settings["theme"]
@@ -163,7 +167,7 @@ def import_profile(raw):
         _error_advanced()
     if len(set(profile.include)) != len(profile.include):
         _error_advanced()
-    categories = [key for key in CATEGORIES if key in profile.include]
+    categories = [key for key in CANONICAL_CATEGORY_ORDER if key in profile.include]
     if not categories or profile.include != ["profile", *categories]:
         _error_advanced()
     if profile.bibliography_style not in ("abnt", "chicago"):
