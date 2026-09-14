@@ -4,6 +4,9 @@
   <img src="https://raw.githubusercontent.com/mpds/lattes2pdf/main/assets/social-preview.png" alt="lattes2pdf: uma xícara de café ao lado de um documento PDF" width="800">
 </p>
 
+> [!NOTE]
+> Uma versão web desta ferramenta está disponível em [mpds.github.io/lattes2pdf](https://mpds.github.io/lattes2pdf/), para converter seu Currículo Lattes em PDF diretamente no navegador, sem precisar instalar nada.
+
 Converta seu Currículo Lattes em um CV em PDF, escolhendo o que apresentar e como organizar as informações. Use perfis editáveis para criar versões acadêmicas ou resumidas e temas do [RenderCV](https://rendercv.com) para definir a aparência. O YAML gerado é compatível com o RenderCV e pode ser editado e renderizado diretamente, inclusive com temas personalizados pelo usuário.
 
 Veja [exemplos fictícios nos nove temas do RenderCV](https://github.com/mpds/lattes2pdf/blob/main/examples/README.md).
