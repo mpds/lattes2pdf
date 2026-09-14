@@ -4,14 +4,69 @@
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' blob: 'wasm-unsafe-eval'; worker-src blob:; connect-src 'self'; img-src 'self' blob:; style-src 'self'; font-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Transforme seu Currículo Lattes em PDF com nove temas. Conversão local no navegador, sem enviar seu currículo.">
+  <meta name="description" content="Converta seu Currículo Lattes em PDF grátis. Abra o XML ou ZIP, escolha o conteúdo e um dos nove temas. Sem cadastro e sem enviar seu arquivo a um servidor.">
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#542b17">
   <link rel="icon" type="image/png" href="/lattes2pdf/generated/brand/logo-without-text-transparent-bg.png">
-  <meta property="og:title" content="lattes2pdf — Seu Currículo Lattes em PDF">
-  <meta property="og:description" content="Escolha o conteúdo, abra seu XML ou ZIP e gere um PDF no seu navegador.">
-  <meta property="og:image" content="/lattes2pdf/generated/brand/social-preview.png">
-  <title>lattes2pdf — Currículo Lattes em PDF</title>
+  <link rel="stylesheet" href="/src/styles/app.css">
+  <link rel="canonical" href="https://mpds.github.io/lattes2pdf/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="lattes2pdf">
+  <meta property="og:url" content="https://mpds.github.io/lattes2pdf/">
+  <meta property="og:title" content="Converter Currículo Lattes em PDF grátis | lattes2pdf">
+  <meta property="og:description" content="Abra seu XML ou ZIP, escolha o conteúdo e um dos nove temas. Sem cadastro e sem enviar seu arquivo a um servidor.">
+  <meta property="og:image" content="https://mpds.github.io/lattes2pdf/generated/brand/social-preview.png">
+  <meta property="og:image:alt" content="lattes2pdf — Seu Currículo Lattes em PDF">
+  <title>Converter Currículo Lattes em PDF grátis | lattes2pdf</title>
 </head>
-<body><div id="app"></div><noscript>Ative o JavaScript em um navegador atualizado para converter seu currículo localmente.</noscript><script type="module" src="/src/main.ts"></script></body>
+<body>
+  <div id="app">
+    <header class="header">
+      <div class="brand-frame">
+        <img src="/lattes2pdf/generated/brand/logo-horizontal-with-text-transparent-bg.png" alt="lattes2pdf" width="1767" height="445">
+      </div>
+      <div class="header-note">
+        <p>Seu Lattes, em PDF.</p>
+        <p class="privacy-short">Processado no seu navegador.</p>
+        <span id="runtime-status" class="runtime-status invisible" role="status"></span>
+      </div>
+    </header>
+    <div id="introduction" class="introduction">
+      <h1>Seu Currículo Lattes em PDF</h1>
+      <p>Converta seu XML ou ZIP em um currículo com o conteúdo e o visual que você escolher.</p>
+      <a href="#como-exportar">Como exportar meu Lattes?</a>
+    </div>
+    <noscript><p class="notice">Ative o JavaScript em um navegador atualizado para converter seu currículo localmente. Você pode consultar as orientações abaixo sem ativá-lo.</p></noscript>
+    <section id="guide" class="guide" aria-labelledby="guide-title">
+      <h2 id="guide-title">Como usar o lattes2pdf</h2>
+      <div class="guide-columns">
+        <div>
+          <h3 id="como-exportar" tabindex="-1">Como exportar o Currículo Lattes em XML</h3>
+          <ol class="guide-instructions">
+            <li>Acesse a <a href="https://lattes.cnpq.br/" target="_blank" rel="noreferrer noopener">Plataforma Lattes do CNPq</a> e entre na área de atualização do seu currículo.</li>
+            <li>Use a opção de exportar currículo e escolha o formato <strong>XML</strong>. Salve o arquivo no seu computador ou celular.</li>
+            <li>Aqui no lattes2pdf, escolha um modelo e abra o XML ou o ZIP exportado. Não é preciso descompactar o ZIP.</li>
+          </ol>
+          <p>Depois, escolha um dos nove temas, ajuste as preferências e clique em <strong>Gerar PDF</strong>. O download começa assim que o documento estiver pronto.</p>
+        </div>
+        <div class="guide-answers">
+          <div>
+            <h3>Posso gerar um currículo resumido?</h3>
+            <p>Sim. Use o modelo Resumido ou Ampliado, inclua todas as categorias com o Completo ou escolha as seções no Personalizado.</p>
+          </div>
+          <div>
+            <h3>Meu currículo é enviado para algum servidor?</h3>
+            <p>Não. A leitura do arquivo e a geração do PDF acontecem no seu navegador. Não é necessário criar uma conta no lattes2pdf.</p>
+          </div>
+          <div>
+            <h3>O PDF mantém o formato da Plataforma Lattes?</h3>
+            <p>O lattes2pdf organiza os dados exportados em um novo layout, com temas do <a href="https://rendercv.com/" target="_blank" rel="noreferrer noopener">RenderCV</a>. É um projeto independente, sem vínculo com o CNPq.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
 </html>

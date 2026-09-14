@@ -1,4 +1,3 @@
-import './styles/app.css';
 import { text } from './i18n/pt';
 import {
   type Catalog,
@@ -40,6 +39,12 @@ let outputUrls: string[] = [];
 let pdfUrl: string | undefined;
 let operation = 0;
 const root = document.querySelector<HTMLElement>('#app')!;
+// Keep public content from the initial HTML when rebuilding the workflow.
+const header = root.querySelector<HTMLElement>('.header')!;
+const introduction = root.querySelector<HTMLElement>('#introduction')!;
+const guide = root.querySelector<HTMLElement>('#guide')!;
+const runtimeStatus = header.querySelector<HTMLElement>('#runtime-status')!;
+header.querySelector('.privacy-short')!.prepend(icon('shield'));
 
 function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -1003,31 +1008,10 @@ function render(focus = false) {
       );
   }
   root.dataset.ready = String(ready);
-  const logo = el('img');
-  logo.src = engine.assetUrl(
-    'brand/logo-horizontal-with-text-transparent-bg.png',
-  );
-  logo.alt = 'lattes2pdf';
-  logo.width = 1767;
-  logo.height = 445;
-  const status = el(
-    'span',
-    `runtime-status ${ready || busy ? 'invisible' : ''}`,
-    error ? 'Não foi possível preparar o conversor' : 'Preparando conversor…',
-  );
-  status.setAttribute('role', 'status');
-  const header = el(
-    'header',
-    'header',
-    el('div', 'brand-frame', logo),
-    el(
-      'div',
-      'header-note',
-      el('p', '', 'Seu Lattes, em PDF.'),
-      el('p', 'privacy-short', icon('shield'), 'Processado no seu navegador.'),
-      status,
-    ),
-  );
+  runtimeStatus.classList.toggle('invisible', ready || busy);
+  runtimeStatus.textContent = error
+    ? 'Não foi possível preparar o conversor'
+    : 'Preparando conversor…';
   const steps = el('ol', 'steps');
   text.stages.forEach((title, index) => {
     const item = el(
@@ -1040,8 +1024,8 @@ function render(focus = false) {
     steps.append(item);
   });
   const heading = el(
-    'h1',
-    '',
+    'h2',
+    'stage-title',
     [
       'Escolha o modelo',
       'Abra seu currículo',
@@ -1113,7 +1097,7 @@ function render(focus = false) {
   );
   const nav = el('nav', '', steps);
   nav.setAttribute('aria-label', 'Etapas da conversão');
-  root.replaceChildren(header, nav, panel, footer);
+  root.replaceChildren(header, introduction, nav, panel, guide, footer);
   if (busy)
     panel
       .querySelector<HTMLButtonElement>('.operation button')

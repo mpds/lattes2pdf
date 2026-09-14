@@ -45,7 +45,7 @@ with zipfile.ZipFile(GENERATED / "application.zip") as archive:
 for path in DIST.rglob("*"):
     if not path.is_file() or path.is_relative_to(GENERATED):
         continue
-    assert path == DIST / "index.html" or (
+    assert path in {DIST / "index.html", DIST / "sitemap.xml"} or (
         path.parent == DIST / "assets" and path.suffix in {".js", ".css"}
     ), path
 

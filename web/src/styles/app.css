@@ -71,7 +71,8 @@ h2 {
   letter-spacing: -0.035em;
   line-height: 1.18;
 }
-h1 {
+h1,
+.stage-title {
   font-size: 2.125rem;
   margin-bottom: 30px;
 }
@@ -178,6 +179,73 @@ input[aria-invalid="true"] {
 }
 .invisible {
   visibility: hidden;
+}
+.introduction {
+  padding: 12px 0 4px;
+}
+.introduction h1 {
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+.introduction p {
+  max-width: 66ch;
+  margin-bottom: 10px;
+  color: var(--muted);
+}
+.introduction a {
+  font-size: 0.875rem;
+  text-underline-offset: 4px;
+}
+.guide {
+  margin-top: 44px;
+  padding: 32px 4px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.guide h2 {
+  margin-bottom: 28px;
+}
+.guide-columns {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 44px;
+}
+.guide h3 {
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+.guide p,
+.guide li {
+  color: var(--muted);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+}
+.guide a {
+  text-underline-offset: 3px;
+}
+.guide p {
+  margin-bottom: 0;
+}
+.guide-instructions {
+  display: grid;
+  gap: 12px;
+  padding-left: 22px;
+  margin: 0 0 16px;
+}
+.guide-instructions li {
+  padding-left: 4px;
+}
+.guide-instructions li::marker {
+  color: var(--olive);
+  font-weight: 650;
+}
+.guide-answers {
+  display: grid;
+  gap: 22px;
+  align-content: start;
+}
+#como-exportar {
+  scroll-margin-top: 24px;
 }
 .steps {
   display: flex;
@@ -963,9 +1031,21 @@ dialog .sample {
     padding: 26px 20px;
     border-radius: 14px;
   }
-  h1 {
+  h1,
+  .stage-title {
     font-size: 1.875rem;
     margin-bottom: 26px;
+  }
+  .introduction h1 {
+    font-size: 1.75rem;
+  }
+  .guide {
+    margin-top: 32px;
+    padding-block: 26px;
+  }
+  .guide-columns {
+    grid-template-columns: 1fr;
+    gap: 28px;
   }
   h2 {
     font-size: 1.5rem;
@@ -1081,7 +1161,7 @@ dialog .sample {
   }
 }
 @media (max-width: 360px) {
-  h1 {
+  .stage-title {
     min-height: 2.36em;
   }
   .delivery-slot {

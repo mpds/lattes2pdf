@@ -13,8 +13,11 @@ test('progressive workflow, real downloads, offline reset, responsive and privac
   page.on('console', (m) => logs.push(m.text()));
   await page.goto('./');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-    'Escolha o modelo',
+    'Seu Currículo Lattes em PDF',
   );
+  await expect(
+    page.getByRole('main').getByRole('heading', { level: 2 }),
+  ).toHaveText('Escolha o modelo');
   await expect(page.getByRole('radio', { name: /Resumido/ })).toBeChecked();
   await expect(page.getByRole('checkbox')).toHaveCount(0);
   await expect(
@@ -91,6 +94,11 @@ test('progressive workflow, real downloads, offline reset, responsive and privac
   });
   await page.getByRole('radio', { name: 'Chicago', exact: true }).check();
   await page.getByRole('button', { name: 'Continuar' }).click();
+  // Put the action in view before measuring: clicking an offscreen button
+  // scrolls the test browser, independently of the application's layout.
+  await page
+    .getByRole('button', { name: 'Gerar PDF' })
+    .scrollIntoViewIfNeeded();
   const downloadEvent = page.waitForEvent('download');
   const actionPosition = await page
     .getByRole('button', { name: 'Gerar PDF' })
@@ -261,6 +269,13 @@ test('custom categories stay inside the dialog and preserve the page layout on s
   await expect(
     page.getByRole('button', { name: 'Privacidade', exact: true }),
   ).toBeFocused();
+  for (const label of ['Continuar', 'Voltar']) {
+    const navigation = page.getByRole('button', { name: label, exact: true });
+    await navigation.scrollIntoViewIfNeeded();
+    const scrollBefore = await page.evaluate(() => window.scrollY);
+    await navigation.click();
+    expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore);
+  }
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
