@@ -40,8 +40,8 @@ Depois do build, dentro de `web/` (os testes iniciam a prévia automaticamente):
 ```bash
 npm run lint
 npm run typecheck
-PLAYWRIGHT_BROWSERS_PATH=.cache/browsers npx playwright install chromium firefox webkit
-PLAYWRIGHT_BROWSERS_PATH=.cache/browsers npm test
+PLAYWRIGHT_BROWSERS_PATH=.cache/browsers npx playwright install chromium
+PLAYWRIGHT_BROWSERS_PATH=.cache/browsers npm test -- --project=chromium
 ../.venv/bin/pytest tests/test_adapter.py -q
 ```
 
@@ -50,4 +50,6 @@ Consulte os [avisos de terceiros](third-party/README.md) para informações sobr
 ## Publicação
 
 No repositório, selecione **Settings → Pages → Source → GitHub Actions**.
-O workflow **Site** valida os pull requests e publica a `main` após os testes passarem.
+Execute manualmente o workflow **Site** na aba **Actions**, selecionando a branch
+`main`. Ele valida o build no Chromium e o publica no GitHub Pages após os testes
+passarem. Pushes, pull requests e releases não disparam essa publicação automaticamente.

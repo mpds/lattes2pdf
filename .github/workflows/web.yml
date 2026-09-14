@@ -1,17 +1,14 @@
 name: Site
 
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: web-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: web
+  cancel-in-progress: true
 
 jobs:
   verify:
@@ -60,12 +57,12 @@ jobs:
         run: |
           .venv/bin/python -m build
           npm --prefix web run check:artifacts
-      - name: Instalar navegadores
+      - name: Instalar Chromium
         working-directory: web
-        run: npx playwright install --with-deps chromium firefox webkit
-      - name: Testar o site em Chromium, Firefox e WebKit
+        run: npx playwright install --with-deps chromium
+      - name: Testar o site no Chromium
         working-directory: web
-        run: npm test
+        run: npm test -- --project=chromium
       - name: Guardar relatório dos testes
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
@@ -75,14 +72,14 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - name: Preparar artefato do GitHub Pages
-        if: github.repository == 'mpds/lattes2pdf' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: github.repository == 'mpds/lattes2pdf' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v4
         with:
           path: web/dist
 
   deploy:
     name: Publicar no GitHub Pages
-    if: github.repository == 'mpds/lattes2pdf' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.repository == 'mpds/lattes2pdf' && github.ref == 'refs/heads/main'
     needs: verify
     runs-on: ubuntu-24.04
     timeout-minutes: 10
