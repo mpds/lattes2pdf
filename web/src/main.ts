@@ -302,15 +302,14 @@ function fileInput(
   return labelNode;
 }
 function openFile(file: File) {
-  discardDocument();
-  engine.stop();
-  ready = false;
   if (file.size === 0 || file.size > 25 * 1024 * 1024) {
     error = 'Selecione um XML ou ZIP de até 25 MiB.';
     render();
-    void initialize();
     return;
   }
+  discardDocument();
+  engine.stop();
+  ready = false;
   pendingFilename = file.name;
   void run(
     async () => {

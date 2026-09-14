@@ -56,14 +56,20 @@ sys.stdout.buffer.write(out.getvalue())`,
   await expect(page.getByText('Arquivo validado')).toBeVisible();
   await page.getByRole('button', { name: 'Trocar arquivo' }).click();
   await expect(page.locator(ready)).toBeVisible();
-  await page.locator('input[type=file]').setInputFiles({
-    name: 'large.xml',
-    mimeType: 'text/xml',
-    buffer: Buffer.alloc(25 * 1024 * 1024 + 1, 32),
-  });
-  await expect(page.getByRole('alert')).toContainText('25 MiB');
-  await expect(page.getByRole('button', { name: 'Continuar' })).toBeDisabled();
-  await expect(page.locator(ready)).toBeVisible();
+  for (const size of [0, 25 * 1024 * 1024 + 1]) {
+    await page.locator('input[type=file]').setInputFiles({
+      name: 'invalid-size.xml',
+      mimeType: 'text/xml',
+      buffer: Buffer.alloc(size, 32),
+    });
+    await expect(page.getByRole('alert')).toContainText('25 MiB');
+    await expect(
+      page.getByRole('button', { name: 'Continuar' }),
+    ).toBeDisabled();
+    // Reject file metadata immediately, keeping the converter ready to try again.
+    expect(await page.locator('#app').getAttribute('data-ready')).toBe('true');
+    await expect(page.locator('input[type=file]')).toBeEnabled();
+  }
   await page.locator('input[type=file]').setInputFiles({
     name: 'deep.xml',
     mimeType: 'text/xml',
