@@ -36,7 +36,6 @@ FAMILIES = {
     "Raleway",
     "XCharter",
     "EB Garamond",
-    "Fontin",
     "Lato",
     "Font Awesome 7",
 }
@@ -225,6 +224,9 @@ def main():
         put("themes/" + path.name, path.read_bytes(), "image")
     put("licenses/lattes2pdf.txt", (ROOT / "LICENSE").read_bytes(), "license")
     notices = json.loads((WEB / "third-party/index.json").read_text())
+    notices["notices"] = [
+        item for item in notices["notices"] if item["component"] != "Fontin"
+    ]
     for item in notices["notices"]:
         data = (WEB / "third-party" / item["file"]).read_bytes()
         if digest(data) != item["sha256"]:

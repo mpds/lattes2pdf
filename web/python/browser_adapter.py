@@ -13,6 +13,7 @@ from pathlib import Path, PurePosixPath
 from xml.parsers import expat
 
 import yaml
+from browser_design import apply_browser_typography
 from rendercv.renderer.templater.templater import render_full_template
 from rendercv.schema.rendercv_model_builder import (
     build_rendercv_model_from_commented_map,
@@ -362,6 +363,7 @@ def prepare(settings):
         raise CVError("Selecione um currículo antes de gerar o PDF.")
     profile = _profile(settings)
     data, report = export_data(_document, profile)
+    apply_browser_typography(data["design"])
     # No photo/custom files/remote resource resolver is part of this surface.
     if data["cv"].get("photo"):
         raise CVError("Fotos externas não são suportadas no navegador.")

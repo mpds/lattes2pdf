@@ -75,6 +75,20 @@ def test_simple_profile_round_trip_and_cli_parity(settings, tmp_path):
     assert {k: v for k, v in browser["report"].items() if k != "renderer"} == report
 
 
+def test_moderncv_exports_explicit_browser_font_and_preserves_profile(settings):
+    settings["theme"] = "moderncv"
+    adapter.load_document((FIXTURES / "academic.xml").read_bytes())
+    result = json.loads(adapter.prepare(settings))
+    data = yaml.safe_load(result["yaml"])
+    assert data["design"]["typography"]["font_family"] == "XCharter"
+    assert "XCharter" in result["typst"]
+    assert "Fontin" not in result["typst"]
+    restored = json.loads(
+        adapter.import_profile(adapter.export_profile(settings).encode())
+    )
+    assert json.loads(adapter.prepare(restored))["yaml"] == result["yaml"]
+
+
 @pytest.mark.parametrize("preset", adapter.PRESETS)
 def test_unmodified_builtin_profiles_reimport(preset):
     raw = adapter.files("lattes2pdf").joinpath("presets", preset + ".yaml").read_bytes()

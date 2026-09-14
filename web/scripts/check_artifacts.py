@@ -20,6 +20,11 @@ actual = {
     if path.is_file()
 }
 assert actual == expected, (actual - expected, expected - actual)
+assert not any(
+    "fontin" in path.lower()
+    and Path(path).suffix in {".otf", ".ttf", ".woff", ".woff2"}
+    for path in actual
+), "Fontin must not be distributed in the browser bundle"
 for asset in manifest["assets"]:
     raw = (GENERATED / asset["path"]).read_bytes()
     assert len(raw) == asset["size"]

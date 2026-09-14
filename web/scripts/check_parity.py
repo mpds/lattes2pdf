@@ -36,6 +36,8 @@ for case in CASES:
         / case["fixture"]
     )
     data, report = export_data(read_lattes(source), profile)
+    if profile.theme == "moderncv":
+        data["design"].setdefault("typography", {})["font_family"] = "XCharter"
     assert yaml.safe_load((EVIDENCE / f"{key}.yaml").read_text()) == data, key + " YAML"
     browser_report = json.loads((EVIDENCE / f"{key}.report.json").read_text())
     assert {k: v for k, v in browser_report.items() if k != "renderer"} == report, (

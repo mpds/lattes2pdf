@@ -743,6 +743,25 @@ function preferencesStage() {
     );
     sample.setAttribute('aria-label', `Ampliar ${text.themes[theme]}`);
     card.append(sample);
+    if (theme === 'moderncv') {
+      const fontNote = button(
+        '',
+        () =>
+          showDialog(
+            'Fonte do ModernCV',
+            el(
+              'p',
+              '',
+              'Nesta versão, a fonte do ModernCV foi substituída pela XCharter.',
+            ),
+          ),
+        'theme-help',
+      );
+      fontNote.append(el('span', 'help-mark', '?'));
+      fontNote.setAttribute('aria-label', 'Sobre a fonte do ModernCV');
+      fontNote.setAttribute('aria-haspopup', 'dialog');
+      card.append(fontNote);
+    }
     themes.append(card);
   }
   section.append(themes);

@@ -619,6 +619,7 @@ input[aria-invalid="true"] {
   margin-bottom: 20px;
 }
 .theme-card {
+  position: relative;
   min-width: 0;
 }
 .theme-option {
@@ -672,6 +673,33 @@ input[aria-invalid="true"] {
   color: var(--coffee);
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+.theme-help {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--muted);
+}
+.theme-help:hover {
+  color: var(--coffee);
+}
+.help-mark {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  line-height: 1;
 }
 .preferences {
   margin: 30px 0;
