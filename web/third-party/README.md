@@ -19,6 +19,6 @@ não equivale a confirmar autorização para disponibilizar esses arquivos a
 terceiros. Este levantamento não modifica nem substitui a fonte.
 
 O bundle também deve preservar os avisos já presentes nos wheels Python,
-`pdfjs-dist/LICENSE`, a licença do pacote rendercv-fonts e LICENSE/NOTICE de
+a licença do pacote rendercv-fonts e LICENSE/NOTICE de
 typst-assets. A coleta se limita aos componentes identificados; não é uma
 auditoria completa de todas as dependências transitivas dos binários WASM.

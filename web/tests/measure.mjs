@@ -7,8 +7,7 @@ const server = await chromium.launchServer();
 const browser = await chromium.connect(server.wsEndpoint());
 const context = await browser.newContext();
 const page = await context.newPage();
-const ready = () =>
-  page.getByText('Recursos prontos · conversão disponível offline').waitFor();
+const ready = () => page.locator('#app[data-ready="true"]').waitFor();
 const next = () =>
   page.getByRole('button', { name: 'Continuar', exact: true }).click();
 const hardware = Object.fromEntries(

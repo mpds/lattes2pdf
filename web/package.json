@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "@myriaddreamin/typst-ts-web-compiler": "0.7.0",
-    "pdfjs-dist": "6.3.289",
     "pyodide": "314.0.6"
   },
   "devDependencies": {

@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 
-const ready = 'Recursos prontos · conversão disponível offline';
+const ready = '#app[data-ready="true"]';
 
 test('ZIP member choice, bounded failures and compiler failure recover without old output', async ({
   page,
@@ -16,7 +16,7 @@ test('ZIP member choice, bounded failures and compiler failure recover without o
     throw new Error('Untrusted text opened a browser dialog');
   });
   await page.goto('./');
-  await expect(page.getByText(ready)).toBeVisible();
+  await expect(page.locator(ready)).toBeVisible();
   const requestCount = requests.length;
   await context.route(/^https?:\/\//, (route) =>
     route.abort('internetdisconnected'),
@@ -44,7 +44,7 @@ sys.stdout.buffer.write(out.getvalue())`,
   await page.getByRole('button', { name: 'Abrir XML selecionado' }).click();
   await expect(page.getByRole('alert')).toContainText('XML malformado');
   await page.getByRole('button', { name: 'Trocar arquivo' }).click();
-  await expect(page.getByText(ready)).toBeVisible();
+  await expect(page.locator(ready)).toBeVisible();
   await page.locator('input[type=file]').setInputFiles({
     name: 'replacement.zip',
     mimeType: 'application/zip',
@@ -55,7 +55,7 @@ sys.stdout.buffer.write(out.getvalue())`,
   await page.getByRole('button', { name: 'Abrir XML selecionado' }).click();
   await expect(page.getByText('Arquivo validado')).toBeVisible();
   await page.getByRole('button', { name: 'Trocar arquivo' }).click();
-  await expect(page.getByText(ready)).toBeVisible();
+  await expect(page.locator(ready)).toBeVisible();
   await page.locator('input[type=file]').setInputFiles({
     name: 'large.xml',
     mimeType: 'text/xml',
@@ -63,7 +63,7 @@ sys.stdout.buffer.write(out.getvalue())`,
   });
   await expect(page.getByRole('alert')).toContainText('25 MiB');
   await expect(page.getByRole('button', { name: 'Continuar' })).toBeDisabled();
-  await expect(page.getByText(ready)).toBeVisible();
+  await expect(page.locator(ready)).toBeVisible();
   await page.locator('input[type=file]').setInputFiles({
     name: 'deep.xml',
     mimeType: 'text/xml',
@@ -90,12 +90,14 @@ sys.stdout.buffer.write(out.getvalue())`,
     'Não foi possível compor o PDF',
   );
   await expect(
-    page.getByRole('link', { name: 'Baixar PDF', exact: true }),
+    page.getByRole('link', { name: 'Baixar PDF novamente', exact: true }),
   ).toHaveCount(0);
   await page.getByRole('button', { name: 'Limpar tudo', exact: true }).click();
-  await expect(page.getByText(ready)).toBeVisible();
+  await expect(page.locator(ready)).toBeVisible();
   await page.getByRole('button', { name: 'Continuar' }).click();
-  await page.getByRole('button', { name: 'Usar exemplo fictício' }).click();
+  await page
+    .locator('input[type=file]')
+    .setInputFiles('../tests/fixtures/academic.xml');
   await expect(page.getByText('Arquivo validado')).toBeVisible();
   await page.getByRole('button', { name: 'Continuar' }).click();
   await page.getByRole('button', { name: 'Continuar' }).click();
@@ -109,12 +111,12 @@ sys.stdout.buffer.write(out.getvalue())`,
   expect(logs.join('\n')).not.toMatch(/INJECAO|Lúcia|untrusted-header|onerror/);
 });
 
-test('cancel synchronous compilation, preview multiple pages and navigation discard documents', async ({
+test('cancel synchronous compilation, download a long document and navigation discard documents', async ({
   page,
   context,
 }, info) => {
   await page.goto('./');
-  await expect(page.getByText(ready)).toBeVisible();
+  await expect(page.locator(ready)).toBeVisible();
   await context.route(/^https?:\/\//, (route) =>
     route.abort('internetdisconnected'),
   );
@@ -144,9 +146,9 @@ test('cancel synchronous compilation, preview multiple pages and navigation disc
     page.getByRole('heading', { name: 'Abra seu currículo' }),
   ).toBeVisible();
   expect(Date.now() - start).toBeLessThan(3000);
-  await expect(page.getByText(ready)).toBeVisible();
+  await expect(page.locator(ready)).toBeVisible();
   await expect(
-    page.getByRole('link', { name: 'Baixar PDF', exact: true }),
+    page.getByRole('link', { name: 'Baixar PDF novamente', exact: true }),
   ).toHaveCount(0);
   await page
     .locator('input[type=file]')
@@ -158,14 +160,9 @@ test('cancel synchronous compilation, preview multiple pages and navigation disc
   await expect(
     page.getByRole('heading', { name: 'Seu PDF está pronto' }),
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Visualizar PDF' }).click();
   await expect(
-    page.getByRole('img', { name: /Página 1 de [2-9]/ }),
+    page.getByRole('link', { name: 'Baixar PDF novamente' }),
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Próxima página' }).click();
-  await expect(page.getByRole('img', { name: /Página 2 de/ })).toBeVisible();
-  await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog')).toHaveCount(0);
   await context.unrouteAll();
   await context.setOffline(false);
   await page.goto('about:blank');
@@ -176,6 +173,6 @@ test('cancel synchronous compilation, preview multiple pages and navigation disc
   await expect(page.getByRole('radio', { name: /^Resumido/ })).toBeChecked();
   await expect(page.getByText('Lúcia Exemplo')).toHaveCount(0);
   await expect(
-    page.getByRole('link', { name: 'Baixar PDF', exact: true }),
+    page.getByRole('link', { name: 'Baixar PDF novamente', exact: true }),
   ).toHaveCount(0);
 });

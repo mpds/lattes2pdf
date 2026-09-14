@@ -9,8 +9,7 @@ await mkdir(output, { recursive: true });
 const browser = await chromium.launch();
 const context = await browser.newContext({ acceptDownloads: true });
 const page = await context.newPage();
-const ready = () =>
-  page.getByText('Recursos prontos · conversão disponível offline').waitFor();
+const ready = () => page.locator('#app[data-ready="true"]').waitFor();
 const next = () =>
   page.getByRole('button', { name: 'Continuar', exact: true }).click();
 let lastDownload = 0;
@@ -107,10 +106,11 @@ try {
         .getByRole('heading', { name: 'Seu PDF está pronto' })
         .waitFor();
       const key = `${model.toLowerCase()}-${fixture.replace('.xml', '')}-${theme.toLowerCase().replaceAll(' ', '')}`;
-      await save('Baixar PDF', `${output}/${key}.pdf`);
+      await save('Baixar PDF novamente', `${output}/${key}.pdf`);
       await page.getByText('Outros arquivos', { exact: true }).click();
       await save('Baixar YAML', `${output}/${key}.yaml`);
       await save('Baixar relatório', `${output}/${key}.report.json`);
+      await page.getByRole('button', { name: 'Fechar', exact: true }).click();
       await save(
         'Salvar configuração',
         `${output}/${key}.profile.yaml`,

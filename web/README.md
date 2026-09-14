@@ -3,7 +3,7 @@
 Aplicação estática em português: Modelo → Arquivo → Tema e preferências → PDF.
 Converte XML/ZIP com o core Python existente, RenderCV e Typst, inteiramente no
 navegador. Os nove temas, seleção das 33 categorias, ABNT/Chicago, preferências
-bibliográficas, períodos independentes, configurações simples, prévia e downloads
+bibliográficas, períodos independentes, configurações simples e downloads
 funcionam sem um servidor de conversão. O core e a CLI não foram alterados.
 
 ## Preparação local
@@ -11,7 +11,9 @@ funcionam sem um servidor de conversão. O core e a CLI não foram alterados.
 Requisitos: Node **24** (testado 24.15.0 / npm 11.12.1), Python **3.12+**,
 `venv` e Poppler com `pdftoppm` no PATH. A validação usou macOS 26.6.2 arm64.
 Instale Poppler pelo gerenciador de pacotes do sistema, se necessário.
-As primeiras instalações, o bundle e a geração das miniaturas precisam de rede.
+As primeiras instalações e o bundle precisam de rede. As miniaturas são imagens PNG
+da primeira página dos PDFs fictícios de `examples/pdfs/`, com até 960 px no maior
+lado; sua geração só usa Poppler e os arquivos locais.
 Não use currículos reais como fixtures ou miniaturas.
 
 Na raiz do repositório, seguindo `CONTRIBUTING.md`:
@@ -60,8 +62,8 @@ atualizações de dependências; o build normal usa URLs e hashes fixados.
   pacotes Typst RenderCV **0.3.0** e fontawesome **0.6.0**. A base nativa usa
   Python **3.12.13**, `typst==0.14.8` (mesmo Typst 0.14.2), fontes e dependências
   Python de renderização alinhadas. `requirements-native.txt` fixa esse ambiente.
-- Prévia local com PDF.js **6.3.289**, canvas e navegação por páginas; sem executar
-  ações/anotações, buscar URLs do documento ou carregar fontes remotas.
+- Galeria com imagens estáticas dos PDFs de exemplo, ampliadas em uma janela.
+  A página não carrega um visualizador de PDF.
 - Vite **8.3.0**, TypeScript **5.9.3**, Biome **2.5.13**, Playwright **1.63.0**.
   Não há framework de interface, backend, serviço de análise ou service worker.
 
@@ -71,19 +73,33 @@ RenderCV. Atualizações dessas dependências precisam repetir as comparações.
 `scripts/compiler-csp.ts` substitui apenas callbacks fixos do wrapper WASM por
 funções estáticas, com verificações que falham se o código upstream mudar.
 A CSP permite execução WASM e workers Blob; bloqueia avaliação dinâmica de JS,
-frames e objetos. Os workers do compilador e da prévia só resolvem bytes locais.
+frames e objetos. O worker do compilador só resolve bytes locais.
 
-“Recursos prontos · conversão disponível offline” significa que o runtime,
-todos os temas/fontes/pacotes e a prévia já estão disponíveis na sessão. Depois
-disso, trocar de tema, cancelar, limpar, abrir outro arquivo e importar/exportar
-configurações não precisam de rede. Reabrir ou recarregar pode exigir conexão.
-O JavaScript inclui o worker da prévia antecipadamente por esse motivo; o aviso
-de tamanho de chunk do Vite é esperado (aproximadamente 1,75 MB, 525 KB gzip).
+A preparação carrega o runtime, temas, fontes, pacotes e miniaturas na sessão.
+Depois disso, trocar de tema, cancelar, limpar, abrir outro arquivo e
+importar/exportar configurações não precisam de rede. Reabrir ou recarregar pode
+exigir conexão. O aviso de preparação desaparece quando o conversor está pronto.
+
+“Gerar PDF” inicia o download automaticamente ao terminar. Uma confirmação
+separada oferece “Baixar PDF novamente”; o botão de geração mantém seu lugar e
+seu rótulo. “Salvar configuração” é uma ação secundária. “Outros arquivos” abre
+uma janela com YAML e relatório, sem expandir a página. As categorias
+personalizadas também usam uma janela com rolagem própria. “Reutilizar
+configuração” abre diretamente o seletor de arquivo, sem uma seção expansível.
+A leitura e a geração mostram um indicador animado e uma ação de cancelamento,
+respeitando a preferência por movimento reduzido.
+
+A marca da página usa `assets/logo-horizontal-with-text-transparent-bg.png`,
+preservando a proporção original. O favicon usa a versão transparente sem texto;
+os outros usos da marca no repositório não são alterados.
+“Privacidade” e “Limpar tudo” permanecem no rodapé em todas as etapas, ao lado
+dos links para o código e para abrir um relato de problema no GitHub.
 
 Documentos entram apenas no worker e no filesystem em memória. A aplicação não
 usa localStorage, sessionStorage, IndexedDB, cookies nem Cache Storage para
-salvar dados. Downloads são ações explícitas. Cancelar/Limpar encerra o worker,
-invalida trabalhos anteriores e remove resultados, prévias e URLs de download;
+salvar dados. O download do PDF decorre do clique em “Gerar PDF”; os demais
+downloads são ações explícitas. Cancelar/Limpar encerra o worker,
+invalida trabalhos anteriores e remove resultados e URLs de download;
 recursos públicos permanecem em memória para outra conversão offline. Não há
 recuperação automática de currículo ao retornar pelo histórico.
 
@@ -106,12 +122,14 @@ navegador e possível memória compartilhada contada mais de uma vez. O ensaio d
 5 MiB continha um comentário XML grande; não simula milhares de registros. A
 coleta de memória do navegador não é imediata após Limpar.
 
-O artefato medido tem cerca de **71,25 MB** sem compressão e **36,36 MB** estimados
-com gzip por arquivo. A prévia Python serve sem compressão; esses tempos de
+O artefato atual tem cerca de **69,34 MB** sem compressão e **35,63 MB** estimados
+com gzip por arquivo. O JavaScript da página tem cerca de **49 KB**, sem o
+visualizador de PDF anterior. As nove miniaturas somam cerca de **1,19 MB**. A prévia Python serve sem compressão; esses tempos de
 loopback não estimam o tempo de download pela internet.
 
 Verificados Chromium **153.0.8010.12**, Firefox **155.0** e WebKit **26.6** via
-Playwright, com largura desktop e 390 px, foco/teclado, downloads e prévia real.
+Playwright, com larguras desktop, 390 px e 320 px, foco/teclado, downloads
+automáticos e janelas sem transbordamento horizontal.
 WebKit automatizado **não é Safari**. Safari nativo, Edge e aparelhos Android/iOS
 não foram verificados neste ambiente; desempenho móvel permanece experimental.
 O controle nativo de aplicativos estava indisponível por permissão do ambiente.
@@ -170,7 +188,7 @@ git diff --check
 ## Arquivos e distribuição
 
 Somente `web/dist/` é o artefato estático. O build usa uma lista explícita de
-fontes, recursos do core, exemplo fictício, branding e miniaturas. O manifesto
+fontes, recursos do core, branding e miniaturas dos exemplos fictícios. O manifesto
 registra hashes/tamanhos; `check:artifacts` confere conteúdo e ausência de arquivos
 locais no site e nas distribuições Python. Nenhuma dependência web integra o
 pacote da CLI. Não há workflow de publicação neste trabalho.

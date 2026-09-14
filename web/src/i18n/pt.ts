@@ -30,5 +30,5 @@ export const text = {
     sb2nov: 'Sb2nov',
   } as Record<string, string>,
   privacy:
-    'Seu currículo é processado neste navegador. Nenhum arquivo ou dado do currículo é enviado ou salvo pelo aplicativo. Os arquivos que você baixar ficam no seu dispositivo. Os recursos públicos da página podem ficar no cache normal do navegador. Após a preparação, todas as conversões desta sessão funcionam offline. Reabrir a página pode exigir conexão. Limpar tudo descarta os documentos e resultados desta sessão; isso não apaga arquivos que você já baixou. O servidor recebe os acessos normais à página e aos seus recursos, sem nomes de arquivos ou dados do currículo. Não utilizamos análise de uso, cookies, contas ou recuperação de sessões.',
+    'Seu currículo é processado apenas neste navegador, sem enviar seus dados a um servidor. Não salvamos documentos ou histórico. “Limpar tudo” descarta os dados desta sessão; os arquivos já baixados continuam no seu dispositivo.',
 };

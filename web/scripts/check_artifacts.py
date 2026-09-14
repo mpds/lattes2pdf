@@ -26,6 +26,13 @@ for asset in manifest["assets"]:
     assert hashlib.sha256(raw).hexdigest() == asset["sha256"], asset["path"]
 
 assert {p.stem for p in (GENERATED / "themes").iterdir()} == set(THEMES)
+for name in [
+    "logo-horizontal-with-text-transparent-bg.png",
+    "logo-without-text-transparent-bg.png",
+]:
+    assert (GENERATED / "brand" / name).read_bytes() == (
+        ROOT / "assets" / name
+    ).read_bytes()
 source = {
     p.relative_to(ROOT / "src").as_posix(): p.read_bytes()
     for p in (ROOT / "src/lattes2pdf").rglob("*")

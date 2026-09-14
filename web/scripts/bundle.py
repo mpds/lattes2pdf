@@ -210,7 +210,11 @@ def main():
         ).read_bytes(),
         "compiler",
     )
-    for name in ["logo.png", "social-preview.png"]:
+    for name in [
+        "logo-horizontal-with-text-transparent-bg.png",
+        "logo-without-text-transparent-bg.png",
+        "social-preview.png",
+    ]:
         put("brand/" + name, (ROOT / "assets" / name).read_bytes(), "image")
     for theme in THEMES:
         path = WEB / ".cache/samples" / (theme + ".png")
@@ -219,7 +223,6 @@ def main():
                 "Generate all nine thumbnails first: python scripts/samples.py"
             )
         put("themes/" + path.name, path.read_bytes(), "image")
-    put("example.xml", (ROOT / "tests/fixtures/academic.xml").read_bytes(), "example")
     put("licenses/lattes2pdf.txt", (ROOT / "LICENSE").read_bytes(), "license")
     notices = json.loads((WEB / "third-party/index.json").read_text())
     for item in notices["notices"]:
@@ -228,11 +231,6 @@ def main():
             raise ValueError("Third-party notice checksum mismatch: " + item["file"])
         put("licenses/" + item["file"], data, "license")
     put("licenses/index.json", json.dumps(notices, indent=2).encode(), "license")
-    put(
-        "licenses/pdfjs-dist.txt",
-        (WEB / "node_modules/pdfjs-dist/LICENSE").read_bytes(),
-        "license",
-    )
     (OUT / "manifest.json").write_text(
         json.dumps(
             dict(pyodide=PYODIDE, packages=list(packages), assets=assets),

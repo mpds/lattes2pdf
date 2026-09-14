@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
 
-const ready = 'Recursos prontos · conversão disponível offline';
+const ready = '#app[data-ready="true"]';
 test('page and Blob-worker CSP reject script evaluation and external transport', async ({
   page,
 }) => {
   await page.goto('./');
-  await expect(page.getByText(ready)).toBeVisible();
+  await expect(page.locator(ready)).toBeVisible();
   // DevTools evaluation itself bypasses CSP. Run the probe as an ordinary
   // permitted Blob script so the browser applies the document policy.
   expect(
@@ -56,7 +56,7 @@ test('invalid input, cancellation, reset and keyboard selection cannot restore a
   context,
 }, info) => {
   await page.goto('./');
-  await expect(page.getByText(ready)).toBeVisible();
+  await expect(page.locator(ready)).toBeVisible();
   await context.route(/^https?:\/\//, (route) =>
     route.abort('internetdisconnected'),
   );
@@ -78,15 +78,19 @@ test('invalid input, cancellation, reset and keyboard selection cannot restore a
   });
   await expect(page.getByRole('alert')).toContainText('DTD ou entidades');
   await expect(page.getByRole('button', { name: 'Continuar' })).toBeDisabled();
-  await page.getByRole('button', { name: 'Usar exemplo fictício' }).click();
+  await page
+    .locator('input[type=file]')
+    .setInputFiles('../tests/fixtures/academic.xml');
   await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
-  await expect(page.getByText(ready)).toBeVisible();
+  await expect(page.locator(ready)).toBeVisible();
   await expect(page.getByText('Ana Exemplo Fictícia')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Continuar' })).toBeDisabled();
-  await page.getByRole('button', { name: 'Usar exemplo fictício' }).click();
+  await page
+    .locator('input[type=file]')
+    .setInputFiles('../tests/fixtures/academic.xml');
   await expect(page.getByText('Arquivo validado')).toBeVisible();
   await page.getByRole('button', { name: 'Limpar tudo', exact: true }).click();
-  await expect(page.getByText(ready)).toBeVisible();
+  await expect(page.locator(ready)).toBeVisible();
   await expect(page.getByText('Ana Exemplo Fictícia')).toHaveCount(0);
   await expect(page.getByRole('radio', { name: /^Resumido/ })).toBeChecked();
 });
@@ -96,7 +100,7 @@ test('downloaded simple configuration restores visible controls offline and reje
   context,
 }, info) => {
   await page.goto('./');
-  await expect(page.getByText(ready)).toBeVisible();
+  await expect(page.locator(ready)).toBeVisible();
   await context.route(/^https?:\/\//, (route) =>
     route.abort('internetdisconnected'),
   );
@@ -109,8 +113,11 @@ test('downloaded simple configuration restores visible controls offline and reje
       exact: true,
     })
     .check();
+  await page.getByRole('button', { name: 'Concluir seleção' }).click();
   await page.getByRole('button', { name: 'Continuar' }).click();
-  await page.getByRole('button', { name: 'Usar exemplo fictício' }).click();
+  await page
+    .locator('input[type=file]')
+    .setInputFiles('../tests/fixtures/academic.xml');
   await expect(page.getByText('Arquivo validado')).toBeVisible();
   await page.getByRole('button', { name: 'Continuar' }).click();
   await page.getByRole('radio', { name: 'Opal', exact: true }).check();
@@ -126,15 +133,18 @@ test('downloaded simple configuration restores visible controls offline and reje
   await page.getByRole('button', { name: 'Salvar configuração' }).click();
   const file = await (await pending).path();
   await page.getByRole('button', { name: 'Limpar tudo', exact: true }).click();
-  await expect(page.getByText(ready)).toBeVisible();
-  await page.getByText('Reutilizar configuração', { exact: true }).click();
+  await expect(page.locator(ready)).toBeVisible();
   await page.locator('input[type=file]').setInputFiles(file!);
   await expect(
     page.getByRole('radio', { name: /^Personalizado/ }),
   ).toBeChecked();
+  await page.getByRole('button', { name: 'Escolher categorias' }).click();
   await expect(page.getByRole('checkbox', { checked: true })).toHaveCount(1);
+  await page.getByRole('button', { name: 'Concluir seleção' }).click();
   await page.getByRole('button', { name: 'Continuar' }).click();
-  await page.getByRole('button', { name: 'Usar exemplo fictício' }).click();
+  await page
+    .locator('input[type=file]')
+    .setInputFiles('../tests/fixtures/academic.xml');
   await expect(page.getByText('Arquivo validado')).toBeVisible();
   await page.getByRole('button', { name: 'Continuar' }).click();
   await expect(
@@ -152,8 +162,7 @@ test('downloaded simple configuration restores visible controls offline and reje
   await professional.getByRole('radio', { name: 'Todo o período' }).check();
   await expect(professional.getByRole('textbox')).toHaveCount(0);
   await page.getByRole('button', { name: 'Limpar tudo', exact: true }).click();
-  await expect(page.getByText(ready)).toBeVisible();
-  await page.getByText('Reutilizar configuração', { exact: true }).click();
+  await expect(page.locator(ready)).toBeVisible();
   await page.locator('input[type=file]').setInputFiles({
     name: 'advanced.yaml',
     mimeType: 'text/yaml',

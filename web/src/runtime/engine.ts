@@ -163,10 +163,6 @@ export class Engine {
     return value;
   }
 
-  example(): Uint8Array<ArrayBuffer> {
-    return new Uint8Array(this.bundle!.files.get('example.xml')!);
-  }
-
   stop(reason = new TaskError('Operação cancelada.', 'cancelled')) {
     this.generation++;
     clearTimeout(this.initializationTimer);
