@@ -1108,7 +1108,7 @@ function render(focus = false) {
     el(
       'div',
       'footer-tools',
-      el('span', 'version', 'v0.2.0'),
+      el('span', 'version', 'v0.3.0'),
       privacy,
       button('Limpar tudo', clear, 'text-button'),
     ),
