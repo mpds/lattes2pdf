@@ -931,7 +931,7 @@ function pdfStage() {
       ),
     );
   }
-  body.append(actions, delivery);
+  body.append(actions, el('div', 'delivery-slot', delivery));
   const others = button(
     'Outros arquivos',
     () => {

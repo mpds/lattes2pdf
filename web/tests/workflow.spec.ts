@@ -131,6 +131,23 @@ test('progressive workflow, real downloads, offline reset, responsive and privac
     path: `${evidence}/${info.project.name}-result.png`,
     fullPage: true,
   });
+  for (const width of [390, 1280]) {
+    await page.setViewportSize({ width, height: 844 });
+    const card = page.locator('.delivery.complete');
+    const bottomSpace = await card.evaluate((node) => {
+      const contentBottom = Math.max(
+        ...Array.from(
+          node.children,
+          (child) => child.getBoundingClientRect().bottom,
+        ),
+      );
+      return node.getBoundingClientRect().bottom - contentBottom;
+    });
+    expect(bottomSpace).toBeLessThanOrEqual(24);
+    await page.locator('.panel').screenshot({
+      path: `${evidence}/${info.project.name}-success-panel-${width}.png`,
+    });
+  }
   await page.setViewportSize({ width: 320, height: 740 });
   await page.getByRole('button', { name: 'Voltar e ajustar' }).click();
   await page.getByRole('radio', { name: 'ABNT', exact: true }).check();
