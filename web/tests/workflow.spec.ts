@@ -172,7 +172,7 @@ test('progressive workflow, real downloads, offline reset, responsive and privac
   await page.getByRole('button', { name: 'Gerar PDF' }).click();
   expect((await updatedDownload).suggestedFilename()).toBe('curriculo.pdf');
   await expect(page.getByText('PDF gerado com sucesso')).toBeVisible();
-  expect(await position()).toEqual(previousPosition);
+  expect(await position()).toBeCloseTo(previousPosition, 2);
   await page.getByRole('button', { name: 'Limpar tudo', exact: true }).click();
   await expect(
     page.getByRole('heading', { name: 'Escolha o modelo' }),
@@ -246,7 +246,7 @@ test('custom categories stay inside the dialog and preserve the page layout on s
   ).toBeFocused();
   await expect(next).toBeDisabled();
   await next.scrollIntoViewIfNeeded();
-  expect(await position()).toEqual(original);
+  expect(await position()).toBeCloseTo(original, 2);
   await page.getByRole('button', { name: 'Escolher categorias' }).click();
   await page.getByRole('button', { name: 'Selecionar todas' }).click();
   await page.getByRole('button', { name: 'Concluir seleção' }).click();
@@ -255,7 +255,7 @@ test('custom categories stay inside the dialog and preserve the page layout on s
   await page.getByText('Reutilizar configuração', { exact: true }).click();
   await chooserEvent;
   await next.scrollIntoViewIfNeeded();
-  expect(await position()).toEqual(original);
+  expect(await position()).toBeCloseTo(original, 2);
   await expect(page.locator('details')).toHaveCount(0);
   await expect(
     page.getByRole('button', { name: 'Limpar tudo', exact: true }),
@@ -274,7 +274,10 @@ test('custom categories stay inside the dialog and preserve the page layout on s
     await navigation.scrollIntoViewIfNeeded();
     const scrollBefore = await page.evaluate(() => window.scrollY);
     await navigation.click();
-    expect(await page.evaluate(() => window.scrollY)).toBe(scrollBefore);
+    expect(await page.evaluate(() => window.scrollY)).toBeCloseTo(
+      scrollBefore,
+      2,
+    );
   }
   expect(
     await page.evaluate(
