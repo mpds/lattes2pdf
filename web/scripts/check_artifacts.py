@@ -4,6 +4,7 @@ import gzip
 import hashlib
 import json
 import tarfile
+import tomllib
 import zipfile
 from pathlib import Path
 
@@ -54,9 +55,10 @@ for path in DIST.rglob("*"):
         path.parent == DIST / "assets" and path.suffix in {".js", ".css"}
     ), path
 
+version = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["version"]
 artifacts = [
-    ROOT / "dist/lattes2pdf-0.2.0-py3-none-any.whl",
-    ROOT / "dist/lattes2pdf-0.2.0.tar.gz",
+    ROOT / f"dist/lattes2pdf-{version}-py3-none-any.whl",
+    ROOT / f"dist/lattes2pdf-{version}.tar.gz",
 ]
 for path in artifacts:
     if path.suffix == ".whl":

@@ -1,0 +1,98 @@
+name: Site
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  verify:
+    name: Build e testes do site
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            web/requirements-native.txt
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Instalar dependências Python e Poppler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils
+          python -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/python -m pip install -r web/requirements-native.txt -e . --group dev
+      - name: Instalar dependências JavaScript
+        working-directory: web
+        run: npm ci
+      - name: Verificar código e testes Python
+        run: |
+          .venv/bin/ruff check web
+          .venv/bin/ruff format --check web
+          .venv/bin/pytest tests web/tests/test_adapter.py -q
+          npm --prefix web run lint
+      - name: Gerar miniaturas e build de produção
+        run: |
+          .venv/bin/python web/scripts/samples.py
+          npm --prefix web run build
+      - name: Conferir conteúdo dos artefatos
+        run: |
+          .venv/bin/python -m build
+          npm --prefix web run check:artifacts
+      - name: Instalar navegadores
+        working-directory: web
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Testar o site em Chromium, Firefox e WebKit
+        working-directory: web
+        run: npm test
+      - name: Guardar relatório dos testes
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-test-report
+          path: web/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Preparar artefato do GitHub Pages
+        if: github.repository == 'mpds/lattes2pdf' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: web/dist
+
+  deploy:
+    name: Publicar no GitHub Pages
+    if: github.repository == 'mpds/lattes2pdf' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar artefato verificado
+        id: deployment
+        uses: actions/deploy-pages@v4

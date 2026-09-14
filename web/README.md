@@ -35,7 +35,7 @@ Os arquivos estáticos são gerados em `web/dist/`.
 
 ## Validação
 
-Com a prévia em execução, em outro terminal dentro de `web/`:
+Depois do build, dentro de `web/` (os testes iniciam a prévia automaticamente):
 
 ```bash
 npm run lint
@@ -46,3 +46,8 @@ PLAYWRIGHT_BROWSERS_PATH=.cache/browsers npm test
 ```
 
 Consulte os [avisos de terceiros](third-party/README.md) para informações sobre licenças.
+
+## Publicação
+
+No repositório, selecione **Settings → Pages → Source → GitHub Actions**.
+O workflow **Site** valida os pull requests e publica a `main` após os testes passarem.
